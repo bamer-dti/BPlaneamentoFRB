@@ -1,4 +1,4 @@
-package couchbase;
+package pojos;
 
 import java.time.LocalDateTime;
 

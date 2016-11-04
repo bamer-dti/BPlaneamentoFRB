@@ -24,7 +24,6 @@ captures/
 .gitignore
 .idea/
 data/
-dbprefs.db
 gradle/
 gradlew
 gradlew.bat
