@@ -1,6 +1,6 @@
-package couchbase;
+package utils;
 
-public class CamposCouch {
+public class NomesDeCampos {
     public static final String FIELD_OBRANO = "obrano";
     public static final String FIELD_FREF = "fref";
     public static final String FIELD_NMFREF = "nmfref";

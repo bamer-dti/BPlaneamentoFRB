@@ -3,7 +3,7 @@ package utils;
 
 public class ValoresDefeito {
     //GLOBALS
-    public static final String TITULO_APP = "Bamer Planeamento";
+    public static final String TITULO_APP = "BPlaneamento FRB";
 
     //COUCHBASE
     public static final String COUCHBASE_BASE_DADOS = "bameros001";

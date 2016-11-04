@@ -2,11 +2,6 @@ package objectos;
 
 import bamer.AppMain;
 import bamer.ControllerEditar;
-import bamer.ControllerNotas;
-import com.couchbase.lite.*;
-import couchbase.ArtigoOSBO;
-import couchbase.CamposCouch;
-import couchbase.ServicoCouchBase;
 import javafx.application.Platform;
 import javafx.beans.binding.StringExpression;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -39,8 +34,8 @@ import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.stage.WindowEvent;
 import javafx.util.StringConverter;
+import pojos.ArtigoOSBO;
 import sql.BamerSqlServer;
 import sqlite.PreferenciasEmSQLite;
 import utils.Constantes;
@@ -57,8 +52,6 @@ import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-
-import static java.lang.System.out;
 
 public class VBoxOSBO extends VBox {
     private static final int COR_AZUL = 0;
@@ -120,6 +113,30 @@ public class VBoxOSBO extends VBox {
         configurarContextMenu();
     }
 
+    public static int getPosicao(String bostamp) {
+        //todo buscar a última posição de tempo
+//        com.couchbase.lite.View view = ServicoCouchBase.getInstancia().viewTemposPorDossier;
+//        Query query = view.createQuery();
+//        String maxText = Long.MAX_VALUE + "";
+//        query.setStartKey(Arrays.asList(bostamp, "", ""));
+//        query.setEndKey(Arrays.asList(bostamp, maxText, maxText));
+        int posicaoSQL = 0;
+//        try {
+//            QueryEnumerator queryEnumerator = query.run();
+//            Document document = null;
+//            while (queryEnumerator.hasNext()) {
+//                QueryRow queryRow = queryEnumerator.next();
+//                document = queryRow.getDocument();
+//            }
+//            if (document != null) {
+//                posicaoSQL = Integer.parseInt(document.getProperty(NomesDeCampos.FIELD_POSICAO).toString());
+//            }
+//        } catch (CouchbaseLiteException e) {
+//            e.printStackTrace();
+//        }
+        return posicaoSQL;
+    }
+
     private void criarObjectos() {
         PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
         int minWidth = prefs.getInt(Constantes.PREF_COMPRIMENTO_MINIMO, ValoresDefeito.COL_COMPRIMENTO);
@@ -140,35 +157,36 @@ public class VBoxOSBO extends VBox {
             @Override
             public void handle(MouseEvent event) {
                 if (event.isPrimaryButtonDown() && event.getClickCount() == 2) {
-                    try {
-                        View view = null;
-                        try {
-                            view = ServicoCouchBase.getInstancia().getViewNotas();
-                            String bostamp = bostampProp.get();
-                            Query query = view.createQuery();
-                            query.setStartKey(bostamp);
-                            query.setEndKey(bostamp);
-                            QueryEnumerator queryEnumerator = query.run();
-                            Document document;
-                            if (queryEnumerator.getCount() > 0) {
-                                document = queryEnumerator.next().getDocument();
-                                if (document.getProperty(CamposCouch.FIELD_TEXTO) != null) {
-                                    String textnota = document.getProperty(CamposCouch.FIELD_TEXTO).toString();
-                                    if (!textnota.equals("")) {
-                                        notaPropProperty().set(textnota);
-                                    }
-                                }
-                            } else {
-                                document = ServicoCouchBase.getInstancia().criarDocumentoNota(bostamp);
-                            }
-                            editarNota(document);
-                        } catch (CouchbaseLiteException e) {
-                            e.printStackTrace();
-                        }
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    //todo editar notas
+//                    try {
+//                        View view = null;
+//                        try {
+//                            view = ServicoCouchBase.getInstancia().getViewNotas();
+//                            String bostamp = bostampProp.get();
+//                            Query query = view.createQuery();
+//                            query.setStartKey(bostamp);
+//                            query.setEndKey(bostamp);
+//                            QueryEnumerator queryEnumerator = query.run();
+//                            Document document;
+//                            if (queryEnumerator.getCount() > 0) {
+//                                document = queryEnumerator.next().getDocument();
+//                                if (document.getProperty(NomesDeCampos.FIELD_TEXTO) != null) {
+//                                    String textnota = document.getProperty(NomesDeCampos.FIELD_TEXTO).toString();
+//                                    if (!textnota.equals("")) {
+//                                        notaPropProperty().set(textnota);
+//                                    }
+//                                }
+//                            } else {
+//                                document = ServicoCouchBase.getInstancia().criarDocumentoNota(bostamp);
+//                            }
+//                            editarNota(document);
+//                        } catch (CouchbaseLiteException e) {
+//                            e.printStackTrace();
+//                        }
+//
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
                 }
                 event.consume();
             }
@@ -320,38 +338,34 @@ public class VBoxOSBO extends VBox {
 //                out.println("*****************************" + artigoOSBOProp.get().getBostamp() + ", " + notaProp.get() + ", " + newValue.longValue());
 //                }
                 long tempoCalculado = 0;
-                try {
-                    if (getPosicao(bostamp) == Constantes.STARTED) {
-                        mostrarRegistoEmModoStarted(bostampProp.get());
-                    } else {
-                        if (timer != null) {
-                            timer.cancel();
-                            timer.purge();
-                            timer = null;
-                        }
-                        tempoCalculado = ServicoCouchBase.getInstancia().getTempoTotal(bostamp);
-                        if (tempoCalculado != 0) {
-                            String textoTempo = Funcoes.milisegundos_em_HH_MM_SS(tempoCalculado * 1000);
-                            Platform.runLater(new Runnable() {
-                                @Override
-                                public void run() {
-                                    labelTempos.setText("" + textoTempo);
-                                }
-                            });
-
-                        } else {
-                            Platform.runLater(new Runnable() {
-                                @Override
-                                public void run() {
-                                    labelTempos.setText("");
-                                }
-                            });
-                        }
+                if (getPosicao(bostamp) == Constantes.STARTED) {
+                    mostrarRegistoEmModoStarted(bostampProp.get());
+                } else {
+                    if (timer != null) {
+                        timer.cancel();
+                        timer.purge();
+                        timer = null;
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (CouchbaseLiteException e) {
-                    e.printStackTrace();
+                    //todo getTempoTotal(bostamp)
+//                        tempoCalculado = ServicoCouchBase.getInstancia().getTempoTotal(bostamp);
+                    tempoCalculado = 0;
+                    if (tempoCalculado != 0) {
+                        String textoTempo = Funcoes.milisegundos_em_HH_MM_SS(tempoCalculado * 1000);
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                labelTempos.setText("" + textoTempo);
+                            }
+                        });
+
+                    } else {
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                labelTempos.setText("");
+                            }
+                        });
+                    }
                 }
 
                 boolean resultado = !(notaProp.get().equals("") && newValue.longValue() == 0);
@@ -361,17 +375,14 @@ public class VBoxOSBO extends VBox {
                 labelTempos.setVisible(resultado);
             }
 
-            private void mostrarRegistoEmModoStarted(String bostamp) throws IOException, CouchbaseLiteException {
+            private void mostrarRegistoEmModoStarted(String bostamp) {
                 long tempoTotal = 0;
                 long ultimoTempo = 0;
-                try {
-                    tempoTotal = ServicoCouchBase.getInstancia().getTempoTotal(bostamp);
-                    ultimoTempo = ServicoCouchBase.getInstancia().getUltimoTempo(bostamp);
-
-                } catch (CouchbaseLiteException e) {
-                    e.printStackTrace();
-                }
-
+                //todo verificar tempos
+//                    tempoTotal = ServicoCouchBase.getInstancia().getTempoTotal(bostamp);
+//                    ultimoTempo = ServicoCouchBase.getInstancia().getUltimoTempo(bostamp);
+                tempoTotal = 0;
+                ultimoTempo = 0;
                 final long finalTempoTotal = tempoTotal;
                 final long finalUltimoTempo = ultimoTempo;
                 TimerTask actualizarTempos = new TimerTask() {
@@ -454,81 +465,13 @@ public class VBoxOSBO extends VBox {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 boolean resultado = !(newValue.equals("") && tempoTotalProp.get() == 0);
-                out.println("notaProp listener: " + resultado);
+                System.out.println("notaProp listener: " + resultado);
                 hBoxNotificar.setManaged(resultado);
                 hBoxNotificar.setVisible(resultado);
                 imageNotas.setManaged(!newValue.equals(0));
                 imageNotas.setVisible(true);
             }
         });
-    }
-
-    public static int getPosicao(String bostamp) throws IOException, CouchbaseLiteException {
-        com.couchbase.lite.View view = ServicoCouchBase.getInstancia().viewTemposPorDossier;
-        Query query = view.createQuery();
-        String maxText = Long.MAX_VALUE + "";
-        query.setStartKey(Arrays.asList(bostamp, "", ""));
-        query.setEndKey(Arrays.asList(bostamp, maxText, maxText));
-        int posicaoSQL = 0;
-        try {
-            QueryEnumerator queryEnumerator = query.run();
-            Document document = null;
-            while (queryEnumerator.hasNext()) {
-                QueryRow queryRow = queryEnumerator.next();
-                document = queryRow.getDocument();
-            }
-            if (document != null) {
-                posicaoSQL = Integer.parseInt(document.getProperty(CamposCouch.FIELD_POSICAO).toString());
-            }
-        } catch (CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
-        return posicaoSQL;
-    }
-
-    public void setArtigoOSBOProp(ArtigoOSBO artigoOSBO) {
-        artigoOSBOProp.set(artigoOSBO);
-        setBostampProp(artigoOSBO.getBostamp());
-        frefProp.set(artigoOSBO.getFref());
-        nmfrefProp.set(artigoOSBO.getNmfref());
-        obranoProp.set(artigoOSBO.getObrano());
-        estadoProp.set(artigoOSBO.getEstado());
-        seccaoProp.set(artigoOSBO.getSeccao());
-        obsProp.set(artigoOSBO.getObs());
-
-        dtcortefProp.set(artigoOSBO.getDtcortef());
-        dttransfProp.set(artigoOSBO.getDttransf());
-        dtembalaProp.set(artigoOSBO.getDtembala());
-        dtexpediProp.set(artigoOSBO.getDtexpedi());
-
-        ordemProp.set(artigoOSBO.getOrdem());
-
-        corProp.set(artigoOSBO.getCor());
-
-        tempoTotalProp.set(artigoOSBO.getTempoTotal());
-        tempoParcialProp.set(artigoOSBO.getTempoParcial());
-
-        coluna = calcularColuna();
-
-        if (artigoOSBO.getOrdem() == 0) {
-            try {
-                ServicoCouchBase.getInstancia().deleteOSBI(artigoOSBO);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (CouchbaseLiteException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (artigoOSBO.getSeccao().trim().equals("")) {
-            try {
-                ServicoCouchBase.getInstancia().deleteOSBI(artigoOSBO);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (CouchbaseLiteException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     private void arranjinhos() {
@@ -758,13 +701,14 @@ public class VBoxOSBO extends VBox {
 
                     for (VBoxOSBO vBoxOSBO : listaDeAlteracoes) {
                         GridPane.setConstraints(vBoxOSBO, vBoxOSBO.getColuna(), vBoxOSBO.getOrdemProp());
-                        try {
-                            ServicoCouchBase.getInstancia().actualizarOrdem(vBoxOSBO);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (CouchbaseLiteException e) {
-                            e.printStackTrace();
-                        }
+                        //todo Actualizar a ordem!
+//                        try {
+//                            ServicoCouchBase.getInstancia().actualizarOrdem(vBoxOSBO);
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                        } catch (CouchbaseLiteException e) {
+//                            e.printStackTrace();
+//                        }
                     }
                     event.consume();
                 }
@@ -814,83 +758,51 @@ public class VBoxOSBO extends VBox {
             @Override
             public void handle(ActionEvent event) {
                 String bostamp = bostampProp.get();
-                ServicoCouchBase instancia;
-                try {
-                    instancia = ServicoCouchBase.getInstancia();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return;
-                } catch (CouchbaseLiteException e) {
-                    e.printStackTrace();
-                    return;
-                }
-                View view;
-                view = instancia.getViewNotas();
-                Query query = view.createQuery();
-                query.setStartKey(bostamp);
-                query.setEndKey(bostamp);
-                QueryEnumerator queryEnumerator = null;
-                try {
-                    queryEnumerator = query.run();
-                } catch (CouchbaseLiteException e) {
-                    e.printStackTrace();
-                    return;
-                }
-                out.println("Nº de notas encontradas: " + queryEnumerator.getCount());
-                Document document;
-                if (queryEnumerator.getCount() == 0) {
-                    try {
-                        document = instancia.criarDocumentoNota(bostamp);
-                    } catch (CouchbaseLiteException e) {
-                        e.printStackTrace();
-                        return;
-                    }
-                } else {
-                    document = queryEnumerator.next().getDocument();
-                }
-                try {
-                    editarNota(document);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                // todo editar nota via menu
+//                ServicoCouchBase instancia;
+//                try {
+//                    instancia = ServicoCouchBase.getInstancia();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                    return;
+//                } catch (CouchbaseLiteException e) {
+//                    e.printStackTrace();
+//                    return;
+//                }
+//                View view;
+//                view = instancia.getViewNotas();
+//                Query query = view.createQuery();
+//                query.setStartKey(bostamp);
+//                query.setEndKey(bostamp);
+//                QueryEnumerator queryEnumerator = null;
+//                try {
+//                    queryEnumerator = query.run();
+//                } catch (CouchbaseLiteException e) {
+//                    e.printStackTrace();
+//                    return;
+//                }
+//                out.println("Nº de notas encontradas: " + queryEnumerator.getCount());
+//                Document document;
+//                if (queryEnumerator.getCount() == 0) {
+//                    try {
+//                        document = instancia.criarDocumentoNota(bostamp);
+//                    } catch (CouchbaseLiteException e) {
+//                        e.printStackTrace();
+//                        return;
+//                    }
+//                } else {
+//                    document = queryEnumerator.next().getDocument();
+//                }
+//                try {
+//                    editarNota(document);
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
             }
         });
         menuAccoes.getItems().add(itemNota);
 
         contextMenu.getItems().addAll(menuCor, menuAccoes);
-    }
-
-    private void editarNota(Document document) throws IOException {
-        URL location = ClassLoader.getSystemResource("editarNota.fxml");
-        FXMLLoader loader = new FXMLLoader(location);
-        Parent root = loader.load();
-        Stage stage = new Stage();
-        stage.setTitle("Notas");
-        stage.setScene(new Scene(root));
-        ControllerNotas controller = loader.getController();
-        controller.areaDoTexto.textProperty().bindBidirectional(notaPropProperty());
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initStyle(StageStyle.UTILITY);
-        stage.show();
-
-        stage.setOnHiding(new EventHandler<WindowEvent>() {
-            @Override
-            public void handle(WindowEvent event) {
-                try {
-                    guardarNota(document, controller.areaDoTexto.getText());
-                } catch (CouchbaseLiteException e) {
-                    e.printStackTrace();
-                    Funcoes.alerta("Erro ao gravar nota!", Alert.AlertType.ERROR);
-                }
-            }
-        });
-    }
-
-    private void guardarNota(Document document, String text) throws CouchbaseLiteException {
-        Map map = new HashMap<String, Object>();
-        map.putAll(document.getProperties());
-        map.put(CamposCouch.FIELD_TEXTO, text);
-        document.putProperties(map);
     }
 
     private void pintar(int cor) {
@@ -906,6 +818,41 @@ public class VBoxOSBO extends VBox {
             }
         }
     }
+
+    //todo procedimento editar nota
+//    private void editarNota(Document document) throws IOException {
+//        URL location = ClassLoader.getSystemResource("editarNota.fxml");
+//        FXMLLoader loader = new FXMLLoader(location);
+//        Parent root = loader.load();
+//        Stage stage = new Stage();
+//        stage.setTitle("Notas");
+//        stage.setScene(new Scene(root));
+//        ControllerNotas controller = loader.getController();
+//        controller.areaDoTexto.textProperty().bindBidirectional(notaPropProperty());
+//        stage.initModality(Modality.APPLICATION_MODAL);
+//        stage.initStyle(StageStyle.UTILITY);
+//        stage.show();
+//
+//        stage.setOnHiding(new EventHandler<WindowEvent>() {
+//            @Override
+//            public void handle(WindowEvent event) {
+//                try {
+//                    guardarNota(document, controller.areaDoTexto.getText());
+//                } catch (CouchbaseLiteException e) {
+//                    e.printStackTrace();
+//                    Funcoes.alerta("Erro ao gravar nota!", Alert.AlertType.ERROR);
+//                }
+//            }
+//        });
+//    }
+
+    //todo procedimento guardar a nota
+//    private void guardarNota(Document document, String text) throws CouchbaseLiteException {
+//        Map map = new HashMap<String, Object>();
+//        map.putAll(document.getProperties());
+//        map.put(NomesDeCampos.FIELD_TEXTO, text);
+//        document.putProperties(map);
+//    }
 
     private void abrirEdicao() throws IOException {
         URL location = ClassLoader.getSystemResource("editarCompromisso.fxml");
@@ -961,7 +908,7 @@ public class VBoxOSBO extends VBox {
         dateObj.setConverter(converter);
         LocalDate dexped = dtexpediPropProperty().get().toLocalDate();
         dateObj.setValue(dexped);
-        out.print("Expedição = 1900? " + dexped.equals(LocalDate.of(1900, Month.JANUARY, 1)));
+        System.out.print("Expedição = 1900? " + dexped.equals(LocalDate.of(1900, Month.JANUARY, 1)));
         dateObj.setEditable(false);
         dateObj.setDisable(dexped.equals(LocalDate.of(1900, Month.JANUARY, 1)));
 //        dateObj.setStyle("-fx-opacity: 1");
@@ -1033,14 +980,13 @@ public class VBoxOSBO extends VBox {
     }
 
     public void setBostampProp(String bostamp) {
-        try {
-            int qtt = ServicoCouchBase.getInstancia().getPecasPorOS(bostamp);
-            int qttProd = ServicoCouchBase.getInstancia().getPecasFeitasPorOS(bostamp);
-            setQttProp(qtt);
-            setQttProdProp(qttProd);
-        } catch (IOException | CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
+        //todo getPecasPorOS(bostamp)
+//            int qtt = ServicoCouchBase.getInstancia().getPecasPorOS(bostamp);
+//            int qttProd = ServicoCouchBase.getInstancia().getPecasFeitasPorOS(bostamp);
+        int qtt = 0;
+        int qttProd = 0;
+        setQttProp(qtt);
+        setQttProdProp(qttProd);
 
         this.bostampProp.set(bostamp);
     }
@@ -1056,7 +1002,6 @@ public class VBoxOSBO extends VBox {
     public void setQttProdProp(int qtt) {
         this.qttProdProp.set(qtt);
     }
-
 
     public LocalDateTime getDtcortefProp() {
         return dtcortefProp.get();
@@ -1078,7 +1023,6 @@ public class VBoxOSBO extends VBox {
         return dtexpediProp;
     }
 
-
     public int getOrdemProp() {
         return ordemProp.get();
     }
@@ -1090,6 +1034,32 @@ public class VBoxOSBO extends VBox {
 
     public ArtigoOSBO getArtigoOSBOProp() {
         return artigoOSBOProp.get();
+    }
+
+    public void setArtigoOSBOProp(ArtigoOSBO artigoOSBO) {
+        artigoOSBOProp.set(artigoOSBO);
+        setBostampProp(artigoOSBO.getBostamp());
+        frefProp.set(artigoOSBO.getFref());
+        nmfrefProp.set(artigoOSBO.getNmfref());
+        obranoProp.set(artigoOSBO.getObrano());
+        estadoProp.set(artigoOSBO.getEstado());
+        seccaoProp.set(artigoOSBO.getSeccao());
+        obsProp.set(artigoOSBO.getObs());
+
+        dtcortefProp.set(artigoOSBO.getDtcortef());
+        dttransfProp.set(artigoOSBO.getDttransf());
+        dtembalaProp.set(artigoOSBO.getDtembala());
+        dtexpediProp.set(artigoOSBO.getDtexpedi());
+
+        ordemProp.set(artigoOSBO.getOrdem());
+
+        corProp.set(artigoOSBO.getCor());
+
+        tempoTotalProp.set(artigoOSBO.getTempoTotal());
+        tempoParcialProp.set(artigoOSBO.getTempoParcial());
+
+        coluna = calcularColuna();
+
     }
 
     public int getColuna() {

@@ -1,8 +1,8 @@
 package sql;
 //miguel.silva em 04-05-2016;
 
-import couchbase.ArtigoAprovisionamento;
-import couchbase.ArtigoOSBO;
+import pojos.ArtigoOSBO;
+import pojos.ArtigoParaPlaneamento;
 import utils.Funcoes;
 import utils.ValoresDefeito;
 
@@ -17,6 +17,13 @@ import static java.lang.System.out;
 public class BamerSqlServer {
     private static final String TAG = BamerSqlServer.class.getSimpleName() + ": ";
     private static BamerSqlServer instancia;
+
+    public static BamerSqlServer getInstancia() {
+        if (instancia == null) {
+            instancia = new BamerSqlServer();
+        }
+        return instancia;
+    }
 
     private LinkSQL abrirLinkSQL() throws ClassNotFoundException, SQLException {
         String sqlserver = ValoresDefeito.SQL_SERVIDOR;
@@ -87,13 +94,6 @@ public class BamerSqlServer {
         }
         out.println(TAG + "O SQL está online? " + isOnoline);
         return isOnoline;
-    }
-
-    public static BamerSqlServer getInstancia() {
-        if (instancia == null) {
-            instancia = new BamerSqlServer();
-        }
-        return instancia;
     }
 
     private LinkSQL getSQLConn() throws SQLException, ClassNotFoundException {
@@ -172,7 +172,7 @@ public class BamerSqlServer {
         return rows;
     }
 
-    public int actualizar_De_Aprovisionamento_para_Corte(ArtigoAprovisionamento artigo) throws SQLException, ClassNotFoundException {
+    public int actualizar_De_Aprovisionamento_para_Corte(ArtigoParaPlaneamento artigo) throws SQLException, ClassNotFoundException {
         int rows;
         LinkSQL linkSQL;
         linkSQL = getSQLConn();

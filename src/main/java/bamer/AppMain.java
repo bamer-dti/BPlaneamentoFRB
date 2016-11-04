@@ -4,12 +4,7 @@ package bamer;
 // * Created by miguel.silva on 08-06-2016.
 // */
 
-import com.couchbase.lite.*;
-import com.couchbase.lite.util.Log;
 import com.jfoenix.controls.JFXButton;
-import couchbase.ArtigoOSBO;
-import couchbase.CamposCouch;
-import couchbase.ServicoCouchBase;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -28,16 +23,12 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
-import objectos.GridPaneAprovisionamentos;
-import objectos.GridPaneAtrasados;
 import objectos.GridPaneCalendario;
 import objectos.VBoxOSBO;
+import pojos.ArtigoOSBO;
 import sql.BamerSqlServer;
 import sqlite.PreferenciasEmSQLite;
-import utils.Constantes;
-import utils.Funcoes;
-import utils.Singleton;
-import utils.ValoresDefeito;
+import utils.*;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -49,20 +40,20 @@ import static java.lang.System.out;
 public class AppMain extends Application {
     private static final int MINIMO_COLUNAS = 4; //dias = + 1
     private static final String TAG = AppMain.class.getSimpleName();
+    private static AppMain app;
+    public BorderPane borderPaneAtrasados;
+    public BorderPane borderPaneAprovisionamento;
     private Label labelCols;
     private GridPaneCalendario calendario;
-    private static AppMain app;
     private Stage stageAprovisionamento;
     private ScrollPane scrollPaneCalendario;
     private GridPaneCalendario calendarioTopo;
     private ScrollPane scrollPaneTopo;
-    public BorderPane borderPaneAtrasados;
     private ComboBox<String> comboSeccao;
     private Stage taskUpdateStage;
     private Stage stageAtrasados;
     private JFXButton but_atrasados;
     private JFXButton but_aprovisionamento;
-    public BorderPane borderPaneAprovisionamento;
     private TextField textFieldFiltroFrefAprovisionamento;
     private Label labelTotRecsAprovisionamento;
     private TextField textFieldFiltroFrefAtrasados;
@@ -213,24 +204,9 @@ public class AppMain extends Application {
         String seccao = prefs.get(Constantes.PREF_SECCAO, ValoresDefeito.SECCAO);
         comboSeccao = new ComboBox<>();
         comboSeccao.getSelectionModel().select(seccao);
-        try {
-            View view = ServicoCouchBase.getInstancia().getViewOSBIcentrosTrabalho();
-            Query query = view.createQuery();
-            query.setGroupLevel(1);
-            QueryEnumerator queryEnumerator = query.run();
-            out.println("*** Centros encontrados: " + queryEnumerator.getCount());
-            while (queryEnumerator.hasNext()) {
-                QueryRow queryRow = queryEnumerator.next();
-                out.println(queryRow.getKey());
-                comboSeccao.getItems().add(queryRow.getKey().toString());
-            }
+        //todo alimentar o combo de secção
+//                comboSeccao.getItems().add(queryRow.getKey().toString());
 
-        } catch (IOException |
-                CouchbaseLiteException e)
-
-        {
-            e.printStackTrace();
-        }
         comboSeccao.valueProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
@@ -273,11 +249,6 @@ public class AppMain extends Application {
             public void handle(WindowEvent event) {
                 stageAprovisionamento.close();
                 stageAtrasados.close();
-                try {
-                    ServicoCouchBase.getInstancia().stopServicosCouchBase();
-                } catch (IOException | CouchbaseLiteException e) {
-                    e.printStackTrace();
-                }
                 Platform.exit();
                 System.exit(0);
             }
@@ -289,89 +260,7 @@ public class AppMain extends Application {
 
         configurarStageAtrasados();
 
-        try {
-            configurarStageAprovados();
-        } catch (IOException | CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            eliminarProdsZero();
-        } catch (IOException | CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
-
-        // TODO: 17-08-2016 TESTES: comentar abaixo quando em produção
-//        eliminarTemposDaBaseDeDados();
-//        testes_eliminarProds();
-//        eliminarDocOSBI("CA16090650041,541000053");
-    }
-
-    @SuppressWarnings("unused")
-    private void eliminarDocOSBI(String bistamp) {
-        Log.e(TAG, "A tentar eliminar o documento OSBI " + bistamp);
-        try {
-            View v = ServicoCouchBase.getInstancia().viewOSBI;
-            Query q = v.createQuery();
-            q.setStartKey(bistamp);
-            q.setEndKey(bistamp);
-            QueryEnumerator r = q.run();
-            for (int i = 0; i < r.getCount(); i++) {
-                Document doc = r.getRow(i).getDocument();
-                doc.delete();
-                Log.e(TAG, "Eliminado o documento OSBI " + bistamp);
-            }
-        } catch (IOException | CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void eliminarProdsZero() throws IOException, CouchbaseLiteException {
-        View view = ServicoCouchBase.getInstancia().viewOSPRODporBostamp;
-        QueryEnumerator queryEnumerator = view.createQuery().run();
-        out.println("Existem " + queryEnumerator.getCount() + " REGISTOS DE PRODUÇÃO ZERO PARA ELIMINAR");
-        int pos = 0;
-        while (queryEnumerator.hasNext()) {
-            pos++;
-            queryEnumerator.next().getDocument().delete();
-            out.println("Eliminado registo " + pos + " de " + queryEnumerator.getCount() + " produção ");
-        }
-    }
-
-    @SuppressWarnings("unused")
-    private void testes_eliminarProds() {
-        Log.e("", "******************************   ELIMINAR REGISTOS DE PRODUÇÃO     ******************************");
-        View viewOSPRODs;
-        try {
-            viewOSPRODs = ServicoCouchBase.getInstancia().viewOSPRODs;
-            QueryEnumerator queryEnumerator = viewOSPRODs.createQuery().run();
-            Log.e("", "Existem " + queryEnumerator.getCount() + " REGISTOS DE PRODUÇÃO PARA ELIMINAR");
-            while (queryEnumerator.hasNext()) {
-                Log.e("", "******************************   ELIMINAR DOCUMENTO REGISTOS DE PRODUÇÃO     ******************************");
-                queryEnumerator.next().getDocument().delete();
-            }
-        } catch (IOException | CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @SuppressWarnings("unused")
-    private void eliminarTemposDaBaseDeDados() {
-        Log.e("", "******************************   ELIMINAR REGISTOS DE TEMPOS     ******************************");
-        View viewTemposDelete;
-        try {
-            viewTemposDelete = ServicoCouchBase.getInstancia().getViewTempos();
-            Query query = viewTemposDelete.createQuery();
-            QueryEnumerator queryEnumerator = query.run();
-            out.println("Existem " + queryEnumerator.getCount() + " REGISTOS DE TEMPO PARA ELIMINAR");
-            while (queryEnumerator.hasNext()) {
-                Log.w("", "******************************   ELIMINAR REGISTOS DE TEMPOS     ******************************");
-                Document doc = queryEnumerator.next().getDocument();
-                doc.delete();
-            }
-        } catch (IOException | CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
+        configurarStageAprovados();
     }
 
     private void configurarTaskStage() {
@@ -394,13 +283,7 @@ public class AppMain extends Application {
     }
 
     private void configurarStageAtrasados() {
-        try {
-            ServicoCouchBase.getInstancia().liveAtrasados();
-        } catch (IOException | CouchbaseLiteException e) {
-            e.printStackTrace();
-            Funcoes.alerta("Erro ao criar o ecrã de OS com atraso\nContacte o DTI", Alert.AlertType.ERROR);
-            return;
-        }
+        //todo painel de atrasados
         borderPaneAtrasados = new BorderPane();
 
         //FILTROS
@@ -416,12 +299,8 @@ public class AppMain extends Application {
                 if (!newValue.matches("\\d*")) {
                     textFieldFiltroFrefAtrasados.setText(newValue.replaceAll("[^\\d]", ""));
                 }
-                try {
-
-                    GridPaneAtrasados.alimentarLista(ServicoCouchBase.getInstancia().getListaAtrasados());
-                } catch (IOException | CouchbaseLiteException e) {
-                    e.printStackTrace();
-                }
+//               todo filtrar a lista de atrasados
+//                GridPaneAtrasados.alimentarLista(lista);
             }
         });
 
@@ -448,9 +327,8 @@ public class AppMain extends Application {
 
     }
 
-    private void configurarStageAprovados() throws IOException, CouchbaseLiteException {
+    private void configurarStageAprovados() {
 //        GridPaneAprovados gridPaneAprovados = new GridPaneAprovados();
-        ServicoCouchBase.getInstancia().liveAprovisionamento();
         borderPaneAprovisionamento = new BorderPane();
 
         //FILTROS
@@ -466,12 +344,8 @@ public class AppMain extends Application {
                 if (!newValue.matches("\\d*")) {
                     textFieldFiltroFrefAprovisionamento.setText(newValue.replaceAll("[^\\d]", ""));
                 }
-                try {
-
-                    GridPaneAprovisionamentos.alimentarLista(ServicoCouchBase.getInstancia().getListaAprovisionamento());
-                } catch (IOException | CouchbaseLiteException e) {
-                    e.printStackTrace();
-                }
+                //todo filtrar a lista atrasados por obra
+//                    GridPaneAprovisionamentos.alimentarLista(ServicoCouchBase.getInstancia().getListaAprovisionamento());
             }
         });
 
@@ -501,22 +375,16 @@ public class AppMain extends Application {
         calendarioTopo = new GridPaneCalendario(GridPaneCalendario.TIPO_TOPO);
         scrollPaneTopo.setContent(calendarioTopo);
 
+        //todo lista ArtigoOSBO para alimentar grelha
+        ArrayList<ArtigoOSBO> lista = new ArrayList<>();
         try {
-            inserirOuActualizarOSBO(ServicoCouchBase.getInstancia().getListaDocsOSBO());
-        } catch (IOException | CouchbaseLiteException e) {
+            inserirOuActualizarOSBO(lista);
+        } catch (IOException e) {
             e.printStackTrace();
         }
-
-
     }
 
     private void iniciarServicos() {
-//        HttpJetty.arrancarHttpServer();
-        try {
-            ServicoCouchBase.getInstancia().startNoSQL();
-        } catch (IOException | CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
         BamerSqlServer.getInstancia();
     }
 
@@ -549,32 +417,9 @@ public class AppMain extends Application {
         }
     }
 
-    public void inserirOuActualizarOSBO(ArrayList<ArtigoOSBO> listaDocsOSBO) throws IOException, CouchbaseLiteException {
+    public void inserirOuActualizarOSBO(ArrayList<ArtigoOSBO> listaDocsOSBO) throws IOException {
         if (listaDocsOSBO == null)
             return;
-        if (ServicoCouchBase.getInstancia().isBusy()) {
-            try {
-                if (taskUpdateStage.isShowing()) {
-                    Platform.runLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            taskUpdateStage.show();
-                        }
-                    });
-                }
-            } catch (Exception e) {
-                out.println("Não consegue mostrar barra de progresso");
-            }
-            return;
-        }
-        if (taskUpdateStage.isShowing()) {
-            Platform.runLater(new Runnable() {
-                @Override
-                public void run() {
-                    taskUpdateStage.hide();
-                }
-            });
-        }
 //        ServicoCouchBase.getInstancia().liveQueryAddChangeDocs.stop();
         String seccao = AppMain.getInstancia().getComboSeccao().getValue().toString();
         for (ArtigoOSBO artigoOSBO : listaDocsOSBO) {
@@ -594,11 +439,11 @@ public class AppMain extends Application {
 
             //Não existe, coloca novo
             if (vBoxOSBO == null) {
-                if (artigoOSBO.getEstado().equals(CamposCouch.ESTADO_01_CORTE)) {
+                if (artigoOSBO.getEstado().equals(NomesDeCampos.ESTADO_01_CORTE)) {
                     new VBoxOSBO(artigoOSBO);
                 }
             } else {
-                if (!artigoOSBO.getEstado().equals(CamposCouch.ESTADO_01_CORTE)) {
+                if (!artigoOSBO.getEstado().equals(NomesDeCampos.ESTADO_01_CORTE)) {
                     VBoxOSBO finalVBoxOSBO = vBoxOSBO;
                     Platform.runLater(new Runnable() {
                         @Override
@@ -662,24 +507,23 @@ public class AppMain extends Application {
         for (int i = 0; i < colunas; i++) {
             LocalDateTime localDateTime = dataInicioAgenda.plusDays(i);
             String data = Funcoes.dToCZeroHour(localDateTime);
-            try {
-                int qtt = ServicoCouchBase.getInstancia().getPecasPorData(data);
-                int qttFeita = ServicoCouchBase.getInstancia().getPecasFeitasPorData(data);
-                Text textQttTotal = (Text) calendarioTopo.lookup("#qtttot" + i);
-                Text textQttFeita = (Text) calendarioTopo.lookup("#qttfeita" + i);
-                if (textQttTotal != null) {
-                    textQttTotal.setText("" + (qtt == 0 ? "" : qtt));
-                }
+            //todo getPecasPorData
+//                int qtt = ServicoCouchBase.getInstancia().getPecasPorData(data);
+            int qtt = 0;
+            // todo getPecasFeitasPorData
+//                int qttFeita = ServicoCouchBase.getInstancia().getPecasFeitasPorData(data);
+            Text textQttTotal = (Text) calendarioTopo.lookup("#qtttot" + i);
+            int qttFeita = 0;
+            Text textQttFeita = (Text) calendarioTopo.lookup("#qttfeita" + i);
+            if (textQttTotal != null) {
+                textQttTotal.setText("" + (qtt == 0 ? "" : qtt));
+            }
 
-                if (textQttFeita != null) {
-                    textQttFeita.setText("");
-                    int num = qtt - qttFeita;
-                    if (num != qtt)
-                        textQttFeita.setText("" + (num == 0 ? "" : num));
-                }
-
-            } catch (IOException | CouchbaseLiteException e) {
-                e.printStackTrace();
+            if (textQttFeita != null) {
+                textQttFeita.setText("");
+                int num = qtt - qttFeita;
+                if (num != qtt)
+                    textQttFeita.setText("" + (num == 0 ? "" : num));
             }
         }
     }
@@ -694,24 +538,23 @@ public class AppMain extends Application {
                 continue;
             LocalDateTime localDateTime = dataInicioAgenda.plusDays(i);
             String data = Funcoes.dToCZeroHour(localDateTime);
-            try {
-                int qtt = ServicoCouchBase.getInstancia().getPecasPorData(data);
-                int qttFeita = ServicoCouchBase.getInstancia().getPecasFeitasPorData(data);
-                Text textQttTotal = (Text) calendarioTopo.lookup("#qtttot" + i);
-                Text textQttFeita = (Text) calendarioTopo.lookup("#qttfeita" + i);
-                if (textQttTotal != null) {
-                    textQttTotal.setText("" + (qtt == 0 ? "" : qtt));
-                }
+            //todo getPecasPorData
+//                int qtt = ServicoCouchBase.getInstancia().getPecasPorData(data);
+            int qtt = 0;
+            // todo getPecasFeitasPorData
+//                int qttFeita = ServicoCouchBase.getInstancia().getPecasFeitasPorData(data);
+            int qttFeita = 0;
+            Text textQttTotal = (Text) calendarioTopo.lookup("#qtttot" + i);
+            Text textQttFeita = (Text) calendarioTopo.lookup("#qttfeita" + i);
+            if (textQttTotal != null) {
+                textQttTotal.setText("" + (qtt == 0 ? "" : qtt));
+            }
 
-                if (textQttFeita != null) {
-                    textQttFeita.setText("");
-                    int num = qtt - qttFeita;
-                    if (num != qtt)
-                        textQttFeita.setText("" + (num == 0 ? "" : num));
-                }
-
-            } catch (IOException | CouchbaseLiteException e) {
-                e.printStackTrace();
+            if (textQttFeita != null) {
+                textQttFeita.setText("");
+                int num = qtt - qttFeita;
+                if (num != qtt)
+                    textQttFeita.setText("" + (num == 0 ? "" : num));
             }
         }
     }
@@ -745,12 +588,13 @@ public class AppMain extends Application {
         return but_aprovisionamento;
     }
 
+    //todo actualizarNota(nota)
     public void actualizarNota(Document document) {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                String bostamp = document.getProperty(CamposCouch.FIELD_BOSTAMP).toString();
-                String nota = document.getProperty(CamposCouch.FIELD_TEXTO).toString();
+                String bostamp = ""; //TODO document.getProperty(NomesDeCampos.FIELD_BOSTAMP).toString();
+                String nota = ""; //todo document.getProperty(NomesDeCampos.FIELD_TEXTO).toString();
                 Node obj = calendario.lookup("#" + bostamp);
                 if (obj instanceof VBoxOSBO) {
                     VBoxOSBO vBox = (VBoxOSBO) obj;
@@ -776,12 +620,14 @@ public class AppMain extends Application {
         return labelTotRecsAtrasados;
     }
 
-    public void setMainStage(Stage mainStage) {
-        this.mainStage = mainStage;
-    }
-
     public Stage getMainStage() {
         return mainStage;
     }
 
+    public void setMainStage(Stage mainStage) {
+        this.mainStage = mainStage;
+    }
+
+    private class Document {
+    }
 }

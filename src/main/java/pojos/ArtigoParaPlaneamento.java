@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 ///**
 // * Created by miguel.silva on 28-07-2016.
 // */
-public class ArtigoAprovisionamento {
+public class ArtigoParaPlaneamento {
     private String seccao;
     private String dtcliente;
     private int obrano;
@@ -16,7 +16,7 @@ public class ArtigoAprovisionamento {
     private String obs;
     private LocalDateTime dtcortef;
 
-    public ArtigoAprovisionamento(Builder builder) {
+    public ArtigoParaPlaneamento(Builder builder) {
         seccao = builder.seccao;
         dtcliente = builder.dtcliente;
         obrano = builder.obrano;
@@ -25,6 +25,46 @@ public class ArtigoAprovisionamento {
         fref = builder.fref;
         nmfref = builder.nmfref;
         obs = builder.obs;
+    }
+
+    public String getSeccao() {
+        return seccao;
+    }
+
+    public String getDtcliente() {
+        return dtcliente;
+    }
+
+    public int getObrano() {
+        return obrano;
+    }
+
+    public String getBostamp() {
+        return bostamp;
+    }
+
+    public String getDtexpedi() {
+        return dtexpedi;
+    }
+
+    public String getFref() {
+        return fref;
+    }
+
+    public String getNmfref() {
+        return nmfref;
+    }
+
+    public String getObs() {
+        return obs;
+    }
+
+    public LocalDateTime getDtcortef() {
+        return dtcortef;
+    }
+
+    public void setDtcortef(LocalDateTime dtcortef) {
+        this.dtcortef = dtcortef;
     }
 
     public static class Builder {
@@ -62,8 +102,8 @@ public class ArtigoAprovisionamento {
             return this;
         }
 
-        public ArtigoAprovisionamento build() {
-            return new ArtigoAprovisionamento(this);
+        public ArtigoParaPlaneamento build() {
+            return new ArtigoParaPlaneamento(this);
         }
 
         public Builder fref(String fref) {
@@ -79,45 +119,5 @@ public class ArtigoAprovisionamento {
             this.obs = obs;
             return this;
         }
-    }
-
-    public String getSeccao() {
-        return seccao;
-    }
-
-    public String getDtcliente() {
-        return dtcliente;
-    }
-
-    public int getObrano() {
-        return obrano;
-    }
-
-    public String getBostamp() {
-        return bostamp;
-    }
-
-    public String getDtexpedi() {
-        return dtexpedi;
-    }
-
-    public String getFref() {
-        return fref;
-    }
-
-    public String getNmfref() {
-        return nmfref;
-    }
-
-    public String getObs() {
-        return obs;
-    }
-
-    public void setDtcortef(LocalDateTime dtcortef) {
-        this.dtcortef = dtcortef;
-    }
-
-    public LocalDateTime getDtcortef() {
-        return dtcortef;
     }
 }

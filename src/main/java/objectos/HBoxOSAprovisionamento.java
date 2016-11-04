@@ -1,9 +1,6 @@
 package objectos;
 
 import bamer.AppMain;
-import com.couchbase.lite.CouchbaseLiteException;
-import couchbase.ArtigoAprovisionamento;
-import couchbase.ServicoCouchBase;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -16,9 +13,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
+import pojos.ArtigoParaPlaneamento;
 import utils.Funcoes;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,7 +25,6 @@ public class HBoxOSAprovisionamento extends HBox {
     public static final int TIPO_ATRASADO = 2;
     private final LocalDateTime dtcortef;
     private final int tipo;
-    private String seccao;
     private final String dtcliente;
     private final int obrano;
     private final String bostamp;
@@ -36,13 +32,14 @@ public class HBoxOSAprovisionamento extends HBox {
     private final String fref;
     private final String nmfref;
     private final String obs;
-    private final ArtigoAprovisionamento artigoAprovisionamento;
+    private final ArtigoParaPlaneamento artigoParaPlaneamento;
+    private String seccao;
     private int qtt = 0;
     private HBoxOSAprovisionamento contexto = this;
     private int linha;
 
-    public HBoxOSAprovisionamento(ArtigoAprovisionamento artigo, int linha, int tipoRegisto) {
-        this.artigoAprovisionamento = artigo;
+    public HBoxOSAprovisionamento(ArtigoParaPlaneamento artigo, int linha, int tipoRegisto) {
+        this.artigoParaPlaneamento = artigo;
         this.seccao = artigo.getSeccao();
         this.dtcliente = artigo.getDtcliente();
         this.obrano = artigo.getObrano();
@@ -61,11 +58,9 @@ public class HBoxOSAprovisionamento extends HBox {
     }
 
     private void criarObjectos() {
-        try {
-            this.qtt = ServicoCouchBase.getInstancia().getPecasPorOS(bostamp);
-        } catch (IOException | CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
+        //todo getPecasPorOS(bostamp)
+//        this.qtt = ServicoCouchBase.getInstancia().getPecasPorOS(bostamp);
+        this.qtt = 0;
 
         Label labelSeccao = new Label(seccao);
         labelSeccao.setWrapText(true);
@@ -161,7 +156,7 @@ public class HBoxOSAprovisionamento extends HBox {
         });
     }
 
-    public ArtigoAprovisionamento getArtigoAprovisionamento() {
-        return artigoAprovisionamento;
+    public ArtigoParaPlaneamento getArtigoParaPlaneamento() {
+        return artigoParaPlaneamento;
     }
 }

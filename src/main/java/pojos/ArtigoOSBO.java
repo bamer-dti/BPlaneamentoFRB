@@ -1,11 +1,8 @@
 package pojos;
 
 
-import com.couchbase.lite.CouchbaseLiteException;
-import couchbase.ServicoCouchBase;
 import utils.Funcoes;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
@@ -18,12 +15,12 @@ public class ArtigoOSBO {
     private final String seccao;
     private final String obs;
     private final int cor;
-    private long tempoParcial = 0L;
-    private long tempoTotal = 0L;
-    private LocalDateTime dtcortef;
     private final LocalDateTime dttransf;
     private final LocalDateTime dtembala;
     private final LocalDateTime dtexpedi;
+    private long tempoParcial = 0L;
+    private long tempoTotal = 0L;
+    private LocalDateTime dtcortef;
     private int ordem;
 
     public ArtigoOSBO(String bostamp, int obrano, String fref, String nmfref, String estado, String seccao, String obs, String dtcortef, String dttransf, String dtembala, String dtexpedi, int ordem, int cor) {
@@ -40,16 +37,12 @@ public class ArtigoOSBO {
         this.dtexpedi = Funcoes.cToT(dtexpedi);
         this.ordem = ordem;
         this.cor = cor;
-        try {
-            this.tempoTotal = ServicoCouchBase.getInstancia().getTempoTotal(bostamp);
-        } catch (IOException | CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
-        try {
-            this.tempoParcial = ServicoCouchBase.getInstancia().getUltimoTempo(bostamp);
-        } catch (IOException | CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
+        //todo getTempoTotal(bostamp)
+//            this.tempoTotal = ServicoCouchBase.getInstancia().getTempoTotal(bostamp);
+        this.tempoTotal = 0;
+        //todo getUltimoTempo(bostamp)
+//            this.tempoParcial = ServicoCouchBase.getInstancia().getUltimoTempo(bostamp);
+        this.tempoParcial = 0;
     }
 
     public String getBostamp() {
@@ -84,6 +77,10 @@ public class ArtigoOSBO {
         return dtcortef.truncatedTo(ChronoUnit.DAYS);
     }
 
+    public void setDtcortef(LocalDateTime dtcorte) {
+        this.dtcortef = dtcorte;
+    }
+
     public LocalDateTime getDttransf() {
         return dttransf.truncatedTo(ChronoUnit.DAYS);
     }
@@ -102,10 +99,6 @@ public class ArtigoOSBO {
 
     public void setOrdem(int ordem) {
         this.ordem = ordem;
-    }
-
-    public void setDtcortef(LocalDateTime dtcorte) {
-        this.dtcortef = dtcorte;
     }
 
     public int getCor() {

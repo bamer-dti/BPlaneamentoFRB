@@ -2,9 +2,6 @@ package objectos;
 
 import bamer.AppMain;
 import com.jfoenix.controls.JFXButton;
-import couchbase.ArtigoAprovisionamento;
-import couchbase.ArtigoOSBO;
-import couchbase.ServicoCouchBase;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -23,6 +20,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import pojos.ArtigoOSBO;
+import pojos.ArtigoParaPlaneamento;
 import sql.BamerSqlServer;
 import sqlite.PreferenciasEmSQLite;
 import utils.Constantes;
@@ -279,11 +278,8 @@ public class VBoxDia extends VBox {
 
                     for (VBoxOSBO vBoxOSBO : listaDeAlteracoes) {
                         GridPane.setConstraints(vBoxOSBO, vBoxOSBO.getColuna(), vBoxOSBO.getOrdemProp());
-                        try {
-                            ServicoCouchBase.getInstancia().actualizarOrdem(vBoxOSBO);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                        //todo .actualizarOrdem(vBoxOSBO)
+//                            ServicoCouchBase.getInstancia().actualizarOrdem(vBoxOSBO);
                     }
                     event.consume();
                 }
@@ -293,7 +289,7 @@ public class VBoxDia extends VBox {
                     HBoxOSAprovisionamento hBoxOSAprovisionamento = (HBoxOSAprovisionamento) dragboard.getContent(DataFormat.RTF);
                     LocalDateTime dataDeCorte = Singleton.getInstancia().dataInicioAgenda.plusDays(coluna);
                     out.println("Colocar o aprovisionamento " + hBoxOSAprovisionamento.getId() + " em CORTE na data " + Funcoes.dToCZeroHour(dataDeCorte));
-                    ArtigoAprovisionamento artigoAprovisionamento = hBoxOSAprovisionamento.getArtigoAprovisionamento();
+                    ArtigoParaPlaneamento artigoAprovisionamento = hBoxOSAprovisionamento.getArtigoParaPlaneamento();
                     artigoAprovisionamento.setDtcortef(dataDeCorte);
                     try {
                         BamerSqlServer.getInstancia().actualizar_De_Aprovisionamento_para_Corte(artigoAprovisionamento);

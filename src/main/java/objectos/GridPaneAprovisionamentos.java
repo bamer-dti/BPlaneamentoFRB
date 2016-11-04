@@ -1,19 +1,13 @@
 package objectos;
 
 import bamer.AppMain;
-import com.couchbase.lite.CouchbaseLiteException;
-import com.couchbase.lite.Document;
-import com.couchbase.lite.QueryRow;
-import couchbase.ArtigoAprovisionamento;
-import couchbase.CamposCouch;
-import couchbase.ServicoCouchBase;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.GridPane;
+import pojos.ArtigoParaPlaneamento;
 
-import java.io.IOException;
 import java.util.List;
 
 ///**
@@ -24,17 +18,8 @@ public class GridPaneAprovisionamentos extends GridPane {
         construct();
     }
 
-    private void construct() {
-        this.setPadding(new Insets(0, 5, 0, 15));
-        this.getStyleClass().add("game-grid");
-        try {
-            ServicoCouchBase.getInstancia().liveAprovisionamento();
-        } catch (IOException | CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void alimentarLista(List<QueryRow> lista) {
+    //    public static void alimentarLista(List<QueryRow> lista) {
+    public static void alimentarLista(List<ArtigoParaPlaneamento> lista) {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
@@ -48,37 +33,16 @@ public class GridPaneAprovisionamentos extends GridPane {
         if (lista == null)
             return;
         int linha = 0;
-        for (QueryRow queryRow : lista) {
-            Document document = queryRow.getDocument();
-            String seccao = document.getProperty(CamposCouch.FIELD_SECCAO).toString();
-            int obrano = (int) document.getProperty(CamposCouch.FIELD_OBRANO);
-            String dtcliente = document.getProperty(CamposCouch.FIELD_DTCLIENTE).toString();
-            String bostamp = document.getProperty(CamposCouch.FIELD_BOSTAMP).toString();
-            String dtexpedi = document.getProperty(CamposCouch.FIELD_DTEXPEDI).toString();
-            String fref = document.getProperty(CamposCouch.FIELD_FREF).toString();
-            String nmfref = document.getProperty(CamposCouch.FIELD_NMFREF).toString();
-            String obs = document.getProperty(CamposCouch.FIELD_OBS).toString();
-
+        for (ArtigoParaPlaneamento artigoParaPlaneamento : lista) {
             String filtroFref = AppMain.getInstancia().getTextFieldFiltroFrefAprovisionamento().getText();
             if (!filtroFref.equals("")) {
-                if (!fref.startsWith(filtroFref)) {
+                if (!artigoParaPlaneamento.getFref().startsWith(filtroFref)) {
                     continue;
                 }
             }
 
-            ArtigoAprovisionamento artigo = new ArtigoAprovisionamento.Builder()
-                    .bostamp(bostamp)
-                    .seccao(seccao)
-                    .dtcliente(dtcliente)
-                    .obrano(obrano)
-                    .dtexpedi(dtexpedi)
-                    .fref(fref)
-                    .nmfref(nmfref)
-                    .obs(obs)
-                    .build();
-
-            HBoxOSAprovisionamento hBoxOSAprovisionamento = new HBoxOSAprovisionamento(artigo, linha, HBoxOSAprovisionamento.TIPO_APROVISIONAMENTO);
-            hBoxOSAprovisionamento.setId(bostamp);
+            HBoxOSAprovisionamento hBoxOSAprovisionamento = new HBoxOSAprovisionamento(artigoParaPlaneamento, linha, HBoxOSAprovisionamento.TIPO_APROVISIONAMENTO);
+            hBoxOSAprovisionamento.setId(artigoParaPlaneamento.getBostamp());
             if (linha % 2 == 0)
                 hBoxOSAprovisionamento.setStyle("-fx-background-color: rgb(220,220,220); -fx-background-insets: 0, 1 1 1 0 ;");
             Platform.runLater(new Runnable() {
@@ -93,7 +57,6 @@ public class GridPaneAprovisionamentos extends GridPane {
         }
 
 
-
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
@@ -104,5 +67,16 @@ public class GridPaneAprovisionamentos extends GridPane {
             }
         });
 
+    }
+
+    private void construct() {
+        this.setPadding(new Insets(0, 5, 0, 15));
+        this.getStyleClass().add("game-grid");
+        //todo buscar dados para lista
+//        try {
+//            ServicoCouchBase.getInstancia().liveAprovisionamento();
+//        } catch (IOException | CouchbaseLiteException e) {
+//            e.printStackTrace();
+//        }
     }
 }
