@@ -47,11 +47,12 @@ import java.io.IOException;
 import java.net.URL;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+
+import static java.lang.System.out;
 
 public class VBoxOSBO extends VBox {
     private static final int COR_AZUL = 0;
@@ -70,10 +71,10 @@ public class VBoxOSBO extends VBox {
     private SimpleStringProperty estadoProp = new SimpleStringProperty();
     private SimpleStringProperty seccaoProp = new SimpleStringProperty();
     private SimpleStringProperty obsProp = new SimpleStringProperty();
-    private SimpleObjectProperty<LocalDateTime> dtcortefProp = new SimpleObjectProperty<>();
-    private SimpleObjectProperty<LocalDateTime> dttransfProp = new SimpleObjectProperty<>();
-    private SimpleObjectProperty<LocalDateTime> dtembalaProp = new SimpleObjectProperty<>();
-    private SimpleObjectProperty<LocalDateTime> dtexpediProp = new SimpleObjectProperty<>();
+    private SimpleObjectProperty<LocalDate> dtcortefProp = new SimpleObjectProperty<>();
+    private SimpleObjectProperty<LocalDate> dttransfProp = new SimpleObjectProperty<>();
+    private SimpleObjectProperty<LocalDate> dtembalaProp = new SimpleObjectProperty<>();
+    private SimpleObjectProperty<LocalDate> dtexpediProp = new SimpleObjectProperty<>();
     private SimpleIntegerProperty qttProp = new SimpleIntegerProperty();
     private SimpleIntegerProperty qttProdProp = new SimpleIntegerProperty();
     private SimpleStringProperty notaProp = new SimpleStringProperty("");
@@ -114,7 +115,7 @@ public class VBoxOSBO extends VBox {
     }
 
     public static int getPosicao(String bostamp) {
-        //todo buscar a última posição de tempo
+        //todo tempos
 //        com.couchbase.lite.View view = ServicoCouchBase.getInstancia().viewTemposPorDossier;
 //        Query query = view.createQuery();
 //        String maxText = Long.MAX_VALUE + "";
@@ -129,7 +130,7 @@ public class VBoxOSBO extends VBox {
 //                document = queryRow.getDocument();
 //            }
 //            if (document != null) {
-//                posicaoSQL = Integer.parseInt(document.getProperty(NomesDeCampos.FIELD_POSICAO).toString());
+//                posicaoSQL = Integer.parseInt(document.getProperty(CamposCouch.FIELD_POSICAO).toString());
 //            }
 //        } catch (CouchbaseLiteException e) {
 //            e.printStackTrace();
@@ -157,7 +158,7 @@ public class VBoxOSBO extends VBox {
             @Override
             public void handle(MouseEvent event) {
                 if (event.isPrimaryButtonDown() && event.getClickCount() == 2) {
-                    //todo editar notas
+                    //todo notas
 //                    try {
 //                        View view = null;
 //                        try {
@@ -170,8 +171,8 @@ public class VBoxOSBO extends VBox {
 //                            Document document;
 //                            if (queryEnumerator.getCount() > 0) {
 //                                document = queryEnumerator.next().getDocument();
-//                                if (document.getProperty(NomesDeCampos.FIELD_TEXTO) != null) {
-//                                    String textnota = document.getProperty(NomesDeCampos.FIELD_TEXTO).toString();
+//                                if (document.getProperty(CamposCouch.FIELD_TEXTO) != null) {
+//                                    String textnota = document.getProperty(CamposCouch.FIELD_TEXTO).toString();
 //                                    if (!textnota.equals("")) {
 //                                        notaPropProperty().set(textnota);
 //                                    }
@@ -346,7 +347,7 @@ public class VBoxOSBO extends VBox {
                         timer.purge();
                         timer = null;
                     }
-                    //todo getTempoTotal(bostamp)
+                    //todo tempos
 //                        tempoCalculado = ServicoCouchBase.getInstancia().getTempoTotal(bostamp);
                     tempoCalculado = 0;
                     if (tempoCalculado != 0) {
@@ -378,11 +379,13 @@ public class VBoxOSBO extends VBox {
             private void mostrarRegistoEmModoStarted(String bostamp) {
                 long tempoTotal = 0;
                 long ultimoTempo = 0;
-                //todo verificar tempos
+                //todo tempos
 //                    tempoTotal = ServicoCouchBase.getInstancia().getTempoTotal(bostamp);
 //                    ultimoTempo = ServicoCouchBase.getInstancia().getUltimoTempo(bostamp);
                 tempoTotal = 0;
                 ultimoTempo = 0;
+
+
                 final long finalTempoTotal = tempoTotal;
                 final long finalUltimoTempo = ultimoTempo;
                 TimerTask actualizarTempos = new TimerTask() {
@@ -412,30 +415,35 @@ public class VBoxOSBO extends VBox {
             }
         });
 
-        dtcortefProp.addListener(new ChangeListener<LocalDateTime>() {
+        dtcortefProp.addListener(new ChangeListener<LocalDate>() {
             @Override
-            public void changed(ObservableValue<? extends LocalDateTime> observable, LocalDateTime oldValue, LocalDateTime newValue) {
-                labelCorte.setText(dtf.format(newValue));
+            public void changed(ObservableValue<? extends LocalDate> observable, LocalDate oldValue, LocalDate newValue) {
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        labelCorte.setText(dtf.format(newValue));
+                    }
+                });
             }
         });
 
-        dttransfProp.addListener(new ChangeListener<LocalDateTime>() {
+        dttransfProp.addListener(new ChangeListener<LocalDate>() {
             @Override
-            public void changed(ObservableValue<? extends LocalDateTime> observable, LocalDateTime oldValue, LocalDateTime newValue) {
+            public void changed(ObservableValue<? extends LocalDate> observable, LocalDate oldValue, LocalDate newValue) {
                 labelTransf.setText(dtf.format(newValue));
             }
         });
 
-        dtembalaProp.addListener(new ChangeListener<LocalDateTime>() {
+        dtembalaProp.addListener(new ChangeListener<LocalDate>() {
             @Override
-            public void changed(ObservableValue<? extends LocalDateTime> observable, LocalDateTime oldValue, LocalDateTime newValue) {
+            public void changed(ObservableValue<? extends LocalDate> observable, LocalDate oldValue, LocalDate newValue) {
                 labelEmbal.setText(dtf.format(newValue));
             }
         });
 
-        dtexpediProp.addListener(new ChangeListener<LocalDateTime>() {
+        dtexpediProp.addListener(new ChangeListener<LocalDate>() {
             @Override
-            public void changed(ObservableValue<? extends LocalDateTime> observable, LocalDateTime oldValue, LocalDateTime newValue) {
+            public void changed(ObservableValue<? extends LocalDate> observable, LocalDate oldValue, LocalDate newValue) {
                 labelExped.setText(dtf.format(newValue));
             }
         });
@@ -465,7 +473,7 @@ public class VBoxOSBO extends VBox {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 boolean resultado = !(newValue.equals("") && tempoTotalProp.get() == 0);
-                System.out.println("notaProp listener: " + resultado);
+                out.println("notaProp listener: " + resultado);
                 hBoxNotificar.setManaged(resultado);
                 hBoxNotificar.setVisible(resultado);
                 imageNotas.setManaged(!newValue.equals(0));
@@ -611,8 +619,8 @@ public class VBoxOSBO extends VBox {
                     }
                     int ordemNova = getOrdemProp();
                     int ordemAnterior = artigoOSBOemDRAG.getOrdem();
-                    LocalDateTime dataNova = getDtcortefProp();
-                    LocalDateTime dataAnterior = artigoOSBOemDRAG.getDtcortef();
+                    LocalDate dataNova = getDtcortefProp();
+                    LocalDate dataAnterior = Funcoes.cToD(artigoOSBOemDRAG.getDtcortef());
                     long days = dataNova.until(dataAnterior, ChronoUnit.DAYS);
                     GridPane gridPane = (GridPane) getParent();
                     ArrayList<VBoxOSBO> listaDeAlteracoes = new ArrayList<>();
@@ -701,7 +709,7 @@ public class VBoxOSBO extends VBox {
 
                     for (VBoxOSBO vBoxOSBO : listaDeAlteracoes) {
                         GridPane.setConstraints(vBoxOSBO, vBoxOSBO.getColuna(), vBoxOSBO.getOrdemProp());
-                        //todo Actualizar a ordem!
+                        //todo actualizar ordem
 //                        try {
 //                            ServicoCouchBase.getInstancia().actualizarOrdem(vBoxOSBO);
 //                        } catch (IOException e) {
@@ -757,8 +765,8 @@ public class VBoxOSBO extends VBox {
         itemNota.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                String bostamp = bostampProp.get();
-                // todo editar nota via menu
+                //todo notas!
+//                String bostamp = bostampProp.get();
 //                ServicoCouchBase instancia;
 //                try {
 //                    instancia = ServicoCouchBase.getInstancia();
@@ -846,11 +854,11 @@ public class VBoxOSBO extends VBox {
 //        });
 //    }
 
-    //todo procedimento guardar a nota
+    //todo guardar notas
 //    private void guardarNota(Document document, String text) throws CouchbaseLiteException {
 //        Map map = new HashMap<String, Object>();
 //        map.putAll(document.getProperties());
-//        map.put(NomesDeCampos.FIELD_TEXTO, text);
+//        map.put(CamposCouch.FIELD_TEXTO, text);
 //        document.putProperties(map);
 //    }
 
@@ -891,24 +899,24 @@ public class VBoxOSBO extends VBox {
 
         DatePicker dateObj = controller.dtcortef;
         dateObj.setConverter(converter);
-        dateObj.setValue(dtcortefProp.get().toLocalDate());
+        dateObj.setValue(dtcortefProp.get());
         dateObj.setEditable(false);
 
         dateObj = controller.dttransf;
         dateObj.setConverter(converter);
-        dateObj.setValue(dttransfPropProperty().get().toLocalDate());
+        dateObj.setValue(dttransfPropProperty().get());
         dateObj.setEditable(false);
 
         dateObj = controller.dtembala;
         dateObj.setConverter(converter);
-        dateObj.setValue(dtembalaPropProperty().get().toLocalDate());
+        dateObj.setValue(dtembalaPropProperty().get());
         dateObj.setEditable(false);
 
         dateObj = controller.dtexpedi;
         dateObj.setConverter(converter);
-        LocalDate dexped = dtexpediPropProperty().get().toLocalDate();
+        LocalDate dexped = dtexpediPropProperty().get();
         dateObj.setValue(dexped);
-        System.out.print("Expedição = 1900? " + dexped.equals(LocalDate.of(1900, Month.JANUARY, 1)));
+        out.print("Expedição = 1900? " + dexped.equals(LocalDate.of(1900, Month.JANUARY, 1)));
         dateObj.setEditable(false);
         dateObj.setDisable(dexped.equals(LocalDate.of(1900, Month.JANUARY, 1)));
 //        dateObj.setStyle("-fx-opacity: 1");
@@ -935,9 +943,9 @@ public class VBoxOSBO extends VBox {
                 }
 
                 if (rows > 0) {
-                    dtcortefProp.set(controller.dtcortef.getValue().atStartOfDay());
-                    dttransfPropProperty().set(controller.dttransf.getValue().atStartOfDay());
-                    dtembalaProp.set(controller.dtembala.getValue().atStartOfDay());
+                    dtcortefProp.set(controller.dtcortef.getValue());
+                    dttransfPropProperty().set(controller.dttransf.getValue());
+                    dtembalaProp.set(controller.dtembala.getValue());
                 }
 
                 stage.close();
@@ -976,18 +984,17 @@ public class VBoxOSBO extends VBox {
     }
 
     private int calcularColuna() {
-        return (int) Singleton.getInstancia().dataInicioAgenda.toLocalDate().until(getDtcortefProp().toLocalDate(), ChronoUnit.DAYS);
+        return (int) Singleton.getInstancia().dataInicioAgenda.until(getDtcortefProp(), ChronoUnit.DAYS);
     }
 
     public void setBostampProp(String bostamp) {
-        //todo getPecasPorOS(bostamp)
+        //todo peças por bostamp
 //            int qtt = ServicoCouchBase.getInstancia().getPecasPorOS(bostamp);
 //            int qttProd = ServicoCouchBase.getInstancia().getPecasFeitasPorOS(bostamp);
         int qtt = 0;
         int qttProd = 0;
         setQttProp(qtt);
         setQttProdProp(qttProd);
-
         this.bostampProp.set(bostamp);
     }
 
@@ -1003,23 +1010,23 @@ public class VBoxOSBO extends VBox {
         this.qttProdProp.set(qtt);
     }
 
-    public LocalDateTime getDtcortefProp() {
+    public LocalDate getDtcortefProp() {
         return dtcortefProp.get();
     }
 
-    public void setDtcortefProp(LocalDateTime dtcorte) {
+    public void setDtcortefProp(LocalDate dtcorte) {
         dtcortefProp.set(dtcorte);
     }
 
-    public SimpleObjectProperty<LocalDateTime> dttransfPropProperty() {
+    public SimpleObjectProperty<LocalDate> dttransfPropProperty() {
         return dttransfProp;
     }
 
-    public SimpleObjectProperty<LocalDateTime> dtembalaPropProperty() {
+    public SimpleObjectProperty<LocalDate> dtembalaPropProperty() {
         return dtembalaProp;
     }
 
-    public SimpleObjectProperty<LocalDateTime> dtexpediPropProperty() {
+    public SimpleObjectProperty<LocalDate> dtexpediPropProperty() {
         return dtexpediProp;
     }
 
@@ -1037,6 +1044,7 @@ public class VBoxOSBO extends VBox {
     }
 
     public void setArtigoOSBOProp(ArtigoOSBO artigoOSBO) {
+        System.out.println("VBoxOSBO serArtigoOSBOProp");
         artigoOSBOProp.set(artigoOSBO);
         setBostampProp(artigoOSBO.getBostamp());
         frefProp.set(artigoOSBO.getFref());
@@ -1046,10 +1054,10 @@ public class VBoxOSBO extends VBox {
         seccaoProp.set(artigoOSBO.getSeccao());
         obsProp.set(artigoOSBO.getObs());
 
-        dtcortefProp.set(artigoOSBO.getDtcortef());
-        dttransfProp.set(artigoOSBO.getDttransf());
-        dtembalaProp.set(artigoOSBO.getDtembala());
-        dtexpediProp.set(artigoOSBO.getDtexpedi());
+        dtcortefProp.set(Funcoes.cToD(artigoOSBO.getDtcortef()));
+        dttransfProp.set(Funcoes.cToD(artigoOSBO.getDttransf()));
+        dtembalaProp.set(Funcoes.cToD(artigoOSBO.getDtembala()));
+        dtexpediProp.set(Funcoes.cToD(artigoOSBO.getDtexpedi()));
 
         ordemProp.set(artigoOSBO.getOrdem());
 
@@ -1060,6 +1068,23 @@ public class VBoxOSBO extends VBox {
 
         coluna = calcularColuna();
 
+        if (coluna < 0) {
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        System.out.println("A tentar retirar da grelha o artigo " + artigoOSBO.toString());
+                        GridPaneCalendario gridPaneCalendario = AppMain.getInstancia().getCalendario();
+                        VBoxOSBO vBoxOSBO = (VBoxOSBO) gridPaneCalendario.lookup("#" + artigoOSBO.getBostamp());
+                        gridPaneCalendario.getChildren().remove(vBoxOSBO);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        } else {
+            GridPane.setConstraints(this, coluna, ordemProp.get());
+        }
     }
 
     public int getColuna() {

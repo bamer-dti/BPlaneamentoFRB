@@ -12,7 +12,6 @@ import utils.ValoresDefeito;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.TextStyle;
 import java.time.temporal.TemporalField;
 import java.time.temporal.WeekFields;
@@ -39,7 +38,7 @@ public class GridPaneCalendario extends GridPane {
 
         PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
         int colunas = prefs.getInt(Constantes.PREF_AGENDA_NUMCOLS, ValoresDefeito.AGENDA_NUMCOLS);
-        LocalDateTime data = LocalDateTime.now().minusDays(1);
+        LocalDate data = LocalDate.now().minusDays(1);
         Singleton.getInstancia().dataInicioAgenda = data;
 
         for (int col = 0; col < colunas; col++) {
@@ -53,7 +52,7 @@ public class GridPaneCalendario extends GridPane {
 //                out.println("BOX DIA id " + id);
                 vBoxDia.setId(id);
                 vBoxDia.getStyleClass().add("game-grid-cell");
-                LocalDate localDate = data.toLocalDate().plusDays(col);
+                LocalDate localDate = data.plusDays(col);
                 if (row == 0) {
                     if (tipoCalendario == TIPO_TOPO
 //                            || tipoCalendario == TIPO_GRELHA

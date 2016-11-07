@@ -30,7 +30,7 @@ import utils.Singleton;
 import utils.ValoresDefeito;
 
 import java.sql.SQLException;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 
 import static java.lang.System.out;
@@ -244,7 +244,7 @@ public class VBoxDia extends VBox {
                     int ordemAnterior = vboxEmDRAG.getOrdemProp();
                     ArtigoOSBO artigoOSBOemDRAG = vboxEmDRAG.getArtigoOSBOProp();
 
-                    LocalDateTime dataNova = Singleton.getInstancia().dataInicioAgenda.plusDays(coluna);
+                    LocalDate dataNova = Singleton.getInstancia().dataInicioAgenda.plusDays(coluna);
                     GridPane gridPane = (GridPane) getParent();
                     ArrayList<VBoxOSBO> listaDeAlteracoes = new ArrayList<>();
 
@@ -259,7 +259,7 @@ public class VBoxDia extends VBox {
                     artigoOSBOemDRAG.setOrdem(countOrdem);
                     vboxEmDRAG.setOrdemProp(countOrdem);
                     vboxEmDRAG.setColuna(coluna);
-                    artigoOSBOemDRAG.setDtcortef(dataNova);
+                    artigoOSBOemDRAG.setDtcortef(Funcoes.dToC(dataNova));
                     vboxEmDRAG.setDtcortefProp(dataNova);
                     listaDeAlteracoes.add(vboxEmDRAG);
 
@@ -278,8 +278,12 @@ public class VBoxDia extends VBox {
 
                     for (VBoxOSBO vBoxOSBO : listaDeAlteracoes) {
                         GridPane.setConstraints(vBoxOSBO, vBoxOSBO.getColuna(), vBoxOSBO.getOrdemProp());
-                        //todo .actualizarOrdem(vBoxOSBO)
+                        //todo actualizar ordem
+//                        try {
 //                            ServicoCouchBase.getInstancia().actualizarOrdem(vBoxOSBO);
+//                        } catch (Exception e) {
+//                            e.printStackTrace();
+//                        }
                     }
                     event.consume();
                 }
@@ -287,8 +291,8 @@ public class VBoxDia extends VBox {
                 if (object instanceof HBoxOSAprovisionamento) {
                     Dragboard dragboard = event.getDragboard();
                     HBoxOSAprovisionamento hBoxOSAprovisionamento = (HBoxOSAprovisionamento) dragboard.getContent(DataFormat.RTF);
-                    LocalDateTime dataDeCorte = Singleton.getInstancia().dataInicioAgenda.plusDays(coluna);
-                    out.println("Colocar o aprovisionamento " + hBoxOSAprovisionamento.getId() + " em CORTE na data " + Funcoes.dToCZeroHour(dataDeCorte));
+                    LocalDate dataDeCorte = Singleton.getInstancia().dataInicioAgenda.plusDays(coluna);
+                    out.println("Colocar o aprovisionamento " + hBoxOSAprovisionamento.getId() + " em CORTE na data " + Funcoes.dToC(dataDeCorte));
                     ArtigoParaPlaneamento artigoAprovisionamento = hBoxOSAprovisionamento.getArtigoParaPlaneamento();
                     artigoAprovisionamento.setDtcortef(dataDeCorte);
                     try {

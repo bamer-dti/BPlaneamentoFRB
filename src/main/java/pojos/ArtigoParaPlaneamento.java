@@ -1,6 +1,6 @@
 package pojos;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 ///**
 // * Created by miguel.silva on 28-07-2016.
@@ -14,7 +14,7 @@ public class ArtigoParaPlaneamento {
     private String fref;
     private String nmfref;
     private String obs;
-    private LocalDateTime dtcortef;
+    private LocalDate dtcortef;
 
     public ArtigoParaPlaneamento(Builder builder) {
         seccao = builder.seccao;
@@ -59,11 +59,11 @@ public class ArtigoParaPlaneamento {
         return obs;
     }
 
-    public LocalDateTime getDtcortef() {
+    public LocalDate getDtcortef() {
         return dtcortef;
     }
 
-    public void setDtcortef(LocalDateTime dtcortef) {
+    public void setDtcortef(LocalDate dtcortef) {
         this.dtcortef = dtcortef;
     }
 

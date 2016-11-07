@@ -23,13 +23,17 @@ import static java.lang.System.out;
 @SuppressWarnings("unused")
 public class Funcoes {
 
-    public static String FORMATO_A_M_DTh_m_s_sssZ = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
-    public static String FORMATO_h_m_s = "HH:mm:ss";
+    public final static long ONE_SECOND = 1000;
+    public final static long ONE_MINUTE = ONE_SECOND * 60;
 
 //    public static String textoEmUTF8(String texto) {
 //        byte ptext[] = texto.getBytes(ISO_8859_1);
 //        return new String(ptext, UTF_8);
 //    }
+    public final static long ONE_HOUR = ONE_MINUTE * 60;
+    public final static long ONE_DAY = ONE_HOUR * 24;
+    public static String FORMATO_A_M_DTh_m_s_sssZ = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+    public static String FORMATO_h_m_s = "HH:mm:ss";
 
     public static String dToCZeroHour(LocalDateTime data) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd 00:00:00");
@@ -37,7 +41,13 @@ public class Funcoes {
         return formattedDateTime;
     }
 
-    public static String dToC(LocalDateTime data) {
+    public static String tToC(LocalDateTime data) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        String formattedDateTime = data.format(formatter);
+        return formattedDateTime;
+    }
+
+    public static String dToC(LocalDate data) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         String formattedDateTime = data.format(formatter);
         return formattedDateTime;
@@ -146,18 +156,15 @@ public class Funcoes {
         node.getStyleClass().add(estilo);
     }
 
-    public final static long ONE_SECOND = 1000;
-
-    public final static long ONE_MINUTE = ONE_SECOND * 60;
-
-    public final static long ONE_HOUR = ONE_MINUTE * 60;
-
-    public final static long ONE_DAY = ONE_HOUR * 24;
-
     public static String milisegundos_em_HH_MM_SS(long millis) {
         String hms = String.format("%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(millis),
                 TimeUnit.MILLISECONDS.toMinutes(millis) % TimeUnit.HOURS.toMinutes(1),
                 TimeUnit.MILLISECONDS.toSeconds(millis) % TimeUnit.MINUTES.toSeconds(1));
         return hms;
+    }
+
+    public static LocalDate cToD(String datastring) {
+        LocalDate data = Timestamp.valueOf(datastring).toLocalDateTime().truncatedTo(ChronoUnit.DAYS).toLocalDate();
+        return data;
     }
 }

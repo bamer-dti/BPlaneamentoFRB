@@ -115,7 +115,7 @@ public class BamerSqlServer {
 
         String bostamp = artigo.getBostamp();
 
-        String dataCorteStr = Funcoes.dToCZeroHour(artigo.getDtcortef());
+        String dataCorteStr = artigo.getDtcortef();
         String dataCorteSQL = Funcoes.cToSQL(dataCorteStr);
 
         String seccao = artigo.getSeccao();
@@ -149,7 +149,7 @@ public class BamerSqlServer {
 
         String bostamp = artigo.getBostamp();
 
-        String dataCorteStr = Funcoes.dToCZeroHour(artigo.getDtcortef());
+        String dataCorteStr = artigo.getDtcortef();
         String dataCorteSQL = Funcoes.cToSQL(dataCorteStr);
 
         String seccao = artigo.getSeccao();
@@ -179,7 +179,7 @@ public class BamerSqlServer {
 
         String bostamp = artigo.getBostamp();
 
-        String dataCorteStr = Funcoes.dToCZeroHour(artigo.getDtcortef());
+        String dataCorteStr = Funcoes.dToC(artigo.getDtcortef());
         String dataCorteSQL = Funcoes.cToSQL(dataCorteStr);
 
         String seccao = artigo.getSeccao();

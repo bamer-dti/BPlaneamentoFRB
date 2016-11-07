@@ -16,14 +16,14 @@ import javafx.scene.text.FontWeight;
 import pojos.ArtigoParaPlaneamento;
 import utils.Funcoes;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
 public class HBoxOSAprovisionamento extends HBox {
     public static final int TIPO_APROVISIONAMENTO = 1;
     public static final int TIPO_ATRASADO = 2;
-    private final LocalDateTime dtcortef;
+    private final LocalDate dtcortef;
     private final int tipo;
     private final String dtcliente;
     private final int obrano;
@@ -81,7 +81,7 @@ public class HBoxOSAprovisionamento extends HBox {
         Tooltip.install(labelDataCliente, t);
 
         if (tipo == TIPO_ATRASADO) {
-            Label labelDataCorte = new Label(Funcoes.dataBonita(Funcoes.dToCZeroHour(dtcortef)));
+            Label labelDataCorte = new Label(Funcoes.dataBonita(Funcoes.dToC(dtcortef)));
             labelDataCorte.setWrapText(true);
             setMargin(labelDataCorte, new Insets(2, 2, 2, 20));
             this.getChildren().add(labelDataCorte);

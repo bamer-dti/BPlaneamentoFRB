@@ -1,52 +1,62 @@
 package pojos;
 
 
-import utils.Funcoes;
-
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-
 public class ArtigoOSBO {
-    private final String bostamp;
-    private final int obrano;
-    private final String fref;
-    private final String nmfref;
-    private final String estado;
-    private final String seccao;
-    private final String obs;
-    private final int cor;
-    private final LocalDateTime dttransf;
-    private final LocalDateTime dtembala;
-    private final LocalDateTime dtexpedi;
+    private String bostamp;
+    private int obrano;
+    private String fref;
+    private String nmfref;
+    private String estado;
+    private String seccao;
+    private String obs;
+    private int cor;
+    private String dttransf;
+    private String dtembala;
+    private String dtexpedi;
     private long tempoParcial = 0L;
     private long tempoTotal = 0L;
-    private LocalDateTime dtcortef;
+    private String dtcortef;
     private int ordem;
+    private String dtcliente;
 
-    public ArtigoOSBO(String bostamp, int obrano, String fref, String nmfref, String estado, String seccao, String obs, String dtcortef, String dttransf, String dtembala, String dtexpedi, int ordem, int cor) {
+    public ArtigoOSBO() {
+
+    }
+
+    public ArtigoOSBO(String bostamp, int obrano, String fref, String nmfref, String estado, String seccao
+            , String obs, int cor, String dttransf, String dtembala, String dtexpedi, String dtcortef, int ordem, String dtcliente) {
         this.bostamp = bostamp;
-        this.obrano = obrano;
+        this.obrano  = obrano;
         this.fref = fref;
         this.nmfref = nmfref;
         this.estado = estado;
         this.seccao = seccao;
         this.obs = obs;
-        this.dtcortef = Funcoes.cToT(dtcortef);
-        this.dttransf = Funcoes.cToT(dttransf);
-        this.dtembala = Funcoes.cToT(dtembala);
-        this.dtexpedi = Funcoes.cToT(dtexpedi);
-        this.ordem = ordem;
         this.cor = cor;
-        //todo getTempoTotal(bostamp)
-//            this.tempoTotal = ServicoCouchBase.getInstancia().getTempoTotal(bostamp);
-        this.tempoTotal = 0;
-        //todo getUltimoTempo(bostamp)
-//            this.tempoParcial = ServicoCouchBase.getInstancia().getUltimoTempo(bostamp);
-        this.tempoParcial = 0;
+        this.dttransf = dttransf;
+        this.dtembala = dtembala;
+        this.dtexpedi = dtexpedi;
+        this.dtcortef = dtcortef;
+        this.ordem = ordem;
+        this.dtcliente = dtcliente;
+    }
+
+    @Override
+    public String toString() {
+        return "bostamp: " + bostamp + ", obrano: " + obrano + ", fref: " + fref
+                + ", nmfref: " + nmfref + ", estado: " + estado + ", seccao: " + seccao
+                + ", obs: " + obs + ", cor: " + cor + ", dttransf: " + dttransf
+                + ", dtembala: " + dtembala + ", dtexpedi: " + dtexpedi + ", dtcortef: " + dtcortef
+                + ", ordem: " + ordem + ", dtcliente: " + dtcliente
+                ;
     }
 
     public String getBostamp() {
         return bostamp;
+    }
+
+    public void setBostamp(String bostamp) {
+        this.bostamp = bostamp;
     }
 
     public int getObrano() {
@@ -73,24 +83,24 @@ public class ArtigoOSBO {
         return obs;
     }
 
-    public LocalDateTime getDtcortef() {
-        return dtcortef.truncatedTo(ChronoUnit.DAYS);
+    public String getDtcortef() {
+        return dtcortef;
     }
 
-    public void setDtcortef(LocalDateTime dtcorte) {
+    public void setDtcortef(String dtcorte) {
         this.dtcortef = dtcorte;
     }
 
-    public LocalDateTime getDttransf() {
-        return dttransf.truncatedTo(ChronoUnit.DAYS);
+    public String getDttransf() {
+        return dttransf;
     }
 
-    public LocalDateTime getDtembala() {
-        return dtembala.truncatedTo(ChronoUnit.DAYS);
+    public String getDtembala() {
+        return dtembala;
     }
 
-    public LocalDateTime getDtexpedi() {
-        return dtexpedi.truncatedTo(ChronoUnit.DAYS);
+    public String getDtexpedi() {
+        return dtexpedi;
     }
 
     public int getOrdem() {
@@ -111,5 +121,10 @@ public class ArtigoOSBO {
 
     public long getTempoTotal() {
         return tempoTotal;
+    }
+
+
+    public String getDtcliente() {
+        return dtcliente;
     }
 }

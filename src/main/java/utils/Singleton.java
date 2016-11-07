@@ -3,15 +3,15 @@ package utils;
 import javafx.scene.control.ProgressIndicator;
 import sqlite.PreferenciasEmSQLite;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 ///**
 // * Created by miguel.silva on 08-06-2016.
 // */
 public class Singleton {
     private static Singleton singleton;
-    public LocalDateTime dataInicioAgenda;
-    private ProgressIndicator pi;
+    public LocalDate dataInicioAgenda;
+    private ProgressIndicator progressIndicator;
 
     public static Singleton getInstancia() {
         if (singleton == null) {
@@ -21,13 +21,13 @@ public class Singleton {
         return singleton;
     }
 
-    public void setPi(ProgressIndicator pi) {
-        pi.setProgress(100d);
-        pi.setPrefWidth(30);
-        this.pi = pi;
+    public ProgressIndicator getProgressIndicator() {
+        return progressIndicator;
     }
 
-    public ProgressIndicator getPi() {
-        return pi;
+    public void setProgressIndicator(ProgressIndicator progressIndicator) {
+        progressIndicator.setProgress(100d);
+        progressIndicator.setPrefWidth(30);
+        this.progressIndicator = progressIndicator;
     }
 }
