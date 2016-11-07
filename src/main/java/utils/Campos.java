@@ -1,10 +1,10 @@
 package utils;
 
 public class Campos {
-    public static final String TABELA_OSBO = "tab_osbo";
-    public static final String TABELA_OSBI = "tab_osbi";
-    public static final String TABELA_OSPROD = "tab_osprod";
-    public static final String TABELA_OSTIMER = "tab_ostimer";
+    public static final String TABELA_OSBO = "osbo";
+    public static final String TABELA_OSBI = "osbi";
+    public static final String TABELA_OSPROD = "osprod";
+    public static final String TABELA_OSTIMER = "ostimer";
 
     public static final String OBRANO = "obrano";
     public static final String FREF = "fref";
@@ -29,7 +29,7 @@ public class Campos {
     public static final String ORDEM = "ordem";
     public static final String COR = "cor";
 
-    public static final String KEY_OSBI = "osbi03";
+    public static final String KEY_OSBI03 = "osbi03";
     public static final String KEY_OSBO = "osbo";
     public static final String KEY_OSPROD = "osprod";
     public static final String KEY_OSTIMER = "ostimer";

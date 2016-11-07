@@ -37,6 +37,7 @@ import javafx.stage.StageStyle;
 import javafx.util.StringConverter;
 import pojos.ArtigoOSBO;
 import sql.BamerSqlServer;
+import sqlite.DBSQLite;
 import sqlite.PreferenciasEmSQLite;
 import utils.Constantes;
 import utils.Funcoes;
@@ -451,7 +452,13 @@ public class VBoxOSBO extends VBox {
         qttProp.addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                labelQtt.setText("" + newValue.intValue());
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        labelQtt.setText("" + newValue.intValue());
+                    }
+                });
+                AppMain.getInstancia().actualizarTextoColunasZero(coluna);
             }
         });
 
@@ -459,11 +466,22 @@ public class VBoxOSBO extends VBox {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
                 if (newValue.intValue() == 0) {
-                    labelProd.setText("");
-                    labelResultado.setText("");
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            labelProd.setText("");
+                            labelResultado.setText("");
+                        }
+                    });
+
                 } else {
-                    labelProd.setText("-" + newValue);
-                    labelResultado.setText("=" + (qttProp.get() - qttProdProp.get()));
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            labelProd.setText("-" + newValue);
+                            labelResultado.setText("=" + (qttProp.get() - qttProdProp.get()));
+                        }
+                    });
                 }
                 AppMain.getInstancia().actualizarTextoColunasZero(coluna);
             }
@@ -709,7 +727,7 @@ public class VBoxOSBO extends VBox {
 
                     for (VBoxOSBO vBoxOSBO : listaDeAlteracoes) {
                         GridPane.setConstraints(vBoxOSBO, vBoxOSBO.getColuna(), vBoxOSBO.getOrdemProp());
-                        //todo actualizar ordem
+                        //todo actualizarOSBO ordem
 //                        try {
 //                            ServicoCouchBase.getInstancia().actualizarOrdem(vBoxOSBO);
 //                        } catch (IOException e) {
@@ -854,7 +872,7 @@ public class VBoxOSBO extends VBox {
 //        });
 //    }
 
-    //todo guardar notas
+    //todo guardarOSBO notas
 //    private void guardarNota(Document document, String text) throws CouchbaseLiteException {
 //        Map map = new HashMap<String, Object>();
 //        map.putAll(document.getProperties());
@@ -1044,7 +1062,6 @@ public class VBoxOSBO extends VBox {
     }
 
     public void setArtigoOSBOProp(ArtigoOSBO artigoOSBO) {
-        System.out.println("VBoxOSBO serArtigoOSBOProp");
         artigoOSBOProp.set(artigoOSBO);
         setBostampProp(artigoOSBO.getBostamp());
         frefProp.set(artigoOSBO.getFref());
@@ -1063,9 +1080,6 @@ public class VBoxOSBO extends VBox {
 
         corProp.set(artigoOSBO.getCor());
 
-        tempoTotalProp.set(artigoOSBO.getTempoTotal());
-        tempoParcialProp.set(artigoOSBO.getTempoParcial());
-
         coluna = calcularColuna();
 
         if (coluna < 0) {
@@ -1073,7 +1087,6 @@ public class VBoxOSBO extends VBox {
                 @Override
                 public void run() {
                     try {
-                        System.out.println("A tentar retirar da grelha o artigo " + artigoOSBO.toString());
                         GridPaneCalendario gridPaneCalendario = AppMain.getInstancia().getCalendario();
                         VBoxOSBO vBoxOSBO = (VBoxOSBO) gridPaneCalendario.lookup("#" + artigoOSBO.getBostamp());
                         gridPaneCalendario.getChildren().remove(vBoxOSBO);
@@ -1083,6 +1096,11 @@ public class VBoxOSBO extends VBox {
                 }
             });
         } else {
+            DBSQLite sql = DBSQLite.getInstancia();
+            tempoTotalProp.set(artigoOSBO.getTempoTotal());
+            tempoParcialProp.set(artigoOSBO.getTempoParcial());
+            qttProp.set(sql.getQtdPedidaBostamp(bostampProp.get()));
+            qttProdProp.set(sql.getQtdProduzidaBostamp(bostampProp.get()));
             GridPane.setConstraints(this, coluna, ordemProp.get());
         }
     }
@@ -1105,5 +1123,15 @@ public class VBoxOSBO extends VBox {
 
     public SimpleLongProperty tempoTotalPropProperty() {
         return tempoTotalProp;
+    }
+
+    public void actualizarQtdPedida() {
+        int qtt = DBSQLite.getInstancia().getQtdPedidaBostamp(bostampProp.get());
+        qttProp.set(qtt);
+    }
+
+    public void actualizarQtdProduzida() {
+        int qtt = DBSQLite.getInstancia().getQtdProduzidaBostamp(bostampProp.get());
+        qttProdProp.set(qtt);
     }
 }

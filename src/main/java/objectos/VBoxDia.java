@@ -259,7 +259,7 @@ public class VBoxDia extends VBox {
                     artigoOSBOemDRAG.setOrdem(countOrdem);
                     vboxEmDRAG.setOrdemProp(countOrdem);
                     vboxEmDRAG.setColuna(coluna);
-                    artigoOSBOemDRAG.setDtcortef(Funcoes.dToC(dataNova));
+                    artigoOSBOemDRAG.setDtcortef(Funcoes.dToCddMMyyyy(dataNova));
                     vboxEmDRAG.setDtcortefProp(dataNova);
                     listaDeAlteracoes.add(vboxEmDRAG);
 
@@ -278,7 +278,7 @@ public class VBoxDia extends VBox {
 
                     for (VBoxOSBO vBoxOSBO : listaDeAlteracoes) {
                         GridPane.setConstraints(vBoxOSBO, vBoxOSBO.getColuna(), vBoxOSBO.getOrdemProp());
-                        //todo actualizar ordem
+                        //todo actualizarOSBO ordem
 //                        try {
 //                            ServicoCouchBase.getInstancia().actualizarOrdem(vBoxOSBO);
 //                        } catch (Exception e) {
@@ -292,7 +292,7 @@ public class VBoxDia extends VBox {
                     Dragboard dragboard = event.getDragboard();
                     HBoxOSAprovisionamento hBoxOSAprovisionamento = (HBoxOSAprovisionamento) dragboard.getContent(DataFormat.RTF);
                     LocalDate dataDeCorte = Singleton.getInstancia().dataInicioAgenda.plusDays(coluna);
-                    out.println("Colocar o aprovisionamento " + hBoxOSAprovisionamento.getId() + " em CORTE na data " + Funcoes.dToC(dataDeCorte));
+                    out.println("Colocar o aprovisionamento " + hBoxOSAprovisionamento.getId() + " em CORTE na data " + Funcoes.dToCddMMyyyy(dataDeCorte));
                     ArtigoParaPlaneamento artigoAprovisionamento = hBoxOSAprovisionamento.getArtigoParaPlaneamento();
                     artigoAprovisionamento.setDtcortef(dataDeCorte);
                     try {

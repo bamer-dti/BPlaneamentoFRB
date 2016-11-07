@@ -47,8 +47,14 @@ public class Funcoes {
         return formattedDateTime;
     }
 
-    public static String dToC(LocalDate data) {
+    public static String dToCddMMyyyy(LocalDate data) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        String formattedDateTime = data.format(formatter);
+        return formattedDateTime;
+    }
+
+    public static String dToC(LocalDate data, String formato) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(formato);
         String formattedDateTime = data.format(formatter);
         return formattedDateTime;
     }

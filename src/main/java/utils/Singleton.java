@@ -1,6 +1,5 @@
 package utils;
 
-import javafx.scene.control.ProgressIndicator;
 import sqlite.PreferenciasEmSQLite;
 
 import java.time.LocalDate;
@@ -11,7 +10,6 @@ import java.time.LocalDate;
 public class Singleton {
     private static Singleton singleton;
     public LocalDate dataInicioAgenda;
-    private ProgressIndicator progressIndicator;
 
     public static Singleton getInstancia() {
         if (singleton == null) {
@@ -21,13 +19,4 @@ public class Singleton {
         return singleton;
     }
 
-    public ProgressIndicator getProgressIndicator() {
-        return progressIndicator;
-    }
-
-    public void setProgressIndicator(ProgressIndicator progressIndicator) {
-        progressIndicator.setProgress(100d);
-        progressIndicator.setPrefWidth(30);
-        this.progressIndicator = progressIndicator;
-    }
 }

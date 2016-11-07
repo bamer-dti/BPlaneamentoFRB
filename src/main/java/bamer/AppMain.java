@@ -18,7 +18,6 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
@@ -30,8 +29,9 @@ import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 import objectos.GridPaneCalendario;
 import objectos.VBoxOSBO;
+import pojos.ArtigoOSBI;
 import pojos.ArtigoOSBO;
-import sql.BamerSqlServer;
+import pojos.ArtigoOSPROD;
 import sqlite.DBSQLite;
 import sqlite.PreferenciasEmSQLite;
 import utils.*;
@@ -48,12 +48,12 @@ public class AppMain extends Application {
     private static final int MINIMO_COLUNAS = 4; //dias = + 1
     private static final String TAG = AppMain.class.getSimpleName();
     private static final int ADICIONAR = 1;
-    private static final int TESTES = -1;
     private static final int ACTUALIZAR = 2;
     private static final int REMOVER = 3;
     private static AppMain app;
     public BorderPane borderPaneAtrasados;
     public BorderPane borderPaneAprovisionamento;
+    private String seccao;
     private Label labelCols;
     private GridPaneCalendario calendario;
     private Stage stageAprovisionamento;
@@ -70,10 +70,11 @@ public class AppMain extends Application {
     private TextField textFieldFiltroFrefAtrasados;
     private Label labelTotRecsAtrasados;
     private Stage mainStage;
-    private ChildEventListener listenerFirebaseOSBO;
     private ProgressIndicator progressIndicator;
-    private String seccao;
     private DBSQLite sqlite;
+    private ChildEventListener listenerFirebaseOSBO;
+    private ChildEventListener listenerFirebaseOSBI03;
+    private ChildEventListener listenerFirebaseOSPROD;
 
     public static void main(String[] args) {
         launch(args);
@@ -233,6 +234,7 @@ public class AppMain extends Application {
                 PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
                 prefs.put(Constantes.PREF_SECCAO, newValue);
                 setColunas();
+//                actualizarTextoColunasZero();
             }
         });
         comboSeccao.setVisible(false);
@@ -245,8 +247,9 @@ public class AppMain extends Application {
         progressIndicator = new ProgressIndicator();
 
         HBox.setMargin(progressIndicator, new Insets(2, 30, 0, 30));
-        Singleton.getInstancia().setProgressIndicator(progressIndicator);
-
+        progressIndicator.setProgress(100d);
+        progressIndicator.setPrefWidth(30);
+        progressIndicator.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
         topBox.getChildren().add(progressIndicator);
 
         topBox.setAlignment(Pos.CENTER_LEFT);
@@ -271,8 +274,6 @@ public class AppMain extends Application {
             }
         });
 
-        iniciarServicos();
-
         configurarTaskStage();
 
         configurarStageAtrasados();
@@ -285,8 +286,6 @@ public class AppMain extends Application {
     private void iniciarFirebase() {
 
         DBSQLite.getInstancia().resetDados();
-
-        configurarEventoListenerFirebase();
 
         try {
             InputStream file = ClassLoader.getSystemResourceAsStream("firebase_auth.json");
@@ -326,15 +325,33 @@ public class AppMain extends Application {
             }
         });
 
+        configurarListenersOSBO();
+
+        DatabaseReference refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBO);
+        refDataFireBase.addChildEventListener(listenerFirebaseOSBO);
+
+        configurarListenerOSBI();
+        refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBI03);
+        refDataFireBase.addChildEventListener(listenerFirebaseOSBI03);
+
+        configurarListenerOSPROD();
+        refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSPROD);
+        refDataFireBase.addChildEventListener(listenerFirebaseOSPROD);
+
         //ALIMENTAR COMBO SECÇÃO
         FirebaseDatabase.getInstance().getReference(Campos.KEY_SECCAO).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                System.out.println("SECÇÃO_LOG: " + dataSnapshot.toString());
                 for (DataSnapshot d : dataSnapshot.getChildren()) {
                     comboSeccao.getItems().add(d.getKey());
                 }
-                comboSeccao.setVisible(true);
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        comboSeccao.setVisible(true);
+                        progressIndicator.setProgress(100);
+                    }
+                });
             }
 
             @Override
@@ -342,17 +359,14 @@ public class AppMain extends Application {
 
             }
         });
-
-        DatabaseReference refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBO);
-        refDataFireBase.addChildEventListener(listenerFirebaseOSBO);
     }
 
-    private void configurarEventoListenerFirebase() {
+    private void configurarListenersOSBO() {
         listenerFirebaseOSBO = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
 //                if (dataSnapshot.getKey().equals(Campos.KEY_OSBO)) {
-                Log.i(TAG, "onChildAdded: " + dataSnapshot.toString());
+//                Log.i(TAG, "onChildAdded: " + dataSnapshot.toString());
 //                }
                 Task<DataSnapshot> taskInserirObjectoOSBO = new Task<DataSnapshot>() {
                     @Override
@@ -361,7 +375,7 @@ public class AppMain extends Application {
                         String bostamp = dataSnapshot.getKey();
                         ArtigoOSBO artigoOSBO = dataSnapshot.getValue(ArtigoOSBO.class);
                         artigoOSBO.setBostamp(bostamp);
-                        sqlite.guardar(artigoOSBO);
+                        sqlite.guardarOSBO(artigoOSBO);
                         if (artigoOSBO.getSeccao().equals(seccao)) {
                             lista.add(artigoOSBO);
                             actualizarGrelhaCalendario(lista, ADICIONAR);
@@ -374,7 +388,7 @@ public class AppMain extends Application {
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                Log.i(TAG, "onChildChanged: " + dataSnapshot.toString());
+                Log.i(TAG, "OSBO onChildChanged: " + dataSnapshot.toString());
                 Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
                     @Override
                     protected DataSnapshot call() throws Exception {
@@ -382,7 +396,7 @@ public class AppMain extends Application {
                         String bostamp = dataSnapshot.getKey();
                         ArtigoOSBO artigoOSBO = dataSnapshot.getValue(ArtigoOSBO.class);
                         artigoOSBO.setBostamp(bostamp);
-                        sqlite.actualizar(artigoOSBO);
+                        sqlite.actualizarOSBO(artigoOSBO);
                         lista.add(artigoOSBO);
                         actualizarGrelhaCalendario(lista, ACTUALIZAR);
                         return null;
@@ -393,7 +407,7 @@ public class AppMain extends Application {
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Log.i(TAG, "onChildRemoved: " + dataSnapshot.toString());
+                Log.i(TAG, "OSBO onChildRemoved: " + dataSnapshot.toString());
                 Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
                     @Override
                     protected DataSnapshot call() throws Exception {
@@ -401,7 +415,7 @@ public class AppMain extends Application {
                         String bostamp = dataSnapshot.getKey();
                         ArtigoOSBO artigoOSBO = dataSnapshot.getValue(ArtigoOSBO.class);
                         artigoOSBO.setBostamp(bostamp);
-                        sqlite.remover(artigoOSBO);
+                        sqlite.removerOSBO(artigoOSBO);
                         lista.add(artigoOSBO);
                         actualizarGrelhaCalendario(lista, REMOVER);
                         return null;
@@ -420,23 +434,178 @@ public class AppMain extends Application {
 
             }
         };
+    }
 
+    private void configurarListenerOSBI() {
+        listenerFirebaseOSBI03 = new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+//                Log.i(TAG, "onChildAdded: " + dataSnapshot.toString());
+                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
+                    @Override
+                    protected DataSnapshot call() throws Exception {
+                        String bostamp = dataSnapshot.getKey();
+                        for (DataSnapshot d : dataSnapshot.getChildren()) {
+                            String bistamp = d.getKey();
+                            ArtigoOSBI artigoOSBI = d.getValue(ArtigoOSBI.class);
+                            artigoOSBI.setBostamp(bostamp);
+                            artigoOSBI.setBistamp(bistamp);
+                            sqlite.guardarOSBI(artigoOSBI);
+                            actualizarQtdPedida(artigoOSBI.getBostamp());
+                        }
+                        return null;
+                    }
+                };
+                new Thread(tarefa).run();
+            }
 
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                Log.i(TAG, "OSBI onChildChanged: " + dataSnapshot.toString());
+                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
+                    @Override
+                    protected DataSnapshot call() throws Exception {
+                        String bostamp = dataSnapshot.getKey();
+                        for (DataSnapshot d : dataSnapshot.getChildren()) {
+                            String bistamp = d.getKey();
+                            ArtigoOSBI artigoOSBI = d.getValue(ArtigoOSBI.class);
+                            artigoOSBI.setBostamp(bostamp);
+                            artigoOSBI.setBistamp(bistamp);
+                            sqlite.actualizarOSBI(artigoOSBI);
+                            actualizarQtdPedida(artigoOSBI.getBostamp());
+                        }
+                        return null;
+                    }
+                };
+                new Thread(tarefa).run();
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                Log.i(TAG, "OSBI onChildRemoved: " + dataSnapshot.toString());
+                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
+                    @Override
+                    protected DataSnapshot call() throws Exception {
+                        String bostamp = dataSnapshot.getKey();
+                        for (DataSnapshot d : dataSnapshot.getChildren()) {
+                            String bistamp = d.getKey();
+                            ArtigoOSBI artigoOSBI = d.getValue(ArtigoOSBI.class);
+                            artigoOSBI.setBostamp(bostamp);
+                            artigoOSBI.setBistamp(bistamp);
+                            sqlite.removerOSBI(artigoOSBI);
+                            actualizarQtdPedida(artigoOSBI.getBostamp());
+                        }
+                        return null;
+                    }
+                };
+                new Thread(tarefa).run();
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        };
+    }
+
+    private void configurarListenerOSPROD() {
+        listenerFirebaseOSPROD = new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
+                    @Override
+                    protected DataSnapshot call() throws Exception {
+                        String bostamp = dataSnapshot.getKey();
+                        for (DataSnapshot d : dataSnapshot.getChildren()) {
+                            String bistamp = d.getKey();
+                            ArtigoOSPROD artigoOSPROD = d.getValue(ArtigoOSPROD.class);
+                            artigoOSPROD.setBostamp(bostamp);
+                            artigoOSPROD.setBistamp(bistamp);
+                            sqlite.guardarOSPROD(artigoOSPROD);
+                            actualizarQtdProduzida(artigoOSPROD.getBostamp());
+                        }
+                        return null;
+                    }
+                };
+                new Thread(tarefa).run();
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                Log.i(TAG, "OSPROD onChildChanged: " + dataSnapshot.toString());
+                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
+                    @Override
+                    protected DataSnapshot call() throws Exception {
+                        String bostamp = dataSnapshot.getKey();
+                        for (DataSnapshot d : dataSnapshot.getChildren()) {
+                            String bistamp = d.getKey();
+                            ArtigoOSPROD artigoOSPROD = d.getValue(ArtigoOSPROD.class);
+                            artigoOSPROD.setBostamp(bostamp);
+                            artigoOSPROD.setBistamp(bistamp);
+                            sqlite.actualizarOSPROD(artigoOSPROD);
+                            actualizarQtdProduzida(artigoOSPROD.getBostamp());
+                        }
+                        return null;
+                    }
+                };
+                new Thread(tarefa).run();
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                Log.i(TAG, "OSBI onChildRemoved: " + dataSnapshot.toString());
+                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
+                    @Override
+                    protected DataSnapshot call() throws Exception {
+                        String bostamp = dataSnapshot.getKey();
+                        for (DataSnapshot d : dataSnapshot.getChildren()) {
+                            String bistamp = d.getKey();
+                            ArtigoOSPROD artigoOSBI = d.getValue(ArtigoOSPROD.class);
+                            artigoOSBI.setBostamp(bostamp);
+                            artigoOSBI.setBistamp(bistamp);
+                            sqlite.removerOSPROD(artigoOSBI);
+                            actualizarQtdProduzida(artigoOSBI.getBostamp());
+                        }
+                        return null;
+                    }
+                };
+                new Thread(tarefa).run();
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        };
+    }
+
+    private void actualizarQtdPedida(String bostamp) {
+        VBoxOSBO vBoxOSBO = (VBoxOSBO) calendario.lookup("#" + bostamp);
+        if (vBoxOSBO != null) {
+            vBoxOSBO.actualizarQtdPedida();
+//            actualizarTextoColunasZero();
+        }
+    }
+
+    private void actualizarQtdProduzida(String bostamp) {
+        VBoxOSBO vBoxOSBO = (VBoxOSBO) calendario.lookup("#" + bostamp);
+        if (vBoxOSBO != null) {
+            vBoxOSBO.actualizarQtdProduzida();
+//            actualizarTextoColunasZero();
+        }
     }
 
     public void actualizarGrelhaCalendario(ArrayList<ArtigoOSBO> listaDocsOSBO, int operacao) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                progressIndicator.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
-            }
-        });
-
-        Log.i(TAG, "A lista para agenda tem " + listaDocsOSBO.size() + " registos...");
-//        ServicoCouchBase.getInstancia().liveQueryAddChangeDocs.stop();
-//        String seccao = AppMain.getInstancia().getComboSeccao().getValue().toString();
-        GridPaneCalendario gridPaneCalendario = AppMain.getInstancia().calendario;
-
         switch (operacao) {
             case ADICIONAR:
                 for (ArtigoOSBO artigoOSBO : listaDocsOSBO) {
@@ -448,7 +617,7 @@ public class AppMain extends Application {
 
             case ACTUALIZAR:
                 for (ArtigoOSBO artigoOSBO : listaDocsOSBO) {
-                    VBoxOSBO vBoxOSBO = (VBoxOSBO) gridPaneCalendario.lookup("#" + artigoOSBO.getBostamp());
+                    VBoxOSBO vBoxOSBO = (VBoxOSBO) calendario.lookup("#" + artigoOSBO.getBostamp());
                     //O artigo já existe
                     if (vBoxOSBO != null) {
                         System.out.println("ALTERAR: O artigo já existe em agenda");
@@ -459,8 +628,8 @@ public class AppMain extends Application {
                             actualizarGrelhaCalendario(listaUnica, REMOVER);
                             continue;
                         }
-                        //Pertence à mesma secção, actualizar
-                        System.out.println("ALTERAR: actualizar o VBoxOSBO respectivo");
+                        //Pertence à mesma secção, actualizarOSBO
+                        System.out.println("ALTERAR: actualizarOSBO o VBoxOSBO respectivo");
                         vBoxOSBO.setArtigoOSBOProp(artigoOSBO);
                         continue;
                     }
@@ -474,11 +643,11 @@ public class AppMain extends Application {
 
             case REMOVER:
                 for (ArtigoOSBO artigoOSBO : listaDocsOSBO) {
-                    VBoxOSBO vBoxOSBO = (VBoxOSBO) gridPaneCalendario.lookup("#" + artigoOSBO.getBostamp());
+                    VBoxOSBO vBoxOSBO = (VBoxOSBO) calendario.lookup("#" + artigoOSBO.getBostamp());
                     Platform.runLater(new Runnable() {
                         @Override
                         public void run() {
-                            gridPaneCalendario.getChildren().removeAll(vBoxOSBO);
+                            calendario.getChildren().removeAll(vBoxOSBO);
                         }
                     });
                 }
@@ -487,96 +656,6 @@ public class AppMain extends Application {
             default:
                 break;
         }
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                progressIndicator.setProgress(100);
-            }
-        });
-
-        if (operacao == TESTES) {
-            for (ArtigoOSBO artigoOSBO : listaDocsOSBO) {
-                //Existe?
-                VBoxOSBO vBoxOSBO = null;
-                try {
-                    vBoxOSBO = (VBoxOSBO) gridPaneCalendario.lookup("#" + artigoOSBO.getBostamp());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    out.println("ERROR QUANDO EXISTE APENAS UM OBECTO!!?!??!");
-                }
-
-                if (!artigoOSBO.getSeccao().equals(seccao)) {
-                    continue;
-                }
-
-                //Não existe, coloca novo
-                if (vBoxOSBO == null) {
-                    if (artigoOSBO.getEstado().equals(Campos.ESTADO_01_CORTE)) {
-                        new VBoxOSBO(artigoOSBO);
-                    }
-                } else {
-                    if (!artigoOSBO.getEstado().equals(Campos.ESTADO_01_CORTE)) {
-                        VBoxOSBO finalVBoxOSBO = vBoxOSBO;
-                        Platform.runLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                out.println("REMOVER " + finalVBoxOSBO.getColuna() + ":" + finalVBoxOSBO.getOrdemProp() + " OS " + artigoOSBO.getObrano());
-                                calendario.getChildren().remove(finalVBoxOSBO);
-                            }
-                        });
-                    } else {
-                        //existem alterações?
-                        ArtigoOSBO artigoOriginal = vBoxOSBO.getArtigoOSBOProp();
-                        ArtigoOSBO artigoNovo = artigoOSBO;
-                        if (artigoOriginal.getOrdem() != artigoNovo.getOrdem()
-                                || !artigoOriginal.getDtcortef().equals(artigoNovo.getDtcortef())
-                                || !artigoOriginal.getDttransf().equals(artigoNovo.getDttransf())
-                                || !artigoOriginal.getDtexpedi().equals(artigoNovo.getDtexpedi())
-                                || artigoOriginal.getCor() != artigoNovo.getCor()
-                                ) {
-                            //Reposicionar o objecto
-                            VBoxOSBO finalVBoxOSBO1 = vBoxOSBO;
-                            VBoxOSBO finalVBoxOSBO2 = vBoxOSBO;
-                            Platform.runLater(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Platform.runLater(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            finalVBoxOSBO1.setArtigoOSBOProp(artigoNovo);
-                                            try {
-                                                GridPane.setConstraints(finalVBoxOSBO1, finalVBoxOSBO2.getColuna(), artigoNovo.getOrdem());
-                                            } catch (Exception e) {
-                                                out.println("A OS " + artigoNovo.getObrano() + " tem uma ordem de " + artigoNovo.getOrdem());
-                                            }
-                                        }
-                                    });
-                                }
-                            });
-                            continue;
-                        }
-                        if (artigoOriginal.getEstado().equals(artigoNovo.getEstado())) {
-                            VBoxOSBO finalVBoxOSBO3 = vBoxOSBO;
-                            Platform.runLater(new Runnable() {
-                                @Override
-                                public void run() {
-                                    finalVBoxOSBO3.setArtigoOSBOProp(artigoNovo);
-                                }
-                            });
-                        }
-                    }
-                }
-            }
-        }
-
-        actualizarTextoColunasZero();
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                progressIndicator.setProgress(100);
-            }
-        });
-//        ServicoCouchBase.getInstancia().liveQueryAddChangeDocs.start();
     }
 
 
@@ -703,67 +782,12 @@ public class AppMain extends Application {
         new Thread(task).run();
     }
 
-    private void iniciarServicos() {
-        BamerSqlServer.getInstancia();
-    }
-
     private void updateLabelCols() {
         PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
         int colunas = prefs.getInt(Constantes.PREF_AGENDA_NUMCOLS, ValoresDefeito.AGENDA_NUMCOLS);
         labelCols.setText(colunas + " dias");
     }
 
-    public void eliminar(String id) {
-        GridPaneCalendario gridPaneCalendario = AppMain.getInstancia().calendario;
-        VBoxOSBO vBoxOSBO = null;
-        try {
-            vBoxOSBO = (VBoxOSBO) gridPaneCalendario.lookup("#" + id);
-        } catch (Exception e) {
-            e.printStackTrace();
-            out.println("ERROR QUANDO EXISTE APENAS UM OBECTO!!?!??!");
-        }
-
-        //Não existe, coloca novo
-        if (vBoxOSBO != null) {
-            VBoxOSBO finalVBoxOSBO = vBoxOSBO;
-            Platform.runLater(new Runnable() {
-                @Override
-                public void run() {
-                    out.println("REMOVER " + finalVBoxOSBO.getColuna() + ":" + finalVBoxOSBO.getOrdemProp() + " id " + id);
-                    calendario.getChildren().remove(finalVBoxOSBO);
-                }
-            });
-        }
-    }
-
-    public void actualizarTextoColunasZero() {
-        PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
-        int colunas = prefs.getInt(Constantes.PREF_AGENDA_NUMCOLS, ValoresDefeito.AGENDA_NUMCOLS);
-        LocalDate dataInicioAgenda = Singleton.getInstancia().dataInicioAgenda;
-
-        for (int i = 0; i < colunas; i++) {
-            LocalDate localDateTime = dataInicioAgenda.plusDays(i);
-            String data = Funcoes.dToC(localDateTime);
-            //todo getPecasPorData
-//                int qtt = ServicoCouchBase.getInstancia().getPecasPorData(data);
-            int qtt = 0;
-            // todo getPecasFeitasPorData
-//                int qttFeita = ServicoCouchBase.getInstancia().getPecasFeitasPorData(data);
-            Text textQttTotal = (Text) calendarioTopo.lookup("#qtttot" + i);
-            int qttFeita = 0;
-            Text textQttFeita = (Text) calendarioTopo.lookup("#qttfeita" + i);
-            if (textQttTotal != null) {
-                textQttTotal.setText("" + (qtt == 0 ? "" : qtt));
-            }
-
-            if (textQttFeita != null) {
-                textQttFeita.setText("");
-                int num = qtt - qttFeita;
-                if (num != qtt)
-                    textQttFeita.setText("" + (num == 0 ? "" : num));
-            }
-        }
-    }
 
     public void actualizarTextoColunasZero(int coluna) {
         PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
@@ -774,43 +798,36 @@ public class AppMain extends Application {
             if (i != coluna)
                 continue;
             LocalDate localDateTime = dataInicioAgenda.plusDays(i);
-            String data = Funcoes.dToC(localDateTime);
-            //todo getPecasPorData
-//                int qtt = ServicoCouchBase.getInstancia().getPecasPorData(data);
-            int qtt = 0;
-            // todo getPecasFeitasPorData
-//                int qttFeita = ServicoCouchBase.getInstancia().getPecasFeitasPorData(data);
-            int qttFeita = 0;
+            String data = Funcoes.dToC(localDateTime, "yyy-MM-dd 00:00:00");
+            int qtt = DBSQLite.getInstancia().getQtdPedidaData(data, seccao);
+            int qttFeita = DBSQLite.getInstancia().getQtdProduzidaData(data, seccao);
             Text textQttTotal = (Text) calendarioTopo.lookup("#qtttot" + i);
             Text textQttFeita = (Text) calendarioTopo.lookup("#qttfeita" + i);
             if (textQttTotal != null) {
-                textQttTotal.setText("" + (qtt == 0 ? "" : qtt));
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        textQttTotal.setText("" + (qtt == 0 ? "" : qtt));
+                    }
+                });
             }
 
             if (textQttFeita != null) {
                 textQttFeita.setText("");
                 int num = qtt - qttFeita;
                 if (num != qtt)
-                    textQttFeita.setText("" + (num == 0 ? "" : num));
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            textQttFeita.setText("" + (num == 0 ? "" : num));
+                        }
+                    });
             }
         }
     }
 
     public GridPaneCalendario getCalendario() {
         return calendario;
-    }
-
-    public void actualizarOSPRODqtt(String bostamp) {
-        GridPaneCalendario gridPaneCalendario = getCalendario();
-        VBoxOSBO vBoxOSBO = (VBoxOSBO) gridPaneCalendario.lookup("#" + bostamp);
-        if (vBoxOSBO != null) {
-            Platform.runLater(new Runnable() {
-                @Override
-                public void run() {
-                    vBoxOSBO.setBostampProp(bostamp);
-                }
-            });
-        }
     }
 
     public ComboBox getComboSeccao() {
@@ -826,20 +843,20 @@ public class AppMain extends Application {
     }
 
     //todo actualizarNota(nota)
-    public void actualizarNota(Document document) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                String bostamp = ""; //TODO document.getProperty(NomesDeCampos.FIELD_BOSTAMP).toString();
-                String nota = ""; //todo document.getProperty(NomesDeCampos.FIELD_TEXTO).toString();
-                Node obj = calendario.lookup("#" + bostamp);
-                if (obj instanceof VBoxOSBO) {
-                    VBoxOSBO vBox = (VBoxOSBO) obj;
-                    vBox.setNotaProp(nota);
-                }
-            }
-        });
-    }
+//    public void actualizarNota(Document document) {
+//        Platform.runLater(new Runnable() {
+//            @Override
+//            public void run() {
+//                String bostamp = ""; //TODO document.getProperty(NomesDeCampos.FIELD_BOSTAMP).toString();
+//                String nota = ""; //todo document.getProperty(NomesDeCampos.FIELD_TEXTO).toString();
+//                Node obj = calendario.lookup("#" + bostamp);
+//                if (obj instanceof VBoxOSBO) {
+//                    VBoxOSBO vBox = (VBoxOSBO) obj;
+//                    vBox.setNotaProp(nota);
+//                }
+//            }
+//        });
+//    }
 
     public TextField getTextFieldFiltroFrefAprovisionamento() {
         return textFieldFiltroFrefAprovisionamento;
@@ -863,8 +880,5 @@ public class AppMain extends Application {
 
     public void setMainStage(Stage mainStage) {
         this.mainStage = mainStage;
-    }
-
-    private class Document {
     }
 }

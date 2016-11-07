@@ -81,7 +81,7 @@ public class HBoxOSAprovisionamento extends HBox {
         Tooltip.install(labelDataCliente, t);
 
         if (tipo == TIPO_ATRASADO) {
-            Label labelDataCorte = new Label(Funcoes.dataBonita(Funcoes.dToC(dtcortef)));
+            Label labelDataCorte = new Label(Funcoes.dataBonita(Funcoes.dToCddMMyyyy(dtcortef)));
             labelDataCorte.setWrapText(true);
             setMargin(labelDataCorte, new Insets(2, 2, 2, 20));
             this.getChildren().add(labelDataCorte);

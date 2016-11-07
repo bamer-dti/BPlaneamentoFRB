@@ -1,6 +1,8 @@
 package sqlite;
 
+import pojos.ArtigoOSBI;
 import pojos.ArtigoOSBO;
+import pojos.ArtigoOSPROD;
 import utils.Campos;
 
 import java.sql.*;
@@ -26,10 +28,9 @@ public class DBSQLite {
     }
 
     private Connection connect() {
-        Connection connection = null;
+        Connection connection;
         try {
             connection = DriverManager.getConnection("jdbc:sqlite:firebase.db");
-            Statement statement = connection.createStatement();
         } catch (SQLException e) {
             e.printStackTrace();
             System.out.println("***** ERRO AO CONECTAR À BASE DE DADOS *****");
@@ -57,7 +58,7 @@ public class DBSQLite {
                 + Campos.ORDEM + " integer not null, "
                 + Campos.SECCAO + " text not null"
                 + ")";
-        Statement statement = null;
+        Statement statement;
         try {
             statement = connection.createStatement();
             statement.executeUpdate(comandoSql);
@@ -138,7 +139,21 @@ public class DBSQLite {
         return connection;
     }
 
-    public int guardar(ArtigoOSBO osbo) {
+    public void resetDados() {
+        Connection c = connect();
+        try {
+            if (c != null) {
+                c.prepareStatement("delete from " + Campos.TABELA_OSBO).executeUpdate();
+                c.prepareStatement("delete from " + Campos.TABELA_OSBI).executeUpdate();
+                c.prepareStatement("delete from " + Campos.TABELA_OSPROD).executeUpdate();
+                c.prepareStatement("delete from " + Campos.TABELA_OSTIMER).executeUpdate();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public int guardarOSBO(ArtigoOSBO osbo) {
         Connection con = connect();
         int t = 0;
         if (con != null) {
@@ -186,18 +201,85 @@ public class DBSQLite {
         return t;
     }
 
-    public void resetDados() {
-        Connection c = connect();
-        try {
-            if (c != null) {
-                c.prepareStatement("delete from " + Campos.TABELA_OSBO).executeUpdate();
+    public int guardarOSBI(ArtigoOSBI osbi) {
+        Connection con = connect();
+        int t = 0;
+        if (con != null) {
+            try {
+                PreparedStatement preparedStatement = con.prepareStatement(
+                        "insert into " + Campos.TABELA_OSBI + " ("
+                                + Campos.BOSTAMP + ", "
+                                + Campos.BISTAMP + ", "
+                                + Campos.DESIGN + ", "
+                                + Campos.DIM + ", "
+                                + Campos.FAMILIA + ", "
+                                + Campos.MK + ", "
+                                + Campos.NUMLINHA + ", "
+                                + Campos.QTT + ", "
+                                + Campos.REF + ", "
+                                + Campos.TIPO
+                                + ")"
+                                + " VALUES (?,?,?,?,?,?,?,?,?,?)");
+                preparedStatement.setString(1, osbi.getBostamp());
+                preparedStatement.setString(2, osbi.getBistamp());
+                preparedStatement.setString(3, osbi.getDesign());
+                preparedStatement.setString(4, osbi.getDim());
+                preparedStatement.setString(5, osbi.getFamilia());
+                preparedStatement.setString(6, osbi.getMk());
+                preparedStatement.setString(7, osbi.getNumlinha());
+                preparedStatement.setInt(8, osbi.getQtt());
+                preparedStatement.setString(9, osbi.getRef());
+                preparedStatement.setString(10, osbi.getTipo());
+
+                t = preparedStatement.executeUpdate();
+                preparedStatement.close();
+                con.close();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
+        return t;
     }
 
-    public int actualizar(ArtigoOSBO osbo) {
+    public int guardarOSPROD(ArtigoOSPROD osprod) {
+        Connection con = connect();
+        int t = 0;
+        if (con != null) {
+            try {
+                PreparedStatement preparedStatement = con.prepareStatement(
+                        "insert into " + Campos.TABELA_OSPROD + " ("
+                                + Campos.BOSTAMP + ", "
+                                + Campos.BISTAMP + ", "
+                                + Campos.DESIGN + ", "
+                                + Campos.DIM + ", "
+                                + Campos.MK + ", "
+                                + Campos.NUMLINHA + ", "
+                                + Campos.QTT + ", "
+                                + Campos.REF
+                                + ")"
+                                + " VALUES (?,?,?,?,?,?,?,?)");
+                preparedStatement.setString(1, osprod.getBostamp());
+                preparedStatement.setString(2, osprod.getBistamp());
+                preparedStatement.setString(3, osprod.getDesign());
+                preparedStatement.setString(4, osprod.getDim());
+                preparedStatement.setString(5, osprod.getMk());
+                preparedStatement.setString(6, osprod.getNumlinha());
+                preparedStatement.setInt(7, osprod.getQtt());
+                preparedStatement.setString(8, osprod.getRef());
+
+                t = preparedStatement.executeUpdate();
+                preparedStatement.close();
+                con.close();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return t;
+    }
+
+    public int actualizarOSBO(ArtigoOSBO osbo) {
         Connection con = connect();
         int t = 0;
         if (con != null) {
@@ -245,7 +327,79 @@ public class DBSQLite {
         return t;
     }
 
-    public int remover(ArtigoOSBO osbo) {
+    public int actualizarOSBI(ArtigoOSBI osbi) {
+        Connection con = connect();
+        int t = 0;
+        if (con != null) {
+            try {
+                PreparedStatement preparedStatement = con.prepareStatement(
+                        "update " + Campos.TABELA_OSBI + " SET "
+                                + Campos.DESIGN + "=?, "
+                                + Campos.DIM + "=?, "
+                                + Campos.FAMILIA + "=?, "
+                                + Campos.MK + "=?, "
+                                + Campos.NUMLINHA + "=?, "
+                                + Campos.QTT + "=?, "
+                                + Campos.REF + "=?, "
+                                + Campos.TIPO + "=?"
+                                + " where " + Campos.BISTAMP + "=?"
+                );
+                preparedStatement.setString(1, osbi.getDesign());
+                preparedStatement.setString(2, osbi.getDim());
+                preparedStatement.setString(3, osbi.getFamilia());
+                preparedStatement.setString(4, osbi.getMk());
+                preparedStatement.setString(5, osbi.getNumlinha());
+                preparedStatement.setInt(6, osbi.getQtt());
+                preparedStatement.setString(7, osbi.getRef());
+                preparedStatement.setString(8, osbi.getTipo());
+                preparedStatement.setString(9, osbi.getBistamp());
+
+                t = preparedStatement.executeUpdate();
+                preparedStatement.close();
+                con.close();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return t;
+    }
+
+    public int actualizarOSPROD(ArtigoOSPROD osprod) {
+        Connection con = connect();
+        int t = 0;
+        if (con != null) {
+            try {
+                PreparedStatement preparedStatement = con.prepareStatement(
+                        "update " + Campos.TABELA_OSPROD + " SET "
+                                + Campos.DESIGN + "=?, "
+                                + Campos.DIM + "=?, "
+                                + Campos.MK + "=?, "
+                                + Campos.NUMLINHA + "=?, "
+                                + Campos.QTT + "=?, "
+                                + Campos.REF + "=? "
+                                + " where " + Campos.BISTAMP + "=?"
+                );
+                preparedStatement.setString(1, osprod.getDesign());
+                preparedStatement.setString(2, osprod.getDim());
+                preparedStatement.setString(3, osprod.getMk());
+                preparedStatement.setString(4, osprod.getNumlinha());
+                preparedStatement.setInt(5, osprod.getQtt());
+                preparedStatement.setString(6, osprod.getRef());
+                preparedStatement.setString(7, osprod.getBistamp());
+
+                t = preparedStatement.executeUpdate();
+                preparedStatement.close();
+                con.close();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return t;
+    }
+
+    public int removerOSBO(ArtigoOSBO osbo) {
         Connection con = connect();
         int t = 0;
         if (con != null) {
@@ -255,6 +409,50 @@ public class DBSQLite {
                                 + " where " + Campos.BOSTAMP + "=?"
                 );
                 preparedStatement.setString(1, osbo.getBostamp());
+                t = preparedStatement.executeUpdate();
+                preparedStatement.close();
+                con.close();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return t;
+    }
+
+    public int removerOSBI(ArtigoOSBI osbi) {
+        Connection con = connect();
+        int t = 0;
+        if (con != null) {
+            try {
+                PreparedStatement preparedStatement = con.prepareStatement(
+                        "delete from " + Campos.TABELA_OSBI
+                                + " where " + Campos.BOSTAMP + "=? AND " + Campos.BISTAMP + "=?"
+                );
+                preparedStatement.setString(1, osbi.getBostamp());
+                preparedStatement.setString(2, osbi.getBistamp());
+                t = preparedStatement.executeUpdate();
+                preparedStatement.close();
+                con.close();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return t;
+    }
+
+    public int removerOSPROD(ArtigoOSPROD osprod) {
+        Connection con = connect();
+        int t = 0;
+        if (con != null) {
+            try {
+                PreparedStatement preparedStatement = con.prepareStatement(
+                        "delete from " + Campos.TABELA_OSPROD
+                                + " where " + Campos.BOSTAMP + "=? AND " + Campos.BISTAMP + "=?"
+                );
+                preparedStatement.setString(1, osprod.getBostamp());
+                preparedStatement.setString(2, osprod.getBistamp());
                 t = preparedStatement.executeUpdate();
                 preparedStatement.close();
                 con.close();
@@ -303,5 +501,125 @@ public class DBSQLite {
             }
         }
         return lista;
+    }
+
+    public int getQtdPedidaBostamp(String bostamp) {
+        Connection con = connect();
+        int qtt = 0;
+        if (con != null) {
+            try {
+                PreparedStatement preparedStatement = con.prepareStatement(
+                        "select sum(qtt) as " + Campos.QTT + " from " + Campos.TABELA_OSBI
+                                + " where " + Campos.BOSTAMP + "=?"
+                );
+                preparedStatement.setString(1, bostamp);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                while (resultSet.next()) {
+                    qtt += resultSet.getInt(Campos.QTT);
+                }
+                preparedStatement.close();
+                con.close();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return qtt;
+    }
+
+    public int getQtdProduzidaBostamp(String bostamp) {
+        Connection con = connect();
+        int qtt = 0;
+        if (con != null) {
+            try {
+                PreparedStatement preparedStatement = con.prepareStatement(
+                        "select sum(qtt) as " + Campos.QTT + " from " + Campos.TABELA_OSPROD
+                                + " where " + Campos.BOSTAMP + "=?"
+                );
+                preparedStatement.setString(1, bostamp);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                while (resultSet.next()) {
+                    qtt += resultSet.getInt(Campos.QTT);
+                }
+                preparedStatement.close();
+                con.close();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return qtt;
+    }
+
+    public int getQtdPedidaData(String data, String seccao) {
+        Connection con = connect();
+        int qtt = 0;
+        if (con != null) {
+            ArrayList<String> lista = new ArrayList<>();
+            try {
+                PreparedStatement preparedStatement = con.prepareStatement(
+                        "select " + Campos.BOSTAMP + " from " + Campos.TABELA_OSBO
+                                + " where " + Campos.DTCORTEF + "=? AND " + Campos.SECCAO + "=?"
+                );
+                preparedStatement.setString(1, data);
+                preparedStatement.setString(2, seccao);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                while (resultSet.next()) {
+                    lista.add(resultSet.getString(Campos.BOSTAMP));
+                }
+                preparedStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            int i = 0;
+            for (String bostamp : lista) {
+                i++;
+                qtt += getQtdPedidaBostamp(bostamp);
+            }
+
+            try {
+                con.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return qtt;
+    }
+
+    public int getQtdProduzidaData(String data, String seccao) {
+        Connection con = connect();
+        int qtt = 0;
+        if (con != null) {
+            ArrayList<String> lista = new ArrayList<>();
+            try {
+                PreparedStatement preparedStatement = con.prepareStatement(
+                        "select " + Campos.BOSTAMP + " from " + Campos.TABELA_OSBO
+                                + " where " + Campos.DTCORTEF + "=? AND " + Campos.SECCAO + "=?"
+                );
+                preparedStatement.setString(1, data);
+                preparedStatement.setString(2, seccao);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                while (resultSet.next()) {
+                    lista.add(resultSet.getString(Campos.BOSTAMP));
+                }
+                preparedStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            int i = 0;
+            for (String bostamp : lista) {
+                i++;
+                qtt += getQtdProduzidaBostamp(bostamp);
+            }
+
+            try {
+                con.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return qtt;
     }
 }
