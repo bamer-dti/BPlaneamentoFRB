@@ -653,7 +653,7 @@ public class VBoxOSBO extends VBox {
         itemNota.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                //todo notas!
+                Funcoes.alerta("Ainda não implementado!", Alert.AlertType.WARNING);
 //                String bostamp = bostampProp.get();
 //                ServicoCouchBase instancia;
 //                try {
@@ -707,6 +707,7 @@ public class VBoxOSBO extends VBox {
         if (cor != getArtigoOSBOProp().getCor()) {
             try {
                 BamerSqlServer.getInstancia().actualizarCor(bostampProp.get(), cor);
+                WSWorker.actualizarCor(bostampProp.get(), cor);
             } catch (SQLException e) {
                 e.printStackTrace();
             } catch (ClassNotFoundException e) {
@@ -742,7 +743,6 @@ public class VBoxOSBO extends VBox {
 //        });
 //    }
 
-    //todo guardarOSBO notas
 //    private void guardarNota(Document document, String text) throws CouchbaseLiteException {
 //        Map map = new HashMap<String, Object>();
 //        map.putAll(document.getProperties());
@@ -820,19 +820,11 @@ public class VBoxOSBO extends VBox {
                 String estado = controller.combo_estado.getValue().toString();
 
                 int rows = 0;
-                try {
-                    rows = BamerSqlServer.getInstancia().editarEactualizarDatas(bostampProp.get(), dtcortef, dttransf, dtembala, dtexpedi, estado);
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    Funcoes.alerta(e.getLocalizedMessage(), Alert.AlertType.ERROR);
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                }
+                //                    rows = BamerSqlServer.getInstancia().editarEactualizarDatas(bostampProp.get(), dtcortef, dttransf, dtembala, dtexpedi, estado);
+                WSWorker.editarDadosOP(stage, contexto, controller, bostampProp.get(), dtcortef, dttransf, dtembala, dtexpedi, estado);
 
                 if (rows > 0) {
-                    dtcortefProp.set(controller.dtcortef.getValue());
-                    dttransfPropProperty().set(controller.dttransf.getValue());
-                    dtembalaProp.set(controller.dtembala.getValue());
+
                 }
 
                 stage.close();
@@ -882,23 +874,11 @@ public class VBoxOSBO extends VBox {
         return obranoProp;
     }
 
-    public void setQttProp(int qtt) {
-        this.qttProp.set(qtt);
-    }
-
-    public void setQttProdProp(int qtt) {
-        this.qttProdProp.set(qtt);
-    }
-
     public LocalDate getDtcortefProp() {
         return dtcortefProp.get();
     }
 
-    public void setDtcortefProp(LocalDate dtcorte) {
-        dtcortefProp.set(dtcorte);
-    }
-
-    public SimpleObjectProperty<LocalDate> dttransfPropProperty() {
+   public SimpleObjectProperty<LocalDate> dttransfPropProperty() {
         return dttransfProp;
     }
 
@@ -912,11 +892,6 @@ public class VBoxOSBO extends VBox {
 
     public int getOrdemProp() {
         return ordemProp.get();
-    }
-
-    public void setOrdemProp(int ordem) {
-        getArtigoOSBOProp().setOrdem(ordem);
-        ordemProp.set(ordem);
     }
 
     public ArtigoOSBO getArtigoOSBOProp() {
@@ -992,22 +967,6 @@ public class VBoxOSBO extends VBox {
         return coluna;
     }
 
-    public void setColuna(int coluna) {
-        this.coluna = coluna;
-    }
-
-    public SimpleStringProperty notaPropProperty() {
-        return notaProp;
-    }
-
-    public void setNotaProp(String notaProp) {
-        this.notaProp.set(notaProp);
-    }
-
-    public SimpleLongProperty tempoTotalPropProperty() {
-        return tempoTotalProp;
-    }
-
     public void actualizarQtdPedida() {
         int qtt = DBSQLite.getInstancia().getQtdPedidaBostamp(bostampProp.get());
         qttProp.set(qtt);
@@ -1020,5 +979,9 @@ public class VBoxOSBO extends VBox {
 
     public void actualizarCronometros() {
         tempoTotalProp.set(-1);
+    }
+
+    public SimpleObjectProperty<LocalDate> dtcortefPropProperty() {
+        return dtcortefProp;
     }
 }
