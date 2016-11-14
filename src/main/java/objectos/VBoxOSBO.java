@@ -37,7 +37,6 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.StringConverter;
 import pojos.ArtigoOSBO;
-import sql.BamerSqlServer;
 import sqlite.DBSQLite;
 import sqlite.PreferenciasEmSQLite;
 import utils.Constantes;
@@ -48,7 +47,6 @@ import webservices.WSWorker;
 
 import java.io.IOException;
 import java.net.URL;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
@@ -705,14 +703,7 @@ public class VBoxOSBO extends VBox {
         String estilo = "game-grid-cell-" + cor;
         Funcoes.colocarEstilo(this, estilo);
         if (cor != getArtigoOSBOProp().getCor()) {
-            try {
-                BamerSqlServer.getInstancia().actualizarCor(bostampProp.get(), cor);
-                WSWorker.actualizarCor(bostampProp.get(), cor);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
+            WSWorker.actualizarCor(bostampProp.get(), cor);
         }
     }
 
@@ -878,7 +869,7 @@ public class VBoxOSBO extends VBox {
         return dtcortefProp.get();
     }
 
-   public SimpleObjectProperty<LocalDate> dttransfPropProperty() {
+    public SimpleObjectProperty<LocalDate> dttransfPropProperty() {
         return dttransfProp;
     }
 
