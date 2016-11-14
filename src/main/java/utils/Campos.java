@@ -2,10 +2,11 @@ package utils;
 
 public class Campos {
     public static final String TABELA_OSBO = "osbo";
+    public static final String TABELA_OSBOPLAN = "osboplan";
     public static final String TABELA_OSBI = "osbi";
     public static final String TABELA_OSPROD = "osprod";
-    public static final String TABELA_OSTIMER = "ostimer";
 
+    public static final String TABELA_OSTIMER = "ostimer";
     public static final String OBRANO = "obrano";
     public static final String FREF = "fref";
     public static final String NMFREF = "nmfref";
@@ -27,15 +28,16 @@ public class Campos {
     public static final String BISTAMP = "bistamp";
     public static final String TIPO = "tipo";
     public static final String ORDEM = "ordem";
-    public static final String COR = "cor";
 
+    public static final String COR = "cor";
     public static final String KEY_OSBI03 = "osbi03";
     public static final String KEY_OSBO = "osbo";
+    public static final String KEY_OSBOPLAN = "osboplan";
     public static final String KEY_OSPROD = "osprod";
     public static final String KEY_OSTIMER = "ostimer";
     public static final String KEY_SECCAO = "seccao";
-    public static final String KEY_NOTAS = "notas";
 
+    public static final String KEY_NOTAS = "notas";
     public static final String DOCTYPE_DEL_OSBI = "delosbi";
     public static final String ESTADO_01_CORTE = "01 - CORTE";
     public static final String ESTADO_00_APROV = "00 - APROV.";
@@ -52,4 +54,5 @@ public class Campos {
     public static final String _ID = "_id";
     public static final String NUMLINHA = "numlinha";
     public static final String OPERADOR = "operador";
+    public static final String STAMP = "stamp";
 }

@@ -12,7 +12,6 @@ import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -20,18 +19,14 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import pojos.ArtigoLinhaPlanOUAtraso;
 import pojos.ArtigoOSBO;
-import pojos.ArtigoParaPlaneamento;
-import sql.BamerSqlServer;
 import sqlite.PreferenciasEmSQLite;
-import utils.Constantes;
-import utils.Funcoes;
-import utils.Singleton;
-import utils.ValoresDefeito;
+import utils.*;
+import webservices.WSWorker;
 
-import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 import static java.lang.System.out;
 
@@ -170,7 +165,7 @@ public class VBoxDia extends VBox {
                     event.consume();
                 }
 
-                if (object instanceof HBoxOSAprovisionamento) {
+                if (object instanceof HBoxLinhaPlanOUAtraso) {
                     Font font = textDiaDaSemana.getFont();
                     textDiaDaSemana.setFill(Color.INDIANRED);
                     textDiaDaSemana.setFont(Font.font(font.getFamily(), FontWeight.BOLD, font.getSize()));
@@ -195,7 +190,7 @@ public class VBoxDia extends VBox {
                     event.consume();
                 }
 
-                if (object instanceof HBoxOSAprovisionamento) {
+                if (object instanceof HBoxLinhaPlanOUAtraso) {
                     event.acceptTransferModes(TransferMode.MOVE);
                     event.consume();
                 }
@@ -219,7 +214,7 @@ public class VBoxDia extends VBox {
                     event.consume();
                 }
 
-                if (object instanceof HBoxOSAprovisionamento) {
+                if (object instanceof HBoxLinhaPlanOUAtraso) {
                     Font font = textDiaDaSemana.getFont();
                     textDiaDaSemana.setFill(Color.BLACK);
                     textDiaDaSemana.setFont(Font.font(font.getFamily(), FontWeight.NORMAL, font.getSize()));
@@ -240,64 +235,52 @@ public class VBoxDia extends VBox {
                         return;
                     }
 
-                    int colunaAnterior = vboxEmDRAG.getColuna();
-                    int ordemAnterior = vboxEmDRAG.getOrdemProp();
-                    ArtigoOSBO artigoOSBOemDRAG = vboxEmDRAG.getArtigoOSBOProp();
-
-                    LocalDate dataNova = Singleton.getInstancia().dataInicioAgenda.plusDays(coluna);
-                    GridPane gridPane = (GridPane) getParent();
-                    ArrayList<VBoxOSBO> listaDeAlteracoes = new ArrayList<>();
-
-                    int countOrdem = 1;
-                    for (int i = 0; i <= 200; i++) {
-                        Node node = Funcoes.getNodeByRowColumnIndex(i, coluna, gridPane);
-                        if (node instanceof VBoxOSBO) {
-                            countOrdem = countOrdem + 1;
+                    object = event.getDragboard().getContent(DataFormat.RTF);
+                    if (object instanceof VBoxOSBO) {
+                        ArtigoOSBO artigoOSBOemDRAG = vboxEmDRAG.getArtigoOSBOProp();
+                        if (artigoOSBOemDRAG.getBostamp().equals(getId())) {
+                            event.consume();
+                            return;
                         }
-                    }
 
-                    artigoOSBOemDRAG.setOrdem(countOrdem);
-                    vboxEmDRAG.setOrdemProp(countOrdem);
-                    vboxEmDRAG.setColuna(coluna);
-                    artigoOSBOemDRAG.setDtcortef(Funcoes.dToCddMMyyyy(dataNova));
-                    vboxEmDRAG.setDtcortefProp(dataNova);
-                    listaDeAlteracoes.add(vboxEmDRAG);
-
-                    //NA COLUNA DE ORIGEM DO DRAG
-                    for (int i = 0; i < 200; i++) {
-                        Node node = Funcoes.getNodeByRowColumnIndex(i, colunaAnterior, gridPane);
-                        if (node instanceof VBoxOSBO) {
-                            VBoxOSBO vBoxOSBO = (VBoxOSBO) node;
-                            ArtigoOSBO artigoOSBO = vBoxOSBO.getArtigoOSBOProp();
-                            if (artigoOSBO != artigoOSBOemDRAG && artigoOSBO.getOrdem() >= ordemAnterior) {
-                                vBoxOSBO.setOrdemProp(vBoxOSBO.getOrdemProp() - 1);
-                                listaDeAlteracoes.add(vBoxOSBO);
-                            }
+                        int ordemNova = 999;
+                        String bostamp = artigoOSBOemDRAG.getBostamp();
+                        String seccao = artigoOSBOemDRAG.getSeccao();
+                        String estado = Campos.ESTADO_01_CORTE;
+                        LocalDate u_dtcortef = Singleton.getInstancia().dataInicioAgenda.plusDays(coluna);
+                        LocalDate u_dttransf = u_dtcortef.plusDays(1);
+                        try {
+                            WSWorker.actualizarOrdem(bostamp, ordemNova, Funcoes.dToC(u_dtcortef, "yyyyMMdd"), Funcoes.dToC(u_dttransf, "yyyyMMdd"), seccao, estado);
+                        } catch (ExecutionException | InterruptedException e) {
+                            e.printStackTrace();
                         }
-                    }
 
-                    for (VBoxOSBO vBoxOSBO : listaDeAlteracoes) {
-                        GridPane.setConstraints(vBoxOSBO, vBoxOSBO.getColuna(), vBoxOSBO.getOrdemProp());
-                        //todo actualizarOSBO ordem
-//                        try {
-//                            ServicoCouchBase.getInstancia().actualizarOrdem(vBoxOSBO);
-//                        } catch (Exception e) {
-//                            e.printStackTrace();
-//                        }
+                        event.consume();
                     }
                     event.consume();
                 }
 
-                if (object instanceof HBoxOSAprovisionamento) {
+                if (object instanceof HBoxLinhaPlanOUAtraso) {
                     Dragboard dragboard = event.getDragboard();
-                    HBoxOSAprovisionamento hBoxOSAprovisionamento = (HBoxOSAprovisionamento) dragboard.getContent(DataFormat.RTF);
+                    HBoxLinhaPlanOUAtraso hBoxOSPorPlanear = (HBoxLinhaPlanOUAtraso) dragboard.getContent(DataFormat.RTF);
                     LocalDate dataDeCorte = Singleton.getInstancia().dataInicioAgenda.plusDays(coluna);
-                    out.println("Colocar o aprovisionamento " + hBoxOSAprovisionamento.getId() + " em CORTE na data " + Funcoes.dToCddMMyyyy(dataDeCorte));
-                    ArtigoParaPlaneamento artigoAprovisionamento = hBoxOSAprovisionamento.getArtigoParaPlaneamento();
-                    artigoAprovisionamento.setDtcortef(dataDeCorte);
+                    ArtigoLinhaPlanOUAtraso artigoLinhaPlanOUAtraso = hBoxOSPorPlanear.getArtigoLinhaPlanOUAtraso();
+                    artigoLinhaPlanOUAtraso.setDt2(Funcoes.dToC(dataDeCorte, "yyyy-MM-dd" + " 00:00:00"));
+                    //todo
+//                    try {
+//                        BamerSqlServer.getInstancia().actualizar_De_PorPlanear_para_Corte(artigoLinhaPlanOUAtraso);
+//                    } catch (SQLException | ClassNotFoundException e) {
+//                        e.printStackTrace();
+//                    }
+                    String bostamp = artigoLinhaPlanOUAtraso.getBostamp();
+                    int ordemNova = 999;
+                    LocalDate u_dtcortef = dataDeCorte;
+                    LocalDate u_dttransf = dataDeCorte.plusDays(1);
+                    String seccao = artigoLinhaPlanOUAtraso.getSeccao();
+                    String estado = Campos.ESTADO_01_CORTE;
                     try {
-                        BamerSqlServer.getInstancia().actualizar_De_Aprovisionamento_para_Corte(artigoAprovisionamento);
-                    } catch (SQLException | ClassNotFoundException e) {
+                        WSWorker.actualizarOrdem(bostamp, ordemNova, Funcoes.dToC(u_dtcortef, "yyyyMMdd"), Funcoes.dToC(u_dttransf, "yyyyMMdd"), seccao, estado);
+                    } catch (ExecutionException | InterruptedException e) {
                         e.printStackTrace();
                     }
                     event.consume();

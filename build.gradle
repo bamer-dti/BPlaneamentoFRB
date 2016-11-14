@@ -11,7 +11,7 @@ repositories {
 }
 
 group 'bamer.pt'
-version '1.2'
+version '2.0.1'
 
 dependencies {
     compile files('libs/jfoenix-0.0.0-SNAPSHOT.jar')
@@ -34,6 +34,12 @@ dependencies {
     compile 'org.apache.poi:poi-ooxml:3.15-beta1'
 
     compile 'com.google.firebase:firebase-server-sdk:3.0.1'
+
+    compile 'com.mashape.unirest:unirest-java:1.4.9'
+    compile 'org.apache.httpcomponents:httpclient:4.5.2'
+    compile 'org.apache.httpcomponents:httpasyncclient:4.1.2'
+    compile 'org.apache.httpcomponents:httpmime:4.5.2'
+    compile 'org.json:json:20160810'
 }
 
 apply from: "http://dl.bintray.com/content/shemnon/javafx-gradle/8.1.1/javafx.plugin"
@@ -46,8 +52,8 @@ javafx {
 //    javaRuntime = '/Library/Java/JavaVirtualMachines/jdk1.7.0_40.jdk'
 
     // Application name and ID presented by target OS
-    appID 'Bamer Planeamento'
-    appName 'Bamer Planeamento'
+    appID 'Planeamento Firebase'
+    appName 'PlaneamentoFRB'
 
     // Main class of application
     mainClass 'bamer.AppMain'

@@ -9,6 +9,7 @@ import com.google.firebase.FirebaseOptions;
 import com.google.firebase.database.*;
 import com.google.firebase.internal.Log;
 import com.jfoenix.controls.JFXButton;
+import com.mashape.unirest.http.Unirest;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -27,22 +28,23 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
+import objectos.GridPaneAtrasados;
 import objectos.GridPaneCalendario;
+import objectos.GridPanePorPlanear;
 import objectos.VBoxOSBO;
-import pojos.ArtigoOSBI;
-import pojos.ArtigoOSBO;
-import pojos.ArtigoOSPROD;
+import pojos.*;
 import sqlite.DBSQLite;
 import sqlite.PreferenciasEmSQLite;
 import utils.*;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
-
-import static java.lang.System.out;
 
 public class AppMain extends Application {
     private static final int MINIMO_COLUNAS = 4; //dias = + 1
@@ -52,11 +54,11 @@ public class AppMain extends Application {
     private static final int REMOVER = 3;
     private static AppMain app;
     public BorderPane borderPaneAtrasados;
-    public BorderPane borderPaneAprovisionamento;
+    public BorderPane borderPanePorPlanear;
     private String seccao;
     private Label labelCols;
     private GridPaneCalendario calendario;
-    private Stage stageAprovisionamento;
+    private Stage stagePorPlanear;
     private ScrollPane scrollPaneCalendario;
     private GridPaneCalendario calendarioTopo;
     private ScrollPane scrollPaneTopo;
@@ -64,17 +66,22 @@ public class AppMain extends Application {
     private Stage taskUpdateStage;
     private Stage stageAtrasados;
     private JFXButton but_atrasados;
-    private JFXButton but_aprovisionamento;
-    private TextField textFieldFiltroFrefAprovisionamento;
-    private Label labelTotRecsAprovisionamento;
+    private JFXButton but_porPlanear;
+    private TextField textFieldFiltroPorPlanear;
+    private Label labelTotRecsPorPlanear;
     private TextField textFieldFiltroFrefAtrasados;
     private Label labelTotRecsAtrasados;
     private Stage mainStage;
     private ProgressIndicator progressIndicator;
     private DBSQLite sqlite;
     private ChildEventListener listenerFirebaseOSBO;
+    private ChildEventListener listenerFirebaseOSBOPLAN;
     private ChildEventListener listenerFirebaseOSBI03;
     private ChildEventListener listenerFirebaseOSPROD;
+    private ChildEventListener listenerFirebaseOSTIMER;
+    private JFXButton but_mais;
+    private JFXButton but_menos;
+    private List<ArtigoLinhaPlanOUAtraso> listaDeAtrasos;
 
     public static void main(String[] args) {
         launch(args);
@@ -82,6 +89,45 @@ public class AppMain extends Application {
 
     public static AppMain getInstancia() {
         return app;
+    }
+
+    public static void showExceptionDialog(Exception e) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+
+        alert.setTitle("Exception Dialog");
+        alert.setHeaderText("An error occurred:");
+
+        String content = "Error: ";
+        if (null != e) {
+            content += e.toString() + "\n\n";
+        }
+
+        alert.setContentText(content);
+
+        Exception ex = new Exception(e);
+
+        //Create expandable Exception.
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        ex.printStackTrace(pw);
+
+        String exceptionText = sw.toString();
+
+        //Set up TextArea
+        TextArea textArea = new TextArea(exceptionText);
+        textArea.setEditable(false);
+        textArea.setWrapText(true);
+
+
+        textArea.setPrefHeight(600);
+        textArea.setPrefWidth(800);
+
+
+        //Set expandable Exception into the dialog pane.
+        alert.getDialogPane().setExpandableContent(textArea);
+
+
+        alert.showAndWait();
     }
 
     @Override
@@ -126,7 +172,7 @@ public class AppMain extends Application {
         labelCols = new Label("0");
         updateLabelCols();
 
-        JFXButton but_menos = new JFXButton("-");
+        but_menos = new JFXButton("-");
         but_menos.getStyleClass().add("button-raised-bamer");
         but_menos.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -145,7 +191,7 @@ public class AppMain extends Application {
         HBox.setMargin(but_menos, new Insets(10f, 10f, 10f, 10f));
         topBox.getChildren().add(but_menos);
 
-        JFXButton but_mais = new JFXButton("+");
+        but_mais = new JFXButton("+");
         but_mais.getStyleClass().add("button-raised-bamer");
         but_mais.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -176,7 +222,6 @@ public class AppMain extends Application {
 
                     Optional<String> result = dialog.showAndWait();
                     if (result.isPresent()) {
-                        System.out.println("Your name: " + result.get());
                         prefs.putInt(Constantes.PREF_AGENDA_NUMCOLS, Integer.parseInt(result.get()));
                         setColunas();
                         labelCols.setText(result.get());
@@ -187,20 +232,19 @@ public class AppMain extends Application {
         topBox.getChildren().add(labelCols);
 
         //BOTÃO POR AGENDAR (ESTADO 00)
-        but_aprovisionamento = new JFXButton("aprovisionamento");
-        but_aprovisionamento.getStyleClass().add("button-raised-bamer-aprovados");
-        but_aprovisionamento.setOnAction(new EventHandler<ActionEvent>() {
+        but_porPlanear = new JFXButton("por planear (0)");
+        but_porPlanear.getStyleClass().add("button-raised-bamer-aprovados");
+        but_porPlanear.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                if (!stageAprovisionamento.isShowing()) {
-                    stageAprovisionamento.show();
-
+                if (!stagePorPlanear.isShowing()) {
+                    stagePorPlanear.show();
                 }
-                stageAprovisionamento.toFront();
+                stagePorPlanear.toFront();
             }
         });
-        HBox.setMargin(but_aprovisionamento, new Insets(10f, 10f, 10f, 10f));
-        topBox.getChildren().add(but_aprovisionamento);
+        HBox.setMargin(but_porPlanear, new Insets(10f, 10f, 10f, 10f));
+        topBox.getChildren().add(but_porPlanear);
 
         //BOTÂO ATRASADOS
         but_atrasados = new JFXButton("atrasos");
@@ -208,6 +252,7 @@ public class AppMain extends Application {
         but_atrasados.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
+                GridPaneAtrasados.actualizarLista();
                 if (!stageAtrasados.isShowing()) {
                     stageAtrasados.show();
                 }
@@ -226,7 +271,7 @@ public class AppMain extends Application {
         comboSeccao.valueProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                out.println("Seccção alterada de " + oldValue + " para " + newValue);
+                System.out.println("Seccção alterada de " + oldValue + " para " + newValue);
                 seccao = newValue;
                 if (oldValue.equals(newValue)) {
                     return;
@@ -249,7 +294,6 @@ public class AppMain extends Application {
         HBox.setMargin(progressIndicator, new Insets(2, 30, 0, 30));
         progressIndicator.setProgress(100d);
         progressIndicator.setPrefWidth(30);
-        progressIndicator.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
         topBox.getChildren().add(progressIndicator);
 
         topBox.setAlignment(Pos.CENTER_LEFT);
@@ -267,20 +311,42 @@ public class AppMain extends Application {
         mainStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
-                stageAprovisionamento.close();
+                stagePorPlanear.close();
                 stageAtrasados.close();
+                try {
+                    Unirest.shutdown();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 Platform.exit();
                 System.exit(0);
             }
         });
 
+        iniciarFirebase();
+
+        colocarObjectosVisiveis(false);
+
         configurarTaskStage();
 
         configurarStageAtrasados();
 
-        configurarStageAprovados();
+        configurarStagePorPlanear();
+    }
 
-        iniciarFirebase();
+    public void colocarObjectosVisiveis(boolean isVisivel) {
+        if (!isVisivel) {
+            progressIndicator.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
+        } else {
+            progressIndicator.setProgress(100);
+        }
+
+        but_porPlanear.setVisible(isVisivel);
+        but_atrasados.setVisible(isVisivel);
+        but_menos.setVisible(isVisivel);
+        but_mais.setVisible(isVisivel);
+        labelCols.setVisible(isVisivel);
+        comboSeccao.setVisible(isVisivel);
     }
 
     private void iniciarFirebase() {
@@ -326,7 +392,6 @@ public class AppMain extends Application {
         });
 
         configurarListenersOSBO();
-
         DatabaseReference refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBO);
         refDataFireBase.addChildEventListener(listenerFirebaseOSBO);
 
@@ -338,6 +403,14 @@ public class AppMain extends Application {
         refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSPROD);
         refDataFireBase.addChildEventListener(listenerFirebaseOSPROD);
 
+        configurarListenerOSTIMER();
+        refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSTIMER);
+        refDataFireBase.addChildEventListener(listenerFirebaseOSTIMER);
+
+        configurarListenerOSBOPLAN();
+        refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBOPLAN);
+        refDataFireBase.addChildEventListener(listenerFirebaseOSBOPLAN);
+
         //ALIMENTAR COMBO SECÇÃO
         FirebaseDatabase.getInstance().getReference(Campos.KEY_SECCAO).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -348,8 +421,7 @@ public class AppMain extends Application {
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
-                        comboSeccao.setVisible(true);
-                        progressIndicator.setProgress(100);
+                        colocarObjectosVisiveis(true);
                     }
                 });
             }
@@ -365,9 +437,7 @@ public class AppMain extends Application {
         listenerFirebaseOSBO = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-//                if (dataSnapshot.getKey().equals(Campos.KEY_OSBO)) {
-//                Log.i(TAG, "onChildAdded: " + dataSnapshot.toString());
-//                }
+//                Log.i(TAG, "OSBO: onChildAdded: " + dataSnapshot.toString());
                 Task<DataSnapshot> taskInserirObjectoOSBO = new Task<DataSnapshot>() {
                     @Override
                     protected DataSnapshot call() throws Exception {
@@ -388,7 +458,7 @@ public class AppMain extends Application {
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                Log.i(TAG, "OSBO onChildChanged: " + dataSnapshot.toString());
+//                Log.i(TAG, "OSBO onChildChanged: " + dataSnapshot.toString());
                 Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
                     @Override
                     protected DataSnapshot call() throws Exception {
@@ -407,7 +477,7 @@ public class AppMain extends Application {
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Log.i(TAG, "OSBO onChildRemoved: " + dataSnapshot.toString());
+//                Log.i(TAG, "OSBO onChildRemoved: " + dataSnapshot.toString());
                 Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
                     @Override
                     protected DataSnapshot call() throws Exception {
@@ -416,6 +486,7 @@ public class AppMain extends Application {
                         ArtigoOSBO artigoOSBO = dataSnapshot.getValue(ArtigoOSBO.class);
                         artigoOSBO.setBostamp(bostamp);
                         sqlite.removerOSBO(artigoOSBO);
+                        sqlite.removerOSBIbostamp(artigoOSBO);
                         lista.add(artigoOSBO);
                         actualizarGrelhaCalendario(lista, REMOVER);
                         return null;
@@ -436,11 +507,89 @@ public class AppMain extends Application {
         };
     }
 
+    private void configurarListenerOSBOPLAN() {
+        listenerFirebaseOSBOPLAN = new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+//                Log.i(TAG, "OSBOPLAN: onChildAdded: " + dataSnapshot.toString());
+                Task<DataSnapshot> taskInserirObjectoOSBO = new Task<DataSnapshot>() {
+                    @Override
+                    protected DataSnapshot call() throws Exception {
+                        String bostamp = dataSnapshot.getKey();
+                        ArtigoLinhaPlanOUAtraso artigoOSBO = dataSnapshot.getValue(ArtigoLinhaPlanOUAtraso.class);
+                        artigoOSBO.setBostamp(bostamp);
+                        sqlite.guardarOSBOPLAN(artigoOSBO);
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                but_porPlanear.setText("por planear (" + new DBSQLite().getNumPlaneamento() + ")");
+                            }
+                        });
+                        GridPanePorPlanear.actualizarLista();
+                        return null;
+                    }
+                };
+                new Thread(taskInserirObjectoOSBO).run();
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                Log.i(TAG, "OSBOPLAN onChildChanged: " + dataSnapshot.toString());
+                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
+                    @Override
+                    protected DataSnapshot call() throws Exception {
+                        String bostamp = dataSnapshot.getKey();
+                        ArtigoLinhaPlanOUAtraso artigoLinhaPlanOUAtraso = dataSnapshot.getValue(ArtigoLinhaPlanOUAtraso.class);
+                        artigoLinhaPlanOUAtraso.setBostamp(bostamp);
+                        sqlite.actualizarOSBOPLAN(artigoLinhaPlanOUAtraso);
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                but_porPlanear.setText("por planear (" + new DBSQLite().getNumPlaneamento() + ")");
+                            }
+                        });
+                        GridPanePorPlanear.actualizarLista();
+                        return null;
+                    }
+                };
+                new Thread(tarefa).run();
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                Log.i(TAG, "OSBO onChildRemoved: " + dataSnapshot.toString());
+                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
+                    @Override
+                    protected DataSnapshot call() throws Exception {
+                        String bostamp = dataSnapshot.getKey();
+                        ArtigoLinhaPlanOUAtraso artigoOSBO = dataSnapshot.getValue(ArtigoLinhaPlanOUAtraso.class);
+                        artigoOSBO.setBostamp(bostamp);
+                        sqlite.removerOSBOPLAN(artigoOSBO);
+                        GridPanePorPlanear.actualizarLista();
+                        return null;
+                    }
+                };
+                new Thread(tarefa).run();
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        };
+
+    }
+
     private void configurarListenerOSBI() {
         listenerFirebaseOSBI03 = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-//                Log.i(TAG, "onChildAdded: " + dataSnapshot.toString());
+//                Log.i(TAG, "OSBI03: onChildAdded: " + dataSnapshot.toString());
                 Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
                     @Override
                     protected DataSnapshot call() throws Exception {
@@ -451,8 +600,8 @@ public class AppMain extends Application {
                             artigoOSBI.setBostamp(bostamp);
                             artigoOSBI.setBistamp(bistamp);
                             sqlite.guardarOSBI(artigoOSBI);
-                            actualizarQtdPedida(artigoOSBI.getBostamp());
                         }
+                        actualizarQtdPedida(bostamp);
                         return null;
                     }
                 };
@@ -466,14 +615,15 @@ public class AppMain extends Application {
                     @Override
                     protected DataSnapshot call() throws Exception {
                         String bostamp = dataSnapshot.getKey();
+                        sqlite.removerOSBIbostamp(new ArtigoOSBO(bostamp));
                         for (DataSnapshot d : dataSnapshot.getChildren()) {
                             String bistamp = d.getKey();
                             ArtigoOSBI artigoOSBI = d.getValue(ArtigoOSBI.class);
                             artigoOSBI.setBostamp(bostamp);
                             artigoOSBI.setBistamp(bistamp);
-                            sqlite.actualizarOSBI(artigoOSBI);
-                            actualizarQtdPedida(artigoOSBI.getBostamp());
+                            sqlite.guardarOSBI(artigoOSBI);
                         }
+                        actualizarQtdPedida(bostamp);
                         return null;
                     }
                 };
@@ -492,9 +642,9 @@ public class AppMain extends Application {
                             ArtigoOSBI artigoOSBI = d.getValue(ArtigoOSBI.class);
                             artigoOSBI.setBostamp(bostamp);
                             artigoOSBI.setBistamp(bistamp);
-                            sqlite.removerOSBI(artigoOSBI);
-                            actualizarQtdPedida(artigoOSBI.getBostamp());
+                            sqlite.removerOSBIbostamp(artigoOSBI);
                         }
+                        actualizarQtdPedida(bostamp);
                         return null;
                     }
                 };
@@ -517,6 +667,7 @@ public class AppMain extends Application {
         listenerFirebaseOSPROD = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+//                Log.i(TAG, "OSBOPROD: onChildAdded: " + dataSnapshot.toString());
                 Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
                     @Override
                     protected DataSnapshot call() throws Exception {
@@ -527,8 +678,8 @@ public class AppMain extends Application {
                             artigoOSPROD.setBostamp(bostamp);
                             artigoOSPROD.setBistamp(bistamp);
                             sqlite.guardarOSPROD(artigoOSPROD);
-                            actualizarQtdProduzida(artigoOSPROD.getBostamp());
                         }
+                        actualizarQtdProduzida(bostamp);
                         return null;
                     }
                 };
@@ -548,8 +699,8 @@ public class AppMain extends Application {
                             artigoOSPROD.setBostamp(bostamp);
                             artigoOSPROD.setBistamp(bistamp);
                             sqlite.actualizarOSPROD(artigoOSPROD);
-                            actualizarQtdProduzida(artigoOSPROD.getBostamp());
                         }
+                        actualizarQtdProduzida(bostamp);
                         return null;
                     }
                 };
@@ -569,8 +720,8 @@ public class AppMain extends Application {
                             artigoOSBI.setBostamp(bostamp);
                             artigoOSBI.setBistamp(bistamp);
                             sqlite.removerOSPROD(artigoOSBI);
-                            actualizarQtdProduzida(artigoOSBI.getBostamp());
                         }
+                        actualizarQtdProduzida(bostamp);
                         return null;
                     }
                 };
@@ -589,11 +740,94 @@ public class AppMain extends Application {
         };
     }
 
+    private void configurarListenerOSTIMER() {
+        listenerFirebaseOSTIMER = new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+//                Log.i(TAG, "OSTIMER: onChildAdded: " + dataSnapshot.toString());
+                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
+                    @Override
+                    protected DataSnapshot call() throws Exception {
+                        String bostamp = dataSnapshot.getKey();
+                        for (DataSnapshot d : dataSnapshot.getChildren()) {
+                            String stamp = d.getKey();
+                            ArtigoOSTIMER artigoOSTIMER = d.getValue(ArtigoOSTIMER.class);
+                            artigoOSTIMER.setBostamp(bostamp);
+                            artigoOSTIMER.setStamp(stamp);
+                            sqlite.guardarOSTIMER(artigoOSTIMER);
+                        }
+                        actualizarTempo(bostamp);
+                        return null;
+                    }
+                };
+                new Thread(tarefa).run();
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                Log.i(TAG, "OSTIMER onChildChanged: " + dataSnapshot.toString());
+                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
+                    @Override
+                    protected DataSnapshot call() throws Exception {
+                        String bostamp = dataSnapshot.getKey();
+                        for (DataSnapshot d : dataSnapshot.getChildren()) {
+                            String stamp = d.getKey();
+                            ArtigoOSTIMER artigoOSTIMER = d.getValue(ArtigoOSTIMER.class);
+                            artigoOSTIMER.setBostamp(bostamp);
+                            artigoOSTIMER.setStamp(stamp);
+                            sqlite.actualizarOSTIMER(artigoOSTIMER);
+                        }
+                        actualizarTempo(bostamp);
+                        return null;
+                    }
+                };
+                new Thread(tarefa).run();
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                Log.i(TAG, "OSTIMER onChildRemoved: " + dataSnapshot.toString());
+                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
+                    @Override
+                    protected DataSnapshot call() throws Exception {
+                        String bostamp = dataSnapshot.getKey();
+                        for (DataSnapshot d : dataSnapshot.getChildren()) {
+                            String stamp = d.getKey();
+                            ArtigoOSTIMER artigoOSTIMER = d.getValue(ArtigoOSTIMER.class);
+                            artigoOSTIMER.setBostamp(bostamp);
+                            artigoOSTIMER.setStamp(stamp);
+                            sqlite.removerOSTIMER(artigoOSTIMER);
+                        }
+                        actualizarTempo(bostamp);
+                        return null;
+                    }
+                };
+                new Thread(tarefa).run();
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        };
+    }
+
+    private void actualizarTempo(String bostamp) {
+        VBoxOSBO vBoxOSBO = (VBoxOSBO) calendario.lookup("#" + bostamp);
+        if (vBoxOSBO != null) {
+            vBoxOSBO.actualizarCronometros();
+        }
+    }
+
     private void actualizarQtdPedida(String bostamp) {
         VBoxOSBO vBoxOSBO = (VBoxOSBO) calendario.lookup("#" + bostamp);
         if (vBoxOSBO != null) {
             vBoxOSBO.actualizarQtdPedida();
-//            actualizarTextoColunasZero();
         }
     }
 
@@ -601,11 +835,12 @@ public class AppMain extends Application {
         VBoxOSBO vBoxOSBO = (VBoxOSBO) calendario.lookup("#" + bostamp);
         if (vBoxOSBO != null) {
             vBoxOSBO.actualizarQtdProduzida();
-//            actualizarTextoColunasZero();
         }
     }
 
     public void actualizarGrelhaCalendario(ArrayList<ArtigoOSBO> listaDocsOSBO, int operacao) {
+        GridPaneAtrasados.actualizarLista();
+
         switch (operacao) {
             case ADICIONAR:
                 for (ArtigoOSBO artigoOSBO : listaDocsOSBO) {
@@ -620,7 +855,6 @@ public class AppMain extends Application {
                     VBoxOSBO vBoxOSBO = (VBoxOSBO) calendario.lookup("#" + artigoOSBO.getBostamp());
                     //O artigo já existe
                     if (vBoxOSBO != null) {
-                        System.out.println("ALTERAR: O artigo já existe em agenda");
                         //Já não pertence à mesma seccção
                         if (!artigoOSBO.getSeccao().equals(seccao)) {
                             ArrayList<ArtigoOSBO> listaUnica = new ArrayList<>();
@@ -629,11 +863,14 @@ public class AppMain extends Application {
                             continue;
                         }
                         //Pertence à mesma secção, actualizarOSBO
-                        System.out.println("ALTERAR: actualizarOSBO o VBoxOSBO respectivo");
-                        vBoxOSBO.setArtigoOSBOProp(artigoOSBO);
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                vBoxOSBO.setArtigoOSBOProp(artigoOSBO);
+                            }
+                        });
                         continue;
                     }
-                    System.out.println("ALTERAR: O artigo não existe em agenda");
                     //O artigo ainda não existe, lançar novo
                     ArrayList<ArtigoOSBO> listaUnica = new ArrayList<>();
                     listaUnica.add(artigoOSBO);
@@ -658,7 +895,6 @@ public class AppMain extends Application {
         }
     }
 
-
     private void configurarTaskStage() {
         final double wndwWidth = 300.0d;
         Label updateLabel = new Label("A ligar à base de dados remota");
@@ -679,7 +915,6 @@ public class AppMain extends Application {
     }
 
     private void configurarStageAtrasados() {
-        //todo painel de atrasados
         borderPaneAtrasados = new BorderPane();
 
         //FILTROS
@@ -695,8 +930,7 @@ public class AppMain extends Application {
                 if (!newValue.matches("\\d*")) {
                     textFieldFiltroFrefAtrasados.setText(newValue.replaceAll("[^\\d]", ""));
                 }
-//               todo filtrar a lista de atrasados
-//                GridPaneAtrasados.alimentarLista(lista);
+                GridPaneAtrasados.actualizarLista();
             }
         });
 
@@ -723,44 +957,41 @@ public class AppMain extends Application {
 
     }
 
-    private void configurarStageAprovados() {
-//        GridPaneAprovados gridPaneAprovados = new GridPaneAprovados();
-        borderPaneAprovisionamento = new BorderPane();
-
+    private void configurarStagePorPlanear() {
+        borderPanePorPlanear = new BorderPane();
         //FILTROS
         Label labelObra = new Label("obra");
         HBox.setMargin(labelObra, new Insets(2));
 
-        textFieldFiltroFrefAprovisionamento = new TextField();
-        HBox.setMargin(textFieldFiltroFrefAprovisionamento, new Insets(2));
-        textFieldFiltroFrefAprovisionamento.textProperty().addListener(new ChangeListener<String>() {
+        textFieldFiltroPorPlanear = new TextField();
+        HBox.setMargin(textFieldFiltroPorPlanear, new Insets(2));
+        textFieldFiltroPorPlanear.textProperty().addListener(new ChangeListener<String>() {
             @SuppressWarnings("unchecked")
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 if (!newValue.matches("\\d*")) {
-                    textFieldFiltroFrefAprovisionamento.setText(newValue.replaceAll("[^\\d]", ""));
+                    textFieldFiltroPorPlanear.setText(newValue.replaceAll("[^\\d]", ""));
                 }
-                //todo filtrar a lista atrasados por obra
-//                    GridPaneAprovisionamentos.alimentarLista(ServicoCouchBase.getInstancia().getListaAprovisionamento());
+                GridPanePorPlanear.actualizarLista();
             }
         });
 
-        labelTotRecsAprovisionamento = new Label();
-        HBox.setMargin(labelTotRecsAprovisionamento, new Insets(2));
+        labelTotRecsPorPlanear = new Label();
+        HBox.setMargin(labelTotRecsPorPlanear, new Insets(2));
 
         HBox hBoxFiltros = new HBox();
         hBoxFiltros.setAlignment(Pos.CENTER_LEFT);
-        hBoxFiltros.getChildren().addAll(labelObra, textFieldFiltroFrefAprovisionamento, labelTotRecsAprovisionamento);
+        hBoxFiltros.getChildren().addAll(labelObra, textFieldFiltroPorPlanear, labelTotRecsPorPlanear);
 
-        borderPaneAprovisionamento.setTop(hBoxFiltros);
+        borderPanePorPlanear.setTop(hBoxFiltros);
 
-        Scene scene = new Scene(borderPaneAprovisionamento, 755, 700);
+        Scene scene = new Scene(borderPanePorPlanear, 755, 700);
         scene.getStylesheets().add("styles.css");
 
-        stageAprovisionamento = new Stage();
-        stageAprovisionamento.setScene(scene);
-        stageAprovisionamento.getIcons().add(Funcoes.iconeBamer());
-        stageAprovisionamento.setTitle("aprovisionamentos");
+        stagePorPlanear = new Stage();
+        stagePorPlanear.setScene(scene);
+        stagePorPlanear.getIcons().add(Funcoes.iconeBamer());
+        stagePorPlanear.setTitle("para planear");
     }
 
     private void setColunas() {
@@ -787,7 +1018,6 @@ public class AppMain extends Application {
         int colunas = prefs.getInt(Constantes.PREF_AGENDA_NUMCOLS, ValoresDefeito.AGENDA_NUMCOLS);
         labelCols.setText(colunas + " dias");
     }
-
 
     public void actualizarTextoColunasZero(int coluna) {
         PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
@@ -838,17 +1068,13 @@ public class AppMain extends Application {
         return but_atrasados;
     }
 
-    public JFXButton getBut_aprovisionamento() {
-        return but_aprovisionamento;
-    }
-
     //todo actualizarNota(nota)
 //    public void actualizarNota(Document document) {
 //        Platform.runLater(new Runnable() {
 //            @Override
 //            public void run() {
-//                String bostamp = ""; //TODO document.getProperty(NomesDeCampos.FIELD_BOSTAMP).toString();
-//                String nota = ""; //todo document.getProperty(NomesDeCampos.FIELD_TEXTO).toString();
+//                String bostamp = "";
+//                String nota = "";
 //                Node obj = calendario.lookup("#" + bostamp);
 //                if (obj instanceof VBoxOSBO) {
 //                    VBoxOSBO vBox = (VBoxOSBO) obj;
@@ -858,16 +1084,20 @@ public class AppMain extends Application {
 //        });
 //    }
 
-    public TextField getTextFieldFiltroFrefAprovisionamento() {
-        return textFieldFiltroFrefAprovisionamento;
+    public JFXButton getBut_porPlanear() {
+        return but_porPlanear;
+    }
+
+    public TextField getTextFieldFiltroPorPlanear() {
+        return textFieldFiltroPorPlanear;
     }
 
     public TextField getTextFieldFiltroFrefAtrasados() {
         return textFieldFiltroFrefAtrasados;
     }
 
-    public Label getLabelTotRecsAprovisionamento() {
-        return labelTotRecsAprovisionamento;
+    public Label getLabelTotRecsPorPlanear() {
+        return labelTotRecsPorPlanear;
     }
 
     public Label getLabelTotRecsAtrasados() {
@@ -880,5 +1110,9 @@ public class AppMain extends Application {
 
     public void setMainStage(Stage mainStage) {
         this.mainStage = mainStage;
+    }
+
+    public List<ArtigoLinhaPlanOUAtraso> getListaDeAtrasos() {
+        return listaDeAtrasos;
     }
 }

@@ -41,6 +41,10 @@ public class ArtigoOSBO {
         this.dtcliente = dtcliente;
     }
 
+    public ArtigoOSBO(String bostamp) {
+        this.bostamp = bostamp;
+    }
+
     @Override
     public String toString() {
         return "bostamp: " + bostamp + ", obrano: " + obrano + ", fref: " + fref
@@ -127,4 +131,6 @@ public class ArtigoOSBO {
     public String getDtcliente() {
         return dtcliente;
     }
+
+
 }

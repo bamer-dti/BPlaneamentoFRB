@@ -27,6 +27,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
@@ -43,6 +44,7 @@ import utils.Constantes;
 import utils.Funcoes;
 import utils.Singleton;
 import utils.ValoresDefeito;
+import webservices.WSWorker;
 
 import java.io.IOException;
 import java.net.URL;
@@ -51,9 +53,11 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
-
-import static java.lang.System.out;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ExecutionException;
 
 public class VBoxOSBO extends VBox {
     private static final int COR_AZUL = 0;
@@ -62,8 +66,9 @@ public class VBoxOSBO extends VBox {
     private static final int COR_VERDE = 3;
     //    private final ArtigoOSBO artigoOSBO;
     private int coluna;
-    private VBoxOSBO thisObject = this;
+    private VBoxOSBO contexto = this;
     private int linha;
+
     private SimpleObjectProperty<ArtigoOSBO> artigoOSBOProp = new SimpleObjectProperty<>();
     private SimpleStringProperty bostampProp = new SimpleStringProperty();
     private SimpleStringProperty frefProp = new SimpleStringProperty();
@@ -81,8 +86,8 @@ public class VBoxOSBO extends VBox {
     private SimpleStringProperty notaProp = new SimpleStringProperty("");
     private SimpleIntegerProperty corProp = new SimpleIntegerProperty();
     private SimpleLongProperty tempoTotalProp = new SimpleLongProperty();
-
     private SimpleIntegerProperty ordemProp = new SimpleIntegerProperty();
+
     private ContextMenu contextMenu;
     private Label labelTempos;
     private SimpleLongProperty tempoParcialProp = new SimpleLongProperty();
@@ -98,6 +103,8 @@ public class VBoxOSBO extends VBox {
     private Label labelQtt;
 
     public VBoxOSBO(ArtigoOSBO artigoOSBO) {
+        contexto = this;
+
         setId(artigoOSBO.getBostamp());
 
         criarObjectos();
@@ -113,30 +120,6 @@ public class VBoxOSBO extends VBox {
         configurarEventos();
 
         configurarContextMenu();
-    }
-
-    public static int getPosicao(String bostamp) {
-        //todo tempos
-//        com.couchbase.lite.View view = ServicoCouchBase.getInstancia().viewTemposPorDossier;
-//        Query query = view.createQuery();
-//        String maxText = Long.MAX_VALUE + "";
-//        query.setStartKey(Arrays.asList(bostamp, "", ""));
-//        query.setEndKey(Arrays.asList(bostamp, maxText, maxText));
-        int posicaoSQL = 0;
-//        try {
-//            QueryEnumerator queryEnumerator = query.run();
-//            Document document = null;
-//            while (queryEnumerator.hasNext()) {
-//                QueryRow queryRow = queryEnumerator.next();
-//                document = queryRow.getDocument();
-//            }
-//            if (document != null) {
-//                posicaoSQL = Integer.parseInt(document.getProperty(CamposCouch.FIELD_POSICAO).toString());
-//            }
-//        } catch (CouchbaseLiteException e) {
-//            e.printStackTrace();
-//        }
-        return posicaoSQL;
     }
 
     private void criarObjectos() {
@@ -160,35 +143,6 @@ public class VBoxOSBO extends VBox {
             public void handle(MouseEvent event) {
                 if (event.isPrimaryButtonDown() && event.getClickCount() == 2) {
                     //todo notas
-//                    try {
-//                        View view = null;
-//                        try {
-//                            view = ServicoCouchBase.getInstancia().getViewNotas();
-//                            String bostamp = bostampProp.get();
-//                            Query query = view.createQuery();
-//                            query.setStartKey(bostamp);
-//                            query.setEndKey(bostamp);
-//                            QueryEnumerator queryEnumerator = query.run();
-//                            Document document;
-//                            if (queryEnumerator.getCount() > 0) {
-//                                document = queryEnumerator.next().getDocument();
-//                                if (document.getProperty(CamposCouch.FIELD_TEXTO) != null) {
-//                                    String textnota = document.getProperty(CamposCouch.FIELD_TEXTO).toString();
-//                                    if (!textnota.equals("")) {
-//                                        notaPropProperty().set(textnota);
-//                                    }
-//                                }
-//                            } else {
-//                                document = ServicoCouchBase.getInstancia().criarDocumentoNota(bostamp);
-//                            }
-//                            editarNota(document);
-//                        } catch (CouchbaseLiteException e) {
-//                            e.printStackTrace();
-//                        }
-//
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
                 }
                 event.consume();
             }
@@ -224,7 +178,6 @@ public class VBoxOSBO extends VBox {
         labelObrano.textProperty().bind(textoObrano);
         setMargin(labelObrano, new Insets(2, 2, 2, 2));
         this.getChildren().add(labelObrano);
-
 
         //OBS
         Label labelObs = new Label();
@@ -321,13 +274,11 @@ public class VBoxOSBO extends VBox {
 //        out.println("TEMPO DO ARTIGO: " + artigoOSBOProp.get().getTempoTotal());
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
-//        tempoTotalProp.set(artigoOSBOProp.get().getTempoTotal());
-
         corProp.addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
                 String estilo = "game-grid-cell-" + newValue;
-                Funcoes.colocarEstilo(thisObject, estilo);
+                Funcoes.colocarEstilo(contexto, estilo);
             }
         });
 
@@ -335,12 +286,15 @@ public class VBoxOSBO extends VBox {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
                 String bostamp = bostampProp.get();
+                long tempoCalculado = DBSQLite.getInstancia().getTempoTotal(artigoOSBOProp.get().getBostamp());
+                int ultimaPosicao = DBSQLite.getInstancia().getUltimaPosicao(bostamp);
+                if (bostamp.equals("DFA16110361114,589000001")) {
+                    System.out.println("********** tempoTotalProp Listener: bostamp = " + bostamp + ", tempoCalculado = " + tempoCalculado + ", ultimaPosicao = " + ultimaPosicao);
+                } else {
+                    System.out.println("tempoTotalProp Listener: bostamp = " + bostamp + ", tempoCalculado = " + tempoCalculado + ", ultimaPosicao = " + ultimaPosicao);
+                }
+                if (ultimaPosicao == Constantes.STARTED) {
 
-//                if (artigoOSBOProp.get().getObrano() == 162331) {
-//                out.println("*****************************" + artigoOSBOProp.get().getBostamp() + ", " + notaProp.get() + ", " + newValue.longValue());
-//                }
-                long tempoCalculado = 0;
-                if (getPosicao(bostamp) == Constantes.STARTED) {
                     mostrarRegistoEmModoStarted(bostampProp.get());
                 } else {
                     if (timer != null) {
@@ -348,9 +302,7 @@ public class VBoxOSBO extends VBox {
                         timer.purge();
                         timer = null;
                     }
-                    //todo tempos
-//                        tempoCalculado = ServicoCouchBase.getInstancia().getTempoTotal(bostamp);
-                    tempoCalculado = 0;
+                    tempoCalculado = DBSQLite.getInstancia().getTempoTotal(bostamp);
                     if (tempoCalculado != 0) {
                         String textoTempo = Funcoes.milisegundos_em_HH_MM_SS(tempoCalculado * 1000);
                         Platform.runLater(new Runnable() {
@@ -380,11 +332,9 @@ public class VBoxOSBO extends VBox {
             private void mostrarRegistoEmModoStarted(String bostamp) {
                 long tempoTotal = 0;
                 long ultimoTempo = 0;
-                //todo tempos
-//                    tempoTotal = ServicoCouchBase.getInstancia().getTempoTotal(bostamp);
-//                    ultimoTempo = ServicoCouchBase.getInstancia().getUltimoTempo(bostamp);
-                tempoTotal = 0;
-                ultimoTempo = 0;
+                DBSQLite slq = DBSQLite.getInstancia();
+                tempoTotal = slq.getTempoTotal(bostamp);
+                ultimoTempo = slq.getUltimoTempo(bostamp);
 
 
                 final long finalTempoTotal = tempoTotal;
@@ -491,7 +441,6 @@ public class VBoxOSBO extends VBox {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 boolean resultado = !(newValue.equals("") && tempoTotalProp.get() == 0);
-                out.println("notaProp listener: " + resultado);
                 hBoxNotificar.setManaged(resultado);
                 hBoxNotificar.setVisible(resultado);
                 imageNotas.setManaged(!newValue.equals(0));
@@ -510,14 +459,12 @@ public class VBoxOSBO extends VBox {
             return;
         GridPaneCalendario calendario = AppMain.getInstancia().getCalendario();
         linha = getOrdemProp();
-        VBoxOSBO contexto = this;
+        VBoxOSBO vBoxOSBO = this;
 
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-//                calendario.getChildren().remove()
-                calendario.add(contexto, coluna, linha);
-//                out.println("Coluna " + coluna + ", linha " + linha + ", rows: " + calendario.getRowConstraints().size());
+                calendario.add(vBoxOSBO, coluna, linha);
             }
         });
     }
@@ -553,9 +500,19 @@ public class VBoxOSBO extends VBox {
         this.setOnDragDetected(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
+                if (!AppMain.getInstancia().getComboSeccao().isVisible()) {
+                    event.consume();
+                    return;
+                }
                 Dragboard dragboard = startDragAndDrop(TransferMode.MOVE);
+                Rectangle rect = new Rectangle(contexto.getWidth(), contexto.getHeight());
+                rect.setFill(Color.DARKBLUE);
+                Image image = rect.snapshot(null, null);
+                double x = contexto.getTranslateX();
+                double y = contexto.getTranslateY();
+                dragboard.setDragView(image, x, y);
                 Map<DataFormat, Object> map = new HashMap<>();
-                map.put(DataFormat.RTF, thisObject);
+                map.put(DataFormat.RTF, contexto);
                 dragboard.setContent(map);
                 event.consume();
             }
@@ -569,7 +526,7 @@ public class VBoxOSBO extends VBox {
                     Dragboard dragboard = event.getDragboard();
                     VBoxOSBO vBoxOSBO = (VBoxOSBO) dragboard.getContent(DataFormat.RTF);
                     ArtigoOSBO artigoOSBO = vBoxOSBO.getArtigoOSBOProp();
-                    if (!artigoOSBO.getBostamp().equals(thisObject.getId())) {
+                    if (!artigoOSBO.getBostamp().equals(contexto.getId())) {
                         String idToFind = "#header0" + coluna;
                         Text mText = (Text) AppMain.getInstancia().getCalendario().lookup(idToFind);
                         Font font = mText.getFont();
@@ -589,11 +546,11 @@ public class VBoxOSBO extends VBox {
                     Dragboard dragboard = event.getDragboard();
                     VBoxOSBO vBoxOSBOemDrag = (VBoxOSBO) dragboard.getContent(DataFormat.RTF);
                     ArtigoOSBO artigoOSBO = vBoxOSBOemDrag.getArtigoOSBOProp();
-                    if (artigoOSBO.getBostamp().equals(thisObject.getId())) {
+                    if (artigoOSBO.getBostamp().equals(contexto.getId())) {
                         event.acceptTransferModes(TransferMode.NONE);
                     } else {
                         event.acceptTransferModes(TransferMode.MOVE);
-                        disableEnabledObjects(thisObject, false);
+                        disableEnabledObjects(contexto, false);
                     }
                     event.consume();
                 }
@@ -608,7 +565,7 @@ public class VBoxOSBO extends VBox {
                     Dragboard dragboard = event.getDragboard();
                     VBoxOSBO vBoxOSBO = (VBoxOSBO) dragboard.getContent(DataFormat.RTF);
                     ArtigoOSBO artigoOSBO = vBoxOSBO.getArtigoOSBOProp();
-                    if (artigoOSBO.getBostamp().equals(thisObject.getId())) {
+                    if (artigoOSBO.getBostamp().equals(contexto.getId())) {
                         event.acceptTransferModes(TransferMode.NONE);
                     } else {
                         String idToFind = "#header0" + coluna;
@@ -616,7 +573,7 @@ public class VBoxOSBO extends VBox {
                         Font font = mText.getFont();
                         mText.setFill(Color.BLACK);
                         mText.setFont(Font.font(font.getFamily(), FontWeight.NORMAL, font.getSize()));
-                        disableEnabledObjects(thisObject, true);
+                        disableEnabledObjects(contexto, true);
                     }
                     event.consume();
                 }
@@ -636,106 +593,19 @@ public class VBoxOSBO extends VBox {
                         return;
                     }
                     int ordemNova = getOrdemProp();
-                    int ordemAnterior = artigoOSBOemDRAG.getOrdem();
-                    LocalDate dataNova = getDtcortefProp();
-                    LocalDate dataAnterior = Funcoes.cToD(artigoOSBOemDRAG.getDtcortef());
-                    long days = dataNova.until(dataAnterior, ChronoUnit.DAYS);
-                    GridPane gridPane = (GridPane) getParent();
-                    ArrayList<VBoxOSBO> listaDeAlteracoes = new ArrayList<>();
-
-                    if (days == 0) {//ALTEROU NO MESMO DIA
-                        if (ordemNova > ordemAnterior) {
-                            for (int i = ordemAnterior; i <= ordemNova; i++) {
-                                Node node = Funcoes.getNodeByRowColumnIndex(i, getColuna(), gridPane);
-                                if (!(node instanceof VBoxOSBO)) {
-                                } else {
-                                    VBoxOSBO vBoxOSBO = (VBoxOSBO) node;
-                                    ArtigoOSBO artigoOSBO = vBoxOSBO.getArtigoOSBOProp();
-                                    //É o objecto em DRAG
-                                    if (artigoOSBO == artigoOSBOemDRAG) {
-                                        artigoOSBO.setOrdem(ordemNova);
-                                    } else {
-                                        artigoOSBO.setOrdem(artigoOSBO.getOrdem() - 1);
-                                    }
-                                    vBoxOSBO.setOrdemProp(artigoOSBO.getOrdem());
-                                    listaDeAlteracoes.add(vBoxOSBO);
-                                }
-                            }
-                        }
-
-                        if (ordemNova < ordemAnterior) {
-                            for (int i = ordemNova; i <= ordemAnterior; i++) {
-                                Node node = Funcoes.getNodeByRowColumnIndex(i, getColuna(), gridPane);
-                                if (!(node instanceof VBoxOSBO)) {
-                                } else {
-                                    VBoxOSBO vBoxOSBO = (VBoxOSBO) node;
-                                    ArtigoOSBO artigoOSBO = vBoxOSBO.getArtigoOSBOProp();
-                                    //É o objecto em DRAG
-                                    if (artigoOSBO == artigoOSBOemDRAG) {
-                                        artigoOSBO.setOrdem(ordemNova);
-                                    } else {
-                                        artigoOSBO.setOrdem(artigoOSBO.getOrdem() + 1);
-                                    }
-                                    vBoxOSBO.setOrdemProp(artigoOSBO.getOrdem());
-                                    listaDeAlteracoes.add(vBoxOSBO);
-                                }
-                            }
-                        }
+                    String bostamp = artigoOSBOemDRAG.getBostamp();
+                    String seccao = artigoOSBOemDRAG.getSeccao();
+                    String estado = artigoOSBOemDRAG.getEstado();
+                    LocalDate u_dtcortef = getDtcortefProp();
+                    LocalDate u_dttransf = u_dtcortef.plusDays(1);
+                    try {
+                        WSWorker.actualizarOrdem(bostamp, ordemNova, Funcoes.dToC(u_dtcortef, "yyyyMMdd"), Funcoes.dToC(u_dttransf, "yyyyMMdd"), seccao, estado);
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
 
-                    if (days != 0) {
-                        ordemNova = getOrdemProp();
-                        ordemAnterior = vboxEmDRAG.getOrdemProp();
-                        int colunaAnterior = vboxEmDRAG.getColuna();
-                        vboxEmDRAG.getArtigoOSBOProp().setDtcortef(getArtigoOSBOProp().getDtcortef());
-                        vboxEmDRAG.setDtcortefProp(getDtcortefProp());
-                        vboxEmDRAG.setOrdemProp(ordemNova);
-                        vboxEmDRAG.setColuna(coluna);
-                        listaDeAlteracoes.add(vboxEmDRAG);
-
-                        //Na nova coluna
-                        for (int i = 0; i < 200; i++) {
-                            Node node = Funcoes.getNodeByRowColumnIndex(i, getColuna(), gridPane);
-                            if (!(node instanceof VBoxOSBO)) {
-
-                            } else {
-                                VBoxOSBO vBoxOSBO = (VBoxOSBO) node;
-                                ArtigoOSBO artigoOSBO = vBoxOSBO.getArtigoOSBOProp();
-                                if (artigoOSBO != artigoOSBOemDRAG && artigoOSBO.getOrdem() >= ordemNova) {
-                                    vBoxOSBO.setOrdemProp(vBoxOSBO.getOrdemProp() + 1);
-                                    listaDeAlteracoes.add(vBoxOSBO);
-                                }
-                            }
-                        }
-
-                        //Na coluna anterior
-                        for (int i = 0; i < 200; i++) {
-                            Node node = Funcoes.getNodeByRowColumnIndex(i, colunaAnterior, gridPane);
-                            if (!(node instanceof VBoxOSBO)) {
-
-                            } else {
-                                VBoxOSBO vBoxOSBO = (VBoxOSBO) node;
-                                ArtigoOSBO artigoOSBO = vBoxOSBO.getArtigoOSBOProp();
-                                if (artigoOSBO != artigoOSBOemDRAG && artigoOSBO.getOrdem() >= ordemAnterior) {
-                                    vBoxOSBO.setOrdemProp(vBoxOSBO.getOrdemProp() - 1);
-                                    listaDeAlteracoes.add(vBoxOSBO);
-                                }
-                            }
-                        }
-
-                    }
-
-                    for (VBoxOSBO vBoxOSBO : listaDeAlteracoes) {
-                        GridPane.setConstraints(vBoxOSBO, vBoxOSBO.getColuna(), vBoxOSBO.getOrdemProp());
-                        //todo actualizarOSBO ordem
-//                        try {
-//                            ServicoCouchBase.getInstancia().actualizarOrdem(vBoxOSBO);
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        } catch (CouchbaseLiteException e) {
-//                            e.printStackTrace();
-//                        }
-                    }
                     event.consume();
                 }
             }
@@ -934,7 +804,6 @@ public class VBoxOSBO extends VBox {
         dateObj.setConverter(converter);
         LocalDate dexped = dtexpediPropProperty().get();
         dateObj.setValue(dexped);
-        out.print("Expedição = 1900? " + dexped.equals(LocalDate.of(1900, Month.JANUARY, 1)));
         dateObj.setEditable(false);
         dateObj.setDisable(dexped.equals(LocalDate.of(1900, Month.JANUARY, 1)));
 //        dateObj.setStyle("-fx-opacity: 1");
@@ -1006,13 +875,6 @@ public class VBoxOSBO extends VBox {
     }
 
     public void setBostampProp(String bostamp) {
-        //todo peças por bostamp
-//            int qtt = ServicoCouchBase.getInstancia().getPecasPorOS(bostamp);
-//            int qttProd = ServicoCouchBase.getInstancia().getPecasFeitasPorOS(bostamp);
-        int qtt = 0;
-        int qttProd = 0;
-        setQttProp(qtt);
-        setQttProdProp(qttProd);
         this.bostampProp.set(bostamp);
     }
 
@@ -1097,11 +959,32 @@ public class VBoxOSBO extends VBox {
             });
         } else {
             DBSQLite sql = DBSQLite.getInstancia();
-            tempoTotalProp.set(artigoOSBO.getTempoTotal());
-            tempoParcialProp.set(artigoOSBO.getTempoParcial());
-            qttProp.set(sql.getQtdPedidaBostamp(bostampProp.get()));
-            qttProdProp.set(sql.getQtdProduzidaBostamp(bostampProp.get()));
-            GridPane.setConstraints(this, coluna, ordemProp.get());
+            String bostamp = bostampProp.get();
+            if (ordemProp.get() < 99) {
+                tempoTotalProp.set(artigoOSBO.getTempoTotal());
+                tempoParcialProp.set(artigoOSBO.getTempoParcial());
+                qttProp.set(sql.getQtdPedidaBostamp(bostamp));
+                qttProdProp.set(sql.getQtdProduzidaBostamp(bostamp));
+                tempoTotalProp.set(sql.getTempoTotal(bostamp));
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        GridPane.setConstraints(contexto, coluna, ordemProp.get());
+                        String estilo = "game-grid-cell-" + corProp.get();
+                        Funcoes.colocarEstilo(contexto, estilo);
+                    }
+                });
+
+            } else {
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        String estilo = "game-grid-cell-" + COR_AMARELO;
+                        Funcoes.colocarEstilo(contexto, estilo);
+                    }
+                });
+
+            }
         }
     }
 
@@ -1133,5 +1016,9 @@ public class VBoxOSBO extends VBox {
     public void actualizarQtdProduzida() {
         int qtt = DBSQLite.getInstancia().getQtdProduzidaBostamp(bostampProp.get());
         qttProdProp.set(qtt);
+    }
+
+    public void actualizarCronometros() {
+        tempoTotalProp.set(-1);
     }
 }

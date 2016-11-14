@@ -1,8 +1,8 @@
 package sql;
 //miguel.silva em 04-05-2016;
 
+import pojos.ArtigoLinhaPlanOUAtraso;
 import pojos.ArtigoOSBO;
-import pojos.ArtigoParaPlaneamento;
 import utils.Funcoes;
 import utils.ValoresDefeito;
 
@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static java.lang.System.out;
@@ -172,14 +173,15 @@ public class BamerSqlServer {
         return rows;
     }
 
-    public int actualizar_De_Aprovisionamento_para_Corte(ArtigoParaPlaneamento artigo) throws SQLException, ClassNotFoundException {
+    public int actualizar_De_PorPlanear_para_Corte(ArtigoLinhaPlanOUAtraso artigo) throws SQLException, ClassNotFoundException {
         int rows;
         LinkSQL linkSQL;
         linkSQL = getSQLConn();
 
         String bostamp = artigo.getBostamp();
 
-        String dataCorteStr = Funcoes.dToCddMMyyyy(artigo.getDtcortef());
+        LocalDate data = LocalDate.now();
+        String dataCorteStr = Funcoes.dToCddMMyyyy(data);
         String dataCorteSQL = Funcoes.cToSQL(dataCorteStr);
 
         String seccao = artigo.getSeccao();
@@ -197,7 +199,7 @@ public class BamerSqlServer {
         preparedStatement.setString(5, dataTransfSQL);
 
         rows = preparedStatement.executeUpdate();
-        out.println("SQLSERVER: Actualizados " + rows + " registos em actualizar_De_Aprovisionamento_para_Corte(" + bostamp + ") para corte = " + dataCorteSQL + ", transf = " + dataTransfSQL);
+        out.println("SQLSERVER: Actualizados " + rows + " registos em actualizar_De_PorPlanear_para_Corte(" + bostamp + ") para corte = " + dataCorteSQL + ", transf = " + dataTransfSQL);
         fecharLinkSQL(linkSQL);
         preparedStatement.close();
 

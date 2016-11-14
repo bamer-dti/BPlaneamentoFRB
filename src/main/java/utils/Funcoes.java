@@ -117,12 +117,6 @@ public class Funcoes {
         return sqlData;
     }
 
-    public static String dataBonita(String data) {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-        LocalDateTime local = cToT(data);
-        return dtf.format(local);
-    }
-
     public static void alerta(String mensagem, Alert.AlertType tipoAlerta) {
         String titulo = "";
         switch (tipoAlerta) {
