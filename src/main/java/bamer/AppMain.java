@@ -44,9 +44,12 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 public class AppMain extends Application {
-    private static final String VERSAO = "2.0.3";
+    private static final String VERSAO = "2.0.4";
+
     public static final String TITULO_APP = "BPlaneamento FRB " + VERSAO;
-    private static final boolean TESTING = false; //Se sim, só faz o load de BO e Notas
+
+    private static final boolean TESTING = true; //Se sim, só faz o load de BO e Notas
+
     private static final int MINIMO_COLUNAS = 30; //dias = + 1
     private static final String TAG = AppMain.class.getSimpleName();
     private static final int ADICIONAR = 1;

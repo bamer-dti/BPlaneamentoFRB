@@ -688,17 +688,18 @@ public class VBoxOSBO extends VBox {
         stage.setScene(new Scene(root));
         ControllerNotas controller = loader.getController();
         controller.areaDoTexto.textProperty().bindBidirectional(notaProp);
-        controller.areaDoTexto.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                System.out.println(newValue);
-                guardarNota();
-            }
-        });
+//        controller.areaDoTexto.textProperty().addListener(new ChangeListener<String>() {
+//            @Override
+//            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+//                System.out.println(newValue);
+//                if (!newValue.equals(oldValue))
+//                    guardarNota();
+//            }
+//        });
         stage.widthProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                controller.areaDoTexto.setPrefWidth(newValue.intValue()-10);
+                controller.areaDoTexto.setPrefWidth(newValue.intValue());
             }
         });
         textoOriginalNota = notaProp.get();
@@ -724,8 +725,9 @@ public class VBoxOSBO extends VBox {
             ref.child(Campos.KEY_NOTAS).child(bostamp).removeValue();
             return;
         }
-        if (!texto.equals(textoOriginalNota))
+        if (!texto.equals(textoOriginalNota)) {
             ref.child(Campos.KEY_NOTAS).child(bostamp).setValue(nota);
+        }
     }
 
     private void abrirEdicao() throws IOException {
@@ -924,12 +926,14 @@ public class VBoxOSBO extends VBox {
                     }
                 });
                 DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child(Campos.KEY_NOTAS).child(bostamp);
-                ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                ref.addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Nota nota = dataSnapshot.getValue(Nota.class);
-                        if (nota != null)
+                        if (nota != null) {
+                            System.out.println(dataSnapshot);
                             notaProp.set(nota.texto);
+                        }
                     }
 
                     @Override
