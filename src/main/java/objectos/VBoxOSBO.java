@@ -133,7 +133,7 @@ public class VBoxOSBO extends VBox {
         imageNotas = new ImageView(imageSource);
         imageNotas.setManaged(false);
         imageNotas.setVisible(false);
-        HBox.setMargin(imageNotas, new Insets(1,5,1,1));
+        HBox.setMargin(imageNotas, new Insets(1, 5, 1, 1));
         Tooltip tooltip = new Tooltip();
         tooltip.textProperty().bindBidirectional(notaProp);
         Tooltip.install(imageNotas, tooltip);
@@ -688,6 +688,19 @@ public class VBoxOSBO extends VBox {
         stage.setScene(new Scene(root));
         ControllerNotas controller = loader.getController();
         controller.areaDoTexto.textProperty().bindBidirectional(notaProp);
+        controller.areaDoTexto.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                System.out.println(newValue);
+                guardarNota();
+            }
+        });
+        stage.widthProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                controller.areaDoTexto.setPrefWidth(newValue.intValue()-10);
+            }
+        });
         textoOriginalNota = notaProp.get();
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.initStyle(StageStyle.UTILITY);
