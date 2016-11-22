@@ -932,20 +932,8 @@ public class VBoxOSBO extends VBox {
                     @Override
                     public void run() {
                         GridPane.setConstraints(contexto, coluna, ordemProp.get());
-                        String estilo = "game-grid-cell-" + corProp.get();
-                        Funcoes.colocarEstilo(contexto, estilo);
                     }
                 });
-
-            } else {
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        String estilo = "game-grid-cell-" + COR_AMARELO;
-                        Funcoes.colocarEstilo(contexto, estilo);
-                    }
-                });
-
             }
         }
     }
