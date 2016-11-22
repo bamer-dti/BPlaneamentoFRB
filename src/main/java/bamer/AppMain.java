@@ -44,6 +44,9 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 public class AppMain extends Application {
+
+    private static final boolean TESTING = false;
+
     private static final int MINIMO_COLUNAS = 4; //dias = + 1
     private static final String TAG = AppMain.class.getSimpleName();
     private static final int ADICIONAR = 1;
@@ -348,22 +351,24 @@ public class AppMain extends Application {
         DatabaseReference refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBO);
         refDataFireBase.addChildEventListener(listenerFirebaseOSBO);
 
-//        configurarListenerOSBI();
-//        refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBI03);
-//        refDataFireBase.addChildEventListener(listenerFirebaseOSBI03);
-//
-//        configurarListenerOSPROD();
-//        refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSPROD);
-//        refDataFireBase.addChildEventListener(listenerFirebaseOSPROD);
-//
-//        configurarListenerOSTIMER();
-//        refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSTIMER);
-//        refDataFireBase.addChildEventListener(listenerFirebaseOSTIMER);
-//
-//        configurarListenerOSBOPLAN();
-//        refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBOPLAN);
-//        refDataFireBase.addChildEventListener(listenerFirebaseOSBOPLAN);
+        if (!TESTING) {
 
+            configurarListenerOSBI();
+            refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBI03);
+            refDataFireBase.addChildEventListener(listenerFirebaseOSBI03);
+
+            configurarListenerOSPROD();
+            refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSPROD);
+            refDataFireBase.addChildEventListener(listenerFirebaseOSPROD);
+
+            configurarListenerOSTIMER();
+            refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSTIMER);
+            refDataFireBase.addChildEventListener(listenerFirebaseOSTIMER);
+
+            configurarListenerOSBOPLAN();
+            refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBOPLAN);
+            refDataFireBase.addChildEventListener(listenerFirebaseOSBOPLAN);
+        }
         //ALIMENTAR COMBO SECÇÃO
         FirebaseDatabase.getInstance().getReference(Campos.KEY_SECCAO).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override

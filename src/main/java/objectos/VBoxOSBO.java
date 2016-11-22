@@ -133,6 +133,7 @@ public class VBoxOSBO extends VBox {
         imageNotas = new ImageView(imageSource);
         imageNotas.setManaged(false);
         imageNotas.setVisible(false);
+        HBox.setMargin(imageNotas, new Insets(1,5,1,1));
         Tooltip tooltip = new Tooltip();
         tooltip.textProperty().bindBidirectional(notaProp);
         Tooltip.install(imageNotas, tooltip);
@@ -443,7 +444,8 @@ public class VBoxOSBO extends VBox {
         notaProp.addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                boolean resultado = !(newValue.equals("") && tempoTotalProp.get() == 0);
+//                boolean resultado = !(newValue.equals("") && tempoTotalProp.get() == 0);
+                boolean resultado = !(newValue.equals(""));
                 hBoxNotificar.setManaged(resultado);
                 hBoxNotificar.setVisible(resultado);
                 imageNotas.setManaged(!newValue.equals(0));
@@ -690,7 +692,6 @@ public class VBoxOSBO extends VBox {
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.initStyle(StageStyle.UTILITY);
         stage.show();
-
         stage.setOnHiding(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
