@@ -45,7 +45,7 @@ import java.util.Optional;
 
 public class AppMain extends Application {
 
-    private static final boolean TESTING = false;
+    private static final boolean TESTING = false; //Se sim, só faz o load de BO e Notas
 
     private static final int MINIMO_COLUNAS = 4; //dias = + 1
     private static final String TAG = AppMain.class.getSimpleName();
