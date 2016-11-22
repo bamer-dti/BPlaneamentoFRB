@@ -2,6 +2,8 @@ package objectos;
 
 import bamer.AppMain;
 import bamer.ControllerEditar;
+import bamer.ControllerNotas;
+import com.google.firebase.database.*;
 import javafx.application.Platform;
 import javafx.beans.binding.StringExpression;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -35,14 +37,13 @@ import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.WindowEvent;
 import javafx.util.StringConverter;
 import pojos.ArtigoOSBO;
+import pojos.Nota;
 import sqlite.DBSQLite;
 import sqlite.PreferenciasEmSQLite;
-import utils.Constantes;
-import utils.Funcoes;
-import utils.Singleton;
-import utils.ValoresDefeito;
+import utils.*;
 import webservices.WSWorker;
 
 import java.io.IOException;
@@ -97,6 +98,7 @@ public class VBoxOSBO extends VBox {
     private ImageView imageNotas;
     private Timer timer;
     private Label labelQtt;
+    private String textoOriginalNota;
 
     public VBoxOSBO(ArtigoOSBO artigoOSBO) {
         contexto = this;
@@ -138,7 +140,12 @@ public class VBoxOSBO extends VBox {
             @Override
             public void handle(MouseEvent event) {
                 if (event.isPrimaryButtonDown() && event.getClickCount() == 2) {
-                    //todo notas
+                    try {
+                        editarNota();
+                    } catch (IOException e) {
+                        Funcoes.AlertaException(e);
+                        e.printStackTrace();
+                    }
                 }
                 event.consume();
             }
@@ -649,47 +656,12 @@ public class VBoxOSBO extends VBox {
         itemNota.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                Funcoes.alerta("Ainda não implementado!", Alert.AlertType.WARNING);
-//                String bostamp = bostampProp.get();
-//                ServicoCouchBase instancia;
-//                try {
-//                    instancia = ServicoCouchBase.getInstancia();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                    return;
-//                } catch (CouchbaseLiteException e) {
-//                    e.printStackTrace();
-//                    return;
-//                }
-//                View view;
-//                view = instancia.getViewNotas();
-//                Query query = view.createQuery();
-//                query.setStartKey(bostamp);
-//                query.setEndKey(bostamp);
-//                QueryEnumerator queryEnumerator = null;
-//                try {
-//                    queryEnumerator = query.run();
-//                } catch (CouchbaseLiteException e) {
-//                    e.printStackTrace();
-//                    return;
-//                }
-//                out.println("Nº de notas encontradas: " + queryEnumerator.getCount());
-//                Document document;
-//                if (queryEnumerator.getCount() == 0) {
-//                    try {
-//                        document = instancia.criarDocumentoNota(bostamp);
-//                    } catch (CouchbaseLiteException e) {
-//                        e.printStackTrace();
-//                        return;
-//                    }
-//                } else {
-//                    document = queryEnumerator.next().getDocument();
-//                }
-//                try {
-//                    editarNota(document);
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
+                try {
+                    editarNota();
+                } catch (IOException e) {
+                    Funcoes.AlertaException(e);
+                    e.printStackTrace();
+                }
             }
         });
         menuAccoes.getItems().add(itemNota);
@@ -707,39 +679,42 @@ public class VBoxOSBO extends VBox {
         }
     }
 
-    //todo procedimento editar nota
-//    private void editarNota(Document document) throws IOException {
-//        URL location = ClassLoader.getSystemResource("editarNota.fxml");
-//        FXMLLoader loader = new FXMLLoader(location);
-//        Parent root = loader.load();
-//        Stage stage = new Stage();
-//        stage.setTitle("Notas");
-//        stage.setScene(new Scene(root));
-//        ControllerNotas controller = loader.getController();
-//        controller.areaDoTexto.textProperty().bindBidirectional(notaPropProperty());
-//        stage.initModality(Modality.APPLICATION_MODAL);
-//        stage.initStyle(StageStyle.UTILITY);
-//        stage.show();
-//
-//        stage.setOnHiding(new EventHandler<WindowEvent>() {
-//            @Override
-//            public void handle(WindowEvent event) {
-//                try {
-//                    guardarNota(document, controller.areaDoTexto.getText());
-//                } catch (CouchbaseLiteException e) {
-//                    e.printStackTrace();
-//                    Funcoes.alerta("Erro ao gravar nota!", Alert.AlertType.ERROR);
-//                }
-//            }
-//        });
-//    }
+    private void editarNota() throws IOException {
+        URL location = ClassLoader.getSystemResource("editarNota.fxml");
+        FXMLLoader loader = new FXMLLoader(location);
+        Parent root = loader.load();
+        Stage stage = new Stage();
+        stage.setTitle("Notas");
+        stage.setScene(new Scene(root));
+        ControllerNotas controller = loader.getController();
+        controller.areaDoTexto.textProperty().bindBidirectional(notaProp);
+        textoOriginalNota = notaProp.get();
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.initStyle(StageStyle.UTILITY);
+        stage.show();
 
-//    private void guardarNota(Document document, String text) throws CouchbaseLiteException {
-//        Map map = new HashMap<String, Object>();
-//        map.putAll(document.getProperties());
-//        map.put(CamposCouch.FIELD_TEXTO, text);
-//        document.putProperties(map);
-//    }
+        stage.setOnHiding(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent event) {
+                guardarNota();
+            }
+        });
+    }
+
+    private void guardarNota() {
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference();
+        ArtigoOSBO artigoOSBO = artigoOSBOProp.get();
+        String bostamp = artigoOSBO.getBostamp();
+        String data = Funcoes.currentTimeStringStamp("dd.MM.yyyy HH:mm");
+        String texto = notaProp.get();
+        Nota nota = new Nota(data, texto);
+        if (texto.equals("")) {
+            ref.child(Campos.KEY_NOTAS).child(bostamp).removeValue();
+            return;
+        }
+        if (!texto.equals(textoOriginalNota))
+            ref.child(Campos.KEY_NOTAS).child(bostamp).setValue(nota);
+    }
 
     private void abrirEdicao() throws IOException {
         URL location = ClassLoader.getSystemResource("editarCompromisso.fxml");
@@ -936,6 +911,21 @@ public class VBoxOSBO extends VBox {
                         GridPane.setConstraints(contexto, coluna, ordemProp.get());
                     }
                 });
+                DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child(Campos.KEY_NOTAS).child(bostamp);
+                ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Nota nota = dataSnapshot.getValue(Nota.class);
+                        if (nota != null)
+                            notaProp.set(nota.texto);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
             }
         }
     }

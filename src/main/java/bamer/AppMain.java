@@ -348,21 +348,21 @@ public class AppMain extends Application {
         DatabaseReference refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBO);
         refDataFireBase.addChildEventListener(listenerFirebaseOSBO);
 
-        configurarListenerOSBI();
-        refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBI03);
-        refDataFireBase.addChildEventListener(listenerFirebaseOSBI03);
-
-        configurarListenerOSPROD();
-        refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSPROD);
-        refDataFireBase.addChildEventListener(listenerFirebaseOSPROD);
-
-        configurarListenerOSTIMER();
-        refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSTIMER);
-        refDataFireBase.addChildEventListener(listenerFirebaseOSTIMER);
-
-        configurarListenerOSBOPLAN();
-        refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBOPLAN);
-        refDataFireBase.addChildEventListener(listenerFirebaseOSBOPLAN);
+//        configurarListenerOSBI();
+//        refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBI03);
+//        refDataFireBase.addChildEventListener(listenerFirebaseOSBI03);
+//
+//        configurarListenerOSPROD();
+//        refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSPROD);
+//        refDataFireBase.addChildEventListener(listenerFirebaseOSPROD);
+//
+//        configurarListenerOSTIMER();
+//        refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSTIMER);
+//        refDataFireBase.addChildEventListener(listenerFirebaseOSTIMER);
+//
+//        configurarListenerOSBOPLAN();
+//        refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBOPLAN);
+//        refDataFireBase.addChildEventListener(listenerFirebaseOSBOPLAN);
 
         //ALIMENTAR COMBO SECÇÃO
         FirebaseDatabase.getInstance().getReference(Campos.KEY_SECCAO).addListenerForSingleValueEvent(new ValueEventListener() {
