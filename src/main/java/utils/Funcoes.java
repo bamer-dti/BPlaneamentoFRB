@@ -171,10 +171,10 @@ public class Funcoes {
     public static void AlertaException(Exception e) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
 
-        alert.setTitle("Exception Dialog");
-        alert.setHeaderText("An error occurred:");
+        alert.setTitle("Erro interno");
+        alert.setHeaderText("Ocorreu um erro:");
 
-        String content = "Error: ";
+        String content = "Descrição do erro: ";
         if (null != e) {
             content += e.toString() + "\n\n";
         }
