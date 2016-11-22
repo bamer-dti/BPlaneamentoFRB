@@ -62,7 +62,6 @@ public class VBoxOSBO extends VBox {
     private static final int COR_AMARELO = 1;
     private static final int COR_VERMELHO = 2;
     private static final int COR_VERDE = 3;
-    //    private final ArtigoOSBO artigoOSBO;
     private int coluna;
     private VBoxOSBO contexto = this;
     private int linha;
@@ -88,7 +87,6 @@ public class VBoxOSBO extends VBox {
 
     private ContextMenu contextMenu;
     private Label labelTempos;
-    private SimpleLongProperty tempoParcialProp = new SimpleLongProperty();
     private Label labelCorte;
     private Label labelTransf;
     private Label labelEmbal;
@@ -111,7 +109,7 @@ public class VBoxOSBO extends VBox {
 
         setArtigoOSBOProp(artigoOSBO);
 
-        arranjinhos();
+        setEstilo(getArtigoOSBOProp().getCor());
 
         colocarEmAgenda();
 
@@ -283,23 +281,17 @@ public class VBoxOSBO extends VBox {
         tempoTotalProp.addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                if (timer != null) {
+                    timer.cancel();
+                    timer.purge();
+                    timer = null;
+                }
                 String bostamp = bostampProp.get();
                 long tempoCalculado = DBSQLite.getInstancia().getTempoTotal(artigoOSBOProp.get().getBostamp());
                 int ultimaPosicao = DBSQLite.getInstancia().getUltimaPosicao(bostamp);
-                if (bostamp.equals("DFA16110361114,589000001")) {
-                    System.out.println("********** tempoTotalProp Listener: bostamp = " + bostamp + ", tempoCalculado = " + tempoCalculado + ", ultimaPosicao = " + ultimaPosicao);
-                } else {
-                    System.out.println("tempoTotalProp Listener: bostamp = " + bostamp + ", tempoCalculado = " + tempoCalculado + ", ultimaPosicao = " + ultimaPosicao);
-                }
                 if (ultimaPosicao == Constantes.STARTED) {
-
                     mostrarRegistoEmModoStarted(bostampProp.get());
                 } else {
-                    if (timer != null) {
-                        timer.cancel();
-                        timer.purge();
-                        timer = null;
-                    }
                     tempoCalculado = DBSQLite.getInstancia().getTempoTotal(bostamp);
                     if (tempoCalculado != 0) {
                         String textoTempo = Funcoes.milisegundos_em_HH_MM_SS(tempoCalculado * 1000);
@@ -428,6 +420,12 @@ public class VBoxOSBO extends VBox {
                         public void run() {
                             labelProd.setText("-" + newValue);
                             labelResultado.setText("=" + (qttProp.get() - qttProdProp.get()));
+                            if (newValue.intValue() == qttProp.get() && corProp.get() == 0) {
+                                corProp.set(COR_VERDE);
+                            }
+                            if (newValue.intValue() != qttProp.get() && corProp.get() == 0) {
+                                corProp.set(COR_AMARELO);
+                            }
                         }
                     });
                 }
@@ -447,8 +445,8 @@ public class VBoxOSBO extends VBox {
         });
     }
 
-    private void arranjinhos() {
-        String estilo = "game-grid-cell-" + getArtigoOSBOProp().getCor();
+    private void setEstilo(int conversor) {
+        String estilo = "game-grid-cell-" + conversor;
         Funcoes.colocarEstilo(this, estilo);
     }
 
@@ -927,8 +925,6 @@ public class VBoxOSBO extends VBox {
             DBSQLite sql = DBSQLite.getInstancia();
             String bostamp = bostampProp.get();
             if (ordemProp.get() < 99) {
-                tempoTotalProp.set(artigoOSBO.getTempoTotal());
-                tempoParcialProp.set(artigoOSBO.getTempoParcial());
                 qttProp.set(sql.getQtdPedidaBostamp(bostamp));
                 qttProdProp.set(sql.getQtdProduzidaBostamp(bostamp));
                 tempoTotalProp.set(sql.getTempoTotal(bostamp));

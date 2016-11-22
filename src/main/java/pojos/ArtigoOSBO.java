@@ -13,12 +13,11 @@ public class ArtigoOSBO {
     private String dttransf;
     private String dtembala;
     private String dtexpedi;
-    private long tempoParcial = 0L;
-    private long tempoTotal = 0L;
     private String dtcortef;
     private int ordem;
     private String dtcliente;
 
+    @SuppressWarnings("unused")
     public ArtigoOSBO() {
 
     }
@@ -91,10 +90,6 @@ public class ArtigoOSBO {
         return dtcortef;
     }
 
-    public void setDtcortef(String dtcorte) {
-        this.dtcortef = dtcorte;
-    }
-
     public String getDttransf() {
         return dttransf;
     }
@@ -111,22 +106,9 @@ public class ArtigoOSBO {
         return ordem;
     }
 
-    public void setOrdem(int ordem) {
-        this.ordem = ordem;
-    }
-
     public int getCor() {
         return cor;
     }
-
-    public long getTempoParcial() {
-        return tempoParcial;
-    }
-
-    public long getTempoTotal() {
-        return tempoTotal;
-    }
-
 
     public String getDtcliente() {
         return dtcliente;

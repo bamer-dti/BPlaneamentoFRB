@@ -3,10 +3,13 @@ package utils;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
+import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -147,6 +150,46 @@ public class Funcoes {
 
         alert.show();
     }
+
+    public static void AlertaException(Exception e) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+
+        alert.setTitle("Exception Dialog");
+        alert.setHeaderText("An error occurred:");
+
+        String content = "Error: ";
+        if (null != e) {
+            content += e.toString() + "\n\n";
+        }
+
+        alert.setContentText(content);
+
+        Exception ex = new Exception(e);
+
+        //Create expandable Exception.
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        ex.printStackTrace(pw);
+
+        String exceptionText = sw.toString();
+
+        //Set up TextArea
+        TextArea textArea = new TextArea(exceptionText);
+        textArea.setEditable(false);
+        textArea.setWrapText(true);
+
+
+        textArea.setPrefHeight(600);
+        textArea.setPrefWidth(800);
+
+
+        //Set expandable Exception into the dialog pane.
+        alert.getDialogPane().setExpandableContent(textArea);
+
+
+        alert.showAndWait();
+    }
+
 
     public static void colocarEstilo(Node node, String estilo) {
         for (int i = 0; i < node.getStyleClass().size(); i++) {

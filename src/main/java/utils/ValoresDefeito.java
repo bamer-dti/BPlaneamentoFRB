@@ -3,7 +3,7 @@ package utils;
 
 public class ValoresDefeito {
     //GLOBALS
-    public static final String TITULO_APP = "BPlaneamento FRB BETA";
+    public static final String TITULO_APP = "BPlaneamento FRB 2.0.2";
 
     //SQLITE
     public static final String BD_PREFERENCIAS = "dbprefs";

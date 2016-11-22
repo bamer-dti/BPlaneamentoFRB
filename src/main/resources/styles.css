@@ -46,7 +46,7 @@
     -fx-padding: 3, 3, 3, 3;
     -fx-background-insets: top right bottom left;
     -fx-background-insets: 0, 2, 0, 0 ;
-    -fx-background-color: transparent, yellow ;
+    -fx-background-color: transparent, #FFE082;
 }
 
 //VERMELHO

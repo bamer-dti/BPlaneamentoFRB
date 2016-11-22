@@ -39,11 +39,8 @@ import utils.*;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 public class AppMain extends Application {
@@ -81,7 +78,6 @@ public class AppMain extends Application {
     private ChildEventListener listenerFirebaseOSTIMER;
     private JFXButton but_mais;
     private JFXButton but_menos;
-    private List<ArtigoLinhaPlanOUAtraso> listaDeAtrasos;
 
     public static void main(String[] args) {
         launch(args);
@@ -89,45 +85,6 @@ public class AppMain extends Application {
 
     public static AppMain getInstancia() {
         return app;
-    }
-
-    public static void showExceptionDialog(Exception e) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-
-        alert.setTitle("Exception Dialog");
-        alert.setHeaderText("An error occurred:");
-
-        String content = "Error: ";
-        if (null != e) {
-            content += e.toString() + "\n\n";
-        }
-
-        alert.setContentText(content);
-
-        Exception ex = new Exception(e);
-
-        //Create expandable Exception.
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        ex.printStackTrace(pw);
-
-        String exceptionText = sw.toString();
-
-        //Set up TextArea
-        TextArea textArea = new TextArea(exceptionText);
-        textArea.setEditable(false);
-        textArea.setWrapText(true);
-
-
-        textArea.setPrefHeight(600);
-        textArea.setPrefWidth(800);
-
-
-        //Set expandable Exception into the dialog pane.
-        alert.getDialogPane().setExpandableContent(textArea);
-
-
-        alert.showAndWait();
     }
 
     @Override
@@ -146,13 +103,9 @@ public class AppMain extends Application {
         calendarioTopo = new GridPaneCalendario(GridPaneCalendario.TIPO_TOPO);
 
         scrollPaneTopo = new ScrollPane(calendarioTopo);
-//        scrollPaneTopo.setFitToWidth(true);
         scrollPaneTopo.setMinHeight(43);
-//        scrollPaneTopo.setPrefHeight();
-//        scrollPaneTopo.setFitToHeight(true);
         scrollPaneTopo.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPaneTopo.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
-//        scrollPaneTopo.getStyleClass().add("scroll-bar");
 
         scrollPaneCalendario = new ScrollPane(calendario);
         scrollPaneCalendario.setFitToWidth(true);
@@ -271,7 +224,7 @@ public class AppMain extends Application {
         comboSeccao.valueProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                System.out.println("Seccção alterada de " + oldValue + " para " + newValue);
+                System.out.println("Secção alterada de " + oldValue + " para " + newValue);
                 seccao = newValue;
                 if (oldValue.equals(newValue)) {
                     return;
@@ -693,6 +646,7 @@ public class AppMain extends Application {
                     @Override
                     protected DataSnapshot call() throws Exception {
                         String bostamp = dataSnapshot.getKey();
+                        DBSQLite.getInstancia().removerOSPRODviaBostamp(bostamp);
                         for (DataSnapshot d : dataSnapshot.getChildren()) {
                             String bistamp = d.getKey();
                             ArtigoOSPROD artigoOSPROD = d.getValue(ArtigoOSPROD.class);
@@ -770,6 +724,7 @@ public class AppMain extends Application {
                     @Override
                     protected DataSnapshot call() throws Exception {
                         String bostamp = dataSnapshot.getKey();
+                        DBSQLite.getInstancia().removerOSTIMERviaBostamp(bostamp);
                         for (DataSnapshot d : dataSnapshot.getChildren()) {
                             String stamp = d.getKey();
                             ArtigoOSTIMER artigoOSTIMER = d.getValue(ArtigoOSTIMER.class);
@@ -1112,7 +1067,4 @@ public class AppMain extends Application {
         this.mainStage = mainStage;
     }
 
-    public List<ArtigoLinhaPlanOUAtraso> getListaDeAtrasos() {
-        return listaDeAtrasos;
-    }
 }

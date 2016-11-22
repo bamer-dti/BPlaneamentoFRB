@@ -509,25 +509,56 @@ public class DBSQLite {
         int t = 0;
         if (con != null) {
             try {
-                PreparedStatement preparedStatement = con.prepareStatement(
-                        "update " + Campos.TABELA_OSPROD + " SET "
-                                + Campos.DESIGN + "=?, "
-                                + Campos.DIM + "=?, "
-                                + Campos.MK + "=?, "
-                                + Campos.NUMLINHA + "=?, "
-                                + Campos.QTT + "=?, "
-                                + Campos.REF + "=? "
-                                + " where " + Campos.BISTAMP + "=?"
-                );
-                preparedStatement.setString(1, osprod.getDesign());
-                preparedStatement.setString(2, osprod.getDim());
-                preparedStatement.setString(3, osprod.getMk());
-                preparedStatement.setString(4, osprod.getNumlinha());
-                preparedStatement.setInt(5, osprod.getQtt());
-                preparedStatement.setString(6, osprod.getRef());
-                preparedStatement.setString(7, osprod.getBistamp());
+                if (existeArtigoOSPROD(osprod) != 0) {
+                    PreparedStatement preparedStatement = con.prepareStatement(
+                            "update " + Campos.TABELA_OSPROD + " SET "
+                                    + Campos.DESIGN + "=?, "
+                                    + Campos.DIM + "=?, "
+                                    + Campos.MK + "=?, "
+                                    + Campos.NUMLINHA + "=?, "
+                                    + Campos.QTT + "=?, "
+                                    + Campos.REF + "=? "
+                                    + " where " + Campos.BISTAMP + "=?"
+                    );
+                    preparedStatement.setString(1, osprod.getDesign());
+                    preparedStatement.setString(2, osprod.getDim());
+                    preparedStatement.setString(3, osprod.getMk());
+                    preparedStatement.setString(4, osprod.getNumlinha());
+                    preparedStatement.setInt(5, osprod.getQtt());
+                    preparedStatement.setString(6, osprod.getRef());
+                    preparedStatement.setString(7, osprod.getBistamp());
 
-                t = preparedStatement.executeUpdate();
+                    t = preparedStatement.executeUpdate();
+
+                    preparedStatement.close();
+                    con.close();
+                } else {
+                    guardarOSPROD(osprod);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return t;
+    }
+
+    private int existeArtigoOSPROD(ArtigoOSPROD artigoOSPROD) {
+        Connection con = connect();
+        int qtt = 0;
+        if (con != null) {
+            try {
+                PreparedStatement preparedStatement = con.prepareStatement(
+                        "select count(" + Campos.BOSTAMP + ") as " + Campos.QTT
+                                + " from " + Campos.TABELA_OSPROD
+                                + " where " + Campos.BOSTAMP + " =? AND " + Campos.BISTAMP + " =? "
+                );
+                preparedStatement.setString(1, artigoOSPROD.getBostamp());
+                preparedStatement.setString(2, artigoOSPROD.getBistamp());
+
+                ResultSet rs = preparedStatement.executeQuery();
+                while (rs.next()) {
+                    qtt = rs.getInt(Campos.QTT);
+                }
                 preparedStatement.close();
                 con.close();
 
@@ -535,7 +566,7 @@ public class DBSQLite {
                 e.printStackTrace();
             }
         }
-        return t;
+        return qtt;
     }
 
     public int actualizarOSTIMER(ArtigoOSTIMER ostimer) {
@@ -684,6 +715,27 @@ public class DBSQLite {
         return t;
     }
 
+    public int removerOSTIMERviaBostamp(String bostamp) {
+        Connection con = connect();
+        int t = 0;
+        if (con != null) {
+            try {
+                PreparedStatement preparedStatement = con.prepareStatement(
+                        "delete from " + Campos.TABELA_OSTIMER
+                                + " where " + Campos.BOSTAMP + "=?"
+                );
+                preparedStatement.setString(1, bostamp);
+                t = preparedStatement.executeUpdate();
+                preparedStatement.close();
+                con.close();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return t;
+    }
+
     public int removerOSPROD(ArtigoOSPROD artigoOSPROD) {
         Connection con = connect();
         int t = 0;
@@ -695,6 +747,27 @@ public class DBSQLite {
                 );
                 preparedStatement.setString(1, artigoOSPROD.getBostamp());
                 preparedStatement.setString(2, artigoOSPROD.getBistamp());
+                t = preparedStatement.executeUpdate();
+                preparedStatement.close();
+                con.close();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return t;
+    }
+
+    public int removerOSPRODviaBostamp(String bostamp) {
+        Connection con = connect();
+        int t = 0;
+        if (con != null) {
+            try {
+                PreparedStatement preparedStatement = con.prepareStatement(
+                        "delete from " + Campos.TABELA_OSPROD
+                                + " where " + Campos.BOSTAMP + "=? "
+                );
+                preparedStatement.setString(1, bostamp);
                 t = preparedStatement.executeUpdate();
                 preparedStatement.close();
                 con.close();
