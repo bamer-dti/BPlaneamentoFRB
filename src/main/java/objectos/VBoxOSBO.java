@@ -688,14 +688,6 @@ public class VBoxOSBO extends VBox {
         stage.setScene(new Scene(root));
         ControllerNotas controller = loader.getController();
         controller.areaDoTexto.textProperty().bindBidirectional(notaProp);
-//        controller.areaDoTexto.textProperty().addListener(new ChangeListener<String>() {
-//            @Override
-//            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-//                System.out.println(newValue);
-//                if (!newValue.equals(oldValue))
-//                    guardarNota();
-//            }
-//        });
         stage.widthProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -830,50 +822,6 @@ public class VBoxOSBO extends VBox {
         }
     }
 
-    private SimpleStringProperty frefPropProperty() {
-        return frefProp;
-    }
-
-    private SimpleStringProperty nmfrefPropPorpery() {
-        return nmfrefProp;
-    }
-
-    private SimpleStringProperty obsPropProperty() {
-        return obsProp;
-    }
-
-    private int calcularColuna() {
-        return (int) Singleton.getInstancia().dataInicioAgenda.until(getDtcortefProp(), ChronoUnit.DAYS);
-    }
-
-    public void setBostampProp(String bostamp) {
-        this.bostampProp.set(bostamp);
-    }
-
-    public SimpleIntegerProperty obranoPropProperty() {
-        return obranoProp;
-    }
-
-    public LocalDate getDtcortefProp() {
-        return dtcortefProp.get();
-    }
-
-    public SimpleObjectProperty<LocalDate> dttransfPropProperty() {
-        return dttransfProp;
-    }
-
-    public SimpleObjectProperty<LocalDate> dtembalaPropProperty() {
-        return dtembalaProp;
-    }
-
-    public SimpleObjectProperty<LocalDate> dtexpediPropProperty() {
-        return dtexpediProp;
-    }
-
-    public int getOrdemProp() {
-        return ordemProp.get();
-    }
-
     public ArtigoOSBO getArtigoOSBOProp() {
         return artigoOSBOProp.get();
     }
@@ -944,6 +892,50 @@ public class VBoxOSBO extends VBox {
 
             }
         }
+    }
+
+    private SimpleStringProperty frefPropProperty() {
+        return frefProp;
+    }
+
+    private SimpleStringProperty nmfrefPropPorpery() {
+        return nmfrefProp;
+    }
+
+    private SimpleStringProperty obsPropProperty() {
+        return obsProp;
+    }
+
+    private int calcularColuna() {
+        return (int) Singleton.getInstancia().dataInicioAgenda.until(getDtcortefProp(), ChronoUnit.DAYS);
+    }
+
+    public void setBostampProp(String bostamp) {
+        this.bostampProp.set(bostamp);
+    }
+
+    public SimpleIntegerProperty obranoPropProperty() {
+        return obranoProp;
+    }
+
+    public LocalDate getDtcortefProp() {
+        return dtcortefProp.get();
+    }
+
+    public SimpleObjectProperty<LocalDate> dttransfPropProperty() {
+        return dttransfProp;
+    }
+
+    public SimpleObjectProperty<LocalDate> dtembalaPropProperty() {
+        return dtembalaProp;
+    }
+
+    public SimpleObjectProperty<LocalDate> dtexpediPropProperty() {
+        return dtexpediProp;
+    }
+
+    public int getOrdemProp() {
+        return ordemProp.get();
     }
 
     public int getColuna() {
