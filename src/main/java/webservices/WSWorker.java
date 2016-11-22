@@ -50,7 +50,7 @@ public class WSWorker {
                     @Override
                     public void completed(HttpResponse<JsonNode> response) {
                         if (response.getStatus() != 200) {
-                            Funcoes.alerta("Erro ao gravar os dados:\n" + response.getStatusText(), Alert.AlertType.ERROR);
+                            Funcoes.alerta("Erro ao gravar os dados:", response.getStatusText(), Alert.AlertType.ERROR);
                         } else {
                             System.out.println("Sucesso: " + response.getBody().toString());
                         }
@@ -58,12 +58,12 @@ public class WSWorker {
 
                     @Override
                     public void failed(UnirestException e) {
-                        Funcoes.alerta("Erro ao gravar os dados:\n" + e.getMessage(), Alert.AlertType.ERROR);
+                        Funcoes.alerta("Erro ao gravar os dados:", e.getMessage(), Alert.AlertType.ERROR);
                     }
 
                     @Override
                     public void cancelled() {
-                        Funcoes.alerta("O pedido WebService foi cancelado", Alert.AlertType.ERROR);
+                        Funcoes.alerta("O pedido WebService foi cancelado", "", Alert.AlertType.ERROR);
                     }
                 });
                 return null;
@@ -101,7 +101,7 @@ public class WSWorker {
                     public void completed(HttpResponse<JsonNode> response) {
                         stage.close();
                         if (response.getStatus() != 200) {
-                            Funcoes.alerta("Erro ao gravar os dados:\n" + response.getStatusText(), Alert.AlertType.ERROR);
+                            Funcoes.alerta("Erro ao gravar os dados", response.getStatusText(), Alert.AlertType.ERROR);
                         } else {
                             System.out.println("Sucesso: " + response.getBody().toString());
                         }
@@ -110,13 +110,13 @@ public class WSWorker {
                     @Override
                     public void failed(UnirestException e) {
                         stage.close();
-                        Funcoes.alerta("Erro ao gravar os dados:\n" + e.getMessage(), Alert.AlertType.ERROR);
+                        Funcoes.alerta("Erro ao gravar os dados", e.getMessage(), Alert.AlertType.ERROR);
                     }
 
                     @Override
                     public void cancelled() {
                         stage.close();
-                        Funcoes.alerta("O pedido WebService foi cancelado", Alert.AlertType.ERROR);
+                        Funcoes.alerta("O pedido WebService foi cancelado", "", Alert.AlertType.ERROR);
                     }
                 });
                 return null;
@@ -155,7 +155,7 @@ public class WSWorker {
                     @Override
                     public void completed(HttpResponse<JsonNode> response) {
                         if (response.getStatus() != 200) {
-                            Funcoes.alerta("Erro ao gravar os dados:\n" + response.getStatusText(), Alert.AlertType.ERROR);
+                            Funcoes.alerta("Erro ao gravar os dados", response.getStatusText(), Alert.AlertType.ERROR);
                         } else {
                             System.out.println("Sucesso: " + response.getBody().toString());
                         }
@@ -163,12 +163,12 @@ public class WSWorker {
 
                     @Override
                     public void failed(UnirestException e) {
-                        Funcoes.alerta("Erro ao gravar os dados:\n" + e.getMessage(), Alert.AlertType.ERROR);
+                        Funcoes.alerta("Erro ao gravar os dados", e.getMessage(), Alert.AlertType.ERROR);
                     }
 
                     @Override
                     public void cancelled() {
-                        Funcoes.alerta("O pedido WebService foi cancelado", Alert.AlertType.ERROR);
+                        Funcoes.alerta("O pedido WebService foi cancelado", "", Alert.AlertType.ERROR);
                     }
                 });
                 return null;

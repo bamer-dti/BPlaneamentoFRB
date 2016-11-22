@@ -6,6 +6,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import javafx.stage.Stage;
 
 import java.io.PrintWriter;
@@ -29,7 +30,7 @@ public class Funcoes {
     public final static long ONE_SECOND = 1000;
     public final static long ONE_MINUTE = ONE_SECOND * 60;
 
-//    public static String textoEmUTF8(String texto) {
+    //    public static String textoEmUTF8(String texto) {
 //        byte ptext[] = texto.getBytes(ISO_8859_1);
 //        return new String(ptext, UTF_8);
 //    }
@@ -120,7 +121,7 @@ public class Funcoes {
         return sqlData;
     }
 
-    public static void alerta(String mensagem, Alert.AlertType tipoAlerta) {
+    public static void alerta(String mensagem, String selectable, Alert.AlertType tipoAlerta) {
         String titulo = "";
         switch (tipoAlerta) {
             case ERROR:
@@ -147,8 +148,23 @@ public class Funcoes {
 
 // Add a custom icon.
         stage.getIcons().add(Funcoes.iconeBamer());
+        if (selectable.equals("")) {
+            TextArea textArea = new TextArea(selectable);
+            textArea.setEditable(false);
+            textArea.setWrapText(true);
 
-        alert.show();
+            textArea.setMaxWidth(Double.MAX_VALUE);
+            textArea.setMaxHeight(Double.MAX_VALUE);
+            GridPane.setVgrow(textArea, Priority.ALWAYS);
+            GridPane.setHgrow(textArea, Priority.ALWAYS);
+
+            GridPane expContent = new GridPane();
+            expContent.setMaxWidth(Double.MAX_VALUE);
+            expContent.add(textArea, 0, 0);
+// Set expandable Exception into the dialog pane.
+            alert.getDialogPane().setExpandableContent(expContent);
+        }
+        alert.showAndWait();
     }
 
     public static void AlertaException(Exception e) {

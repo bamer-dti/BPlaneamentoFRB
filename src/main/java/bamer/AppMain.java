@@ -44,8 +44,10 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 public class AppMain extends Application {
-
     private static final boolean TESTING = true; //Se sim, só faz o load de BO e Notas
+
+    private static final String VERSAO = "2.0.3";
+    public static final String TITULO_APP = "BPlaneamento FRB " + VERSAO;
 
     private static final int MINIMO_COLUNAS = 30; //dias = + 1
     private static final String TAG = AppMain.class.getSimpleName();
@@ -261,7 +263,7 @@ public class AppMain extends Application {
 
         mainStage.setScene(scenePrincipal);
         mainStage.getIcons().add(Funcoes.iconeBamer());
-        mainStage.setTitle(ValoresDefeito.TITULO_APP);
+        mainStage.setTitle(TITULO_APP);
         mainStage.show();
 
         mainStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
@@ -347,8 +349,39 @@ public class AppMain extends Application {
             }
         });
 
+        DatabaseReference refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_VERSIONS);
+        refDataFireBase.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                System.out.println(dataSnapshot);
+
+                for (DataSnapshot d : dataSnapshot.getChildren()) {
+                    if (d.getKey().equals("planning")) {
+                        String versao = (String) d.getValue();
+                        System.out.println("Versão cloud: " + versao);
+                        if (versao.equals(VERSAO)) {
+                            Platform.runLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Funcoes.alerta("Existe uma nova versão disponivel (" + versao + ")",
+                                            "https://dl.dropboxusercontent.com/u/6390478/Bamer/Apps/SetupPlaneamentoFRB.exe"
+                                            , Alert.AlertType.INFORMATION);
+                                }
+                            });
+                        }
+                    }
+
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
         configurarListenersOSBO();
-        DatabaseReference refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBO);
+        refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBO);
         refDataFireBase.addChildEventListener(listenerFirebaseOSBO);
 
         if (!TESTING) {

@@ -145,7 +145,7 @@ public class HBoxLinhaPlanOUAtraso extends HBox {
                     dragboard.setDragView(image, x, y);
                     event.consume();
                 } else {
-                    Funcoes.alerta("Não pertence ao mesmo sector", Alert.AlertType.WARNING);
+                    Funcoes.alerta("Não pertence ao mesmo sector","", Alert.AlertType.WARNING);
                 }
             }
         });
