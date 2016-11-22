@@ -467,6 +467,7 @@ public class DBSQLite {
 
     public int actualizarOSBI(ArtigoOSBI osbi) {
         //TODO verificar se existe, se não criar o registo! Verificar se existe o OSBO.BOSTAMP!!!!
+        //TODO verificar se é mesmo necessária esta regra, em ambiente de testes
         Connection con = connect();
         int t = 0;
         if (con != null) {

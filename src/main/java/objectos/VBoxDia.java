@@ -266,12 +266,7 @@ public class VBoxDia extends VBox {
                     LocalDate dataDeCorte = Singleton.getInstancia().dataInicioAgenda.plusDays(coluna);
                     ArtigoLinhaPlanOUAtraso artigoLinhaPlanOUAtraso = hBoxOSPorPlanear.getArtigoLinhaPlanOUAtraso();
                     artigoLinhaPlanOUAtraso.setDt2(Funcoes.dToC(dataDeCorte, "yyyy-MM-dd" + " 00:00:00"));
-                    //todo
-//                    try {
-//                        BamerSqlServer.getInstancia().actualizar_De_PorPlanear_para_Corte(artigoLinhaPlanOUAtraso);
-//                    } catch (SQLException | ClassNotFoundException e) {
-//                        e.printStackTrace();
-//                    }
+
                     String bostamp = artigoLinhaPlanOUAtraso.getBostamp();
                     int ordemNova = 999;
                     LocalDate u_dtcortef = dataDeCorte;

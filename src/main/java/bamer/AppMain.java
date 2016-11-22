@@ -1059,22 +1059,6 @@ public class AppMain extends Application {
         return but_atrasados;
     }
 
-    //todo actualizarNota(nota)
-//    public void actualizarNota(Document document) {
-//        Platform.runLater(new Runnable() {
-//            @Override
-//            public void run() {
-//                String bostamp = "";
-//                String nota = "";
-//                Node obj = calendario.lookup("#" + bostamp);
-//                if (obj instanceof VBoxOSBO) {
-//                    VBoxOSBO vBox = (VBoxOSBO) obj;
-//                    vBox.setNotaProp(nota);
-//                }
-//            }
-//        });
-//    }
-
     public JFXButton getBut_porPlanear() {
         return but_porPlanear;
     }
