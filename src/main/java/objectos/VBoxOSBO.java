@@ -891,7 +891,7 @@ public class VBoxOSBO extends VBox {
 
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
-
+                        Funcoes.AlertaException(databaseError.toException());
                     }
                 });
 
