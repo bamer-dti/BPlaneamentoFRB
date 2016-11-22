@@ -99,6 +99,7 @@ public class VBoxOSBO extends VBox {
     private Timer timer;
     private Label labelQtt;
     private String textoOriginalNota;
+    private Stage stageEditarNota;
 
     public VBoxOSBO(ArtigoOSBO artigoOSBO) {
         contexto = this;
@@ -683,22 +684,22 @@ public class VBoxOSBO extends VBox {
         URL location = ClassLoader.getSystemResource("editarNota.fxml");
         FXMLLoader loader = new FXMLLoader(location);
         Parent root = loader.load();
-        Stage stage = new Stage();
-        stage.setTitle("Notas");
-        stage.setScene(new Scene(root));
+        stageEditarNota = new Stage();
+        stageEditarNota.setTitle("Notas");
+        stageEditarNota.setScene(new Scene(root));
         ControllerNotas controller = loader.getController();
         controller.areaDoTexto.textProperty().bindBidirectional(notaProp);
-        stage.widthProperty().addListener(new ChangeListener<Number>() {
+        stageEditarNota.widthProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
                 controller.areaDoTexto.setPrefWidth(newValue.intValue());
             }
         });
         textoOriginalNota = notaProp.get();
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initStyle(StageStyle.UTILITY);
-        stage.show();
-        stage.setOnHiding(new EventHandler<WindowEvent>() {
+        stageEditarNota.initModality(Modality.APPLICATION_MODAL);
+        stageEditarNota.initStyle(StageStyle.UTILITY);
+        stageEditarNota.show();
+        stageEditarNota.setOnHiding(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
                 guardarNota();
@@ -877,6 +878,10 @@ public class VBoxOSBO extends VBox {
                 ref.addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (stageEditarNota == null)
+                            return;
+                        if (stageEditarNota.isShowing())
+                            return;
                         Nota nota = dataSnapshot.getValue(Nota.class);
                         if (nota != null) {
                             System.out.println(dataSnapshot);
