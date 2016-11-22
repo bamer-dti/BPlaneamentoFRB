@@ -46,7 +46,7 @@
     -fx-padding: 3, 3, 3, 3;
     -fx-background-insets: top right bottom left;
     -fx-background-insets: 0, 2, 0, 0 ;
-    -fx-background-color: transparent, #FFE082;
+    -fx-background-color: transparent, #FFF176;
 }
 
 //VERMELHO
@@ -64,7 +64,7 @@
     -fx-padding: 3, 3, 3, 3;
     -fx-background-insets: top right bottom left;
     -fx-background-insets: 0, 2, 0, 0 ;
-    -fx-background-color: transparent, #CEF5A6 ;
+    -fx-background-color: transparent, #C5E1A5;
 }
 
 .game-grid-cell-viagem {

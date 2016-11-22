@@ -698,9 +698,11 @@ public class VBoxOSBO extends VBox {
     }
 
     private void pintar(int cor) {
-        String estilo = "game-grid-cell-" + cor;
-        Funcoes.colocarEstilo(this, estilo);
+//        String estilo = "game-grid-cell-" + cor;
+//        Funcoes.colocarEstilo(this, estilo);
         if (cor != getArtigoOSBOProp().getCor()) {
+            corProp.set(cor);
+            artigoOSBOProp.get().setCor(cor);
             WSWorker.actualizarCor(bostampProp.get(), cor);
         }
     }

@@ -110,9 +110,11 @@ public class ArtigoOSBO {
         return cor;
     }
 
+    public void setCor(int cor) {
+        this.cor = cor;
+    }
+
     public String getDtcliente() {
         return dtcliente;
     }
-
-
 }
