@@ -148,7 +148,7 @@ public class Funcoes {
 
 // Add a custom icon.
         stage.getIcons().add(Funcoes.iconeBamer());
-        if (selectable.equals("")) {
+        if (!selectable.equals("")) {
             TextArea textArea = new TextArea(selectable);
             textArea.setEditable(false);
             textArea.setWrapText(true);
@@ -163,6 +163,7 @@ public class Funcoes {
             expContent.add(textArea, 0, 0);
 // Set expandable Exception into the dialog pane.
             alert.getDialogPane().setExpandableContent(expContent);
+            alert.getDialogPane().setExpanded(true);
         }
         alert.showAndWait();
     }
