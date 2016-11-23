@@ -48,7 +48,7 @@ public class AppMain extends Application {
 
     public static final String TITULO_APP = "BPlaneamento FRB " + VERSAO;
 
-    private static final boolean TESTING = false; //Se sim, só faz o load de BO e Notas
+    private static final boolean TESTING = true; //Se sim, só faz o load de BO e Notas
 
     private static final int MINIMO_COLUNAS = 30; //dias = + 1
     private static final String TAG = AppMain.class.getSimpleName();
@@ -364,9 +364,9 @@ public class AppMain extends Application {
                             Platform.runLater(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Funcoes.alerta("Existe uma nova versão disponivel (" + versao + ")",
+                                    Funcoes.alerta("A aplicação está desactualizada, a versão actual é (" + versao + ").\nCopie o link abaixo e cole no seu browser para efectuar o download da aplicação.",
                                             "https://dl.dropboxusercontent.com/u/6390478/Bamer/Apps/SetupPlaneamentoFRB.exe"
-                                            , Alert.AlertType.INFORMATION);
+                                            , Alert.AlertType.WARNING);
                                 }
                             });
                         }
