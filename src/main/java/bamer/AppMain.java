@@ -46,7 +46,7 @@ import java.util.Optional;
 public class AppMain extends Application {
     private static final String VERSAO = "2.0.4";
 
-    public static final String TITULO_APP = "BPlaneamento FRB " + VERSAO;
+    public static final String TITULO_APP = "Planeamento " + VERSAO;
 
     private static final boolean TESTING = false; //Se sim, só faz o load de BO e Notas
 
@@ -364,7 +364,7 @@ public class AppMain extends Application {
                             Platform.runLater(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Funcoes.alerta("A aplicação está desactualizada, a versão actual é (" + versao + ").\nCopie o link abaixo e cole no seu browser para efectuar o download da aplicação.",
+                                    Funcoes.alerta("A aplicação está desactualizada, a versão actual é a build " + versao + "\nCopie o link abaixo e cole no seu browser para efectuar o download da aplicação.",
                                             "https://dl.dropboxusercontent.com/u/6390478/Bamer/Apps/SetupPlaneamentoFRB.exe"
                                             , Alert.AlertType.WARNING);
                                 }
