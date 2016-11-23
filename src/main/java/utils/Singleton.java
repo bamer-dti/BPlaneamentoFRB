@@ -1,7 +1,5 @@
 package utils;
 
-import sqlite.PreferenciasEmSQLite;
-
 import java.time.LocalDate;
 
 ///**
@@ -14,7 +12,6 @@ public class Singleton {
     public static Singleton getInstancia() {
         if (singleton == null) {
             singleton = new Singleton();
-            PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
         }
         return singleton;
     }

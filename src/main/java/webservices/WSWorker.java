@@ -15,17 +15,13 @@ import objectos.VBoxOSBO;
 import org.json.JSONObject;
 import utils.Campos;
 import utils.Funcoes;
+import utils.Privado;
 
 import java.util.concurrent.ExecutionException;
 
 import static java.lang.System.out;
 
 public class WSWorker {
-
-    private static final String URL_ALTERAR_ORDEM = "http://server.bamer.pt:99/bameros.svc/actualizar_ordem_planeamento";
-    private static final String URL_ACTUALIZAR_COMPRMISSO = "http://server.bamer.pt:99/bameros.svc/actualizar_compromisso_planeamento";
-    private static final String URL_ACTUALIZAR_COR = "http://server.bamer.pt:99/bameros.svc/actualizar_cor";
-
     public static void actualizarOrdem(String bostamp, int ordemNova, String dtcortef, String dttransf, String seccao, String estado) throws ExecutionException, InterruptedException {
         Platform.runLater(new Runnable() {
             @Override
@@ -46,7 +42,7 @@ public class WSWorker {
         Task<Void> taskHttp = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
-                Unirest.post(URL_ALTERAR_ORDEM).body(json).asJsonAsync(new Callback<JsonNode>() {
+                Unirest.post(Privado.URL_ALTERAR_ORDEM).body(json).asJsonAsync(new Callback<JsonNode>() {
                     @Override
                     public void completed(HttpResponse<JsonNode> response) {
                         if (response.getStatus() != 200) {
@@ -96,7 +92,7 @@ public class WSWorker {
         Task<Void> taskHttp = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
-                Unirest.post(URL_ACTUALIZAR_COMPRMISSO).body(json).asJsonAsync(new Callback<JsonNode>() {
+                Unirest.post(Privado.URL_ACTUALIZAR_COMPRMISSO).body(json).asJsonAsync(new Callback<JsonNode>() {
                     @Override
                     public void completed(HttpResponse<JsonNode> response) {
                         stage.close();
@@ -151,7 +147,7 @@ public class WSWorker {
         Task<Void> taskHttp = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
-                Unirest.post(URL_ACTUALIZAR_COR).body(json).asJsonAsync(new Callback<JsonNode>() {
+                Unirest.post(Privado.URL_ACTUALIZAR_COR).body(json).asJsonAsync(new Callback<JsonNode>() {
                     @Override
                     public void completed(HttpResponse<JsonNode> response) {
                         if (response.getStatus() != 200) {

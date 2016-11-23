@@ -1,7 +1,10 @@
 package bamer;
 
 import javafx.fxml.Initializable;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -9,6 +12,7 @@ import java.util.ResourceBundle;
 ///**
 // * Created by miguel.silva on 29-07-2016.
 // */
+@SuppressWarnings("unchecked")
 public class ControllerEditar implements Initializable {
     public DatePicker dttransf;
     public Label fref;
