@@ -97,8 +97,6 @@ public class AppMain extends Application {
     }
 
     public static void abrirFicheiroVersionTXT() throws IOException {
-        //                InputStream file = ClassLoader.getSystemResourceAsStream("version.txt");
-
         File file = new File("version.txt");
         InputStream inputStream = ClassLoader.getSystemResourceAsStream("versionsource.txt");
         // Copy file
