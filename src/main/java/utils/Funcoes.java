@@ -203,7 +203,6 @@ public class Funcoes {
         //Set expandable Exception into the dialog pane.
         alert.getDialogPane().setExpandableContent(textArea);
 
-
         alert.showAndWait();
     }
 

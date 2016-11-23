@@ -283,6 +283,7 @@ public class VBoxOSBO extends VBox {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
                 String estilo = "game-grid-cell-" + newValue;
+                System.out.println("Colocar estilo " + estilo);
                 Funcoes.colocarEstilo(contexto, estilo);
             }
         });
@@ -420,6 +421,7 @@ public class VBoxOSBO extends VBox {
                         public void run() {
                             labelProd.setText("");
                             labelResultado.setText("");
+                            corProp.set(0);
                         }
                     });
 
@@ -429,10 +431,10 @@ public class VBoxOSBO extends VBox {
                         public void run() {
                             labelProd.setText("-" + newValue);
                             labelResultado.setText("=" + (qttProp.get() - qttProdProp.get()));
-                            if (newValue.intValue() == qttProp.get() && corProp.get() == 0) {
+                            if (newValue.intValue() == qttProp.get()) {
                                 corProp.set(COR_VERDE);
                             }
-                            if (newValue.intValue() != qttProp.get() && corProp.get() == 0) {
+                            if (newValue.intValue() != qttProp.get()) {
                                 corProp.set(COR_AMARELO);
                             }
                         }
