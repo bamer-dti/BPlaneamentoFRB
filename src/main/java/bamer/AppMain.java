@@ -117,7 +117,7 @@ public class AppMain extends Application {
         File file = new File("version.txt");
         boolean test = file.delete();
         if(!test) {
-            Funcoes.alerta("Não foi possivel eliminar o ficheiro info.txt", "", Alert.AlertType.ERROR);
+            System.out.println("Não foi possivel eliminar o ficheiro info.txt");
         }
     }
 
