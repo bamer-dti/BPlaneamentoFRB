@@ -669,10 +669,23 @@ public class VBoxOSBO extends VBox {
                 }
             }
         });
+
+        MenuItem testes = new MenuItem("Abrir info versão");
+        testes.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                try {
+                    AppMain.abrirFicheiroVersionTXT();
+                } catch (IOException e) {
+                    Funcoes.AlertaException(e);
+                    e.printStackTrace();
+                }
+            }
+        });
         menuAccoes.getItems().add(itemNota);
 
 //        contextMenu.getItems().addAll(menuCor, menuAccoes);
-        contextMenu.getItems().addAll(menuAccoes);
+        contextMenu.getItems().addAll(menuAccoes, testes);
     }
 
     private void pintar(int cor) {

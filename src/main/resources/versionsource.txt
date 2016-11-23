@@ -1,0 +1,26 @@
+2.0.4
+Reversão de escrita online das notas, passou a efectuar apenas no fecho do ecrã.
+Alerta erro interno em português
+Corrigir cor ao actualizar qtd produzida
+Melhor informação na actualização da App
+Retirado a opção de Colorir no context menu da VBoxOSBO
+Alterado o titulo da APP
+Protegidas constantes com dados sensiveis em ficheiro fora do controlo de versão
+
+2.0.3
+Implementação do sistema de notas
+
+2.0.2
+Colorir VBoxOSBO para verde se produção completa, amarelo se incompleta
+Configurar drag dos compromissos
+Remoção de livrarias não utilizadas
+Limpeza de código
+
+2.0.1
+Retirados variaveis Long de controlo de tempos
+Limpeza de variáveis estáticas obsoletas
+Correcção de erros
+
+2.0.0
+Alteração de NoSQL Couchbase para Firebase
+Inicio de controlo subversion

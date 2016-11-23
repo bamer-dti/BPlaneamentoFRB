@@ -36,3 +36,4 @@ target/
 src/main/resources/firebase_auth.json
 firebase.db
 /src/main/resources/dbprefs.db
+/info.txt

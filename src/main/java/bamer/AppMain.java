@@ -21,6 +21,9 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
@@ -37,8 +40,8 @@ import sqlite.DBSQLite;
 import sqlite.PreferenciasEmSQLite;
 import utils.*;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.awt.*;
+import java.io.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -91,6 +94,33 @@ public class AppMain extends Application {
 
     public static AppMain getInstancia() {
         return app;
+    }
+
+    public static void abrirFicheiroVersionTXT() throws IOException {
+        //                InputStream file = ClassLoader.getSystemResourceAsStream("version.txt");
+
+        File file = new File("version.txt");
+        InputStream inputStream = ClassLoader.getSystemResourceAsStream("versionsource.txt");
+        // Copy file
+        OutputStream outputStream = new FileOutputStream(file);
+        byte[] buffer = new byte[1024];
+        int length;
+        while ((length = inputStream.read(buffer)) > 0) {
+            outputStream.write(buffer, 0, length);
+        }
+        outputStream.close();
+        inputStream.close();
+        // Open file
+        Desktop.getDesktop().open(file);
+    }
+
+    public static void eliminarFicheiroVersionTXT() {
+        System.out.println("A tentar eliminar o ficheiro info.txt");
+        File file = new File("version.txt");
+        boolean test = file.delete();
+        if(!test) {
+            Funcoes.alerta("Não foi possivel eliminar o ficheiro info.txt", "", Alert.AlertType.ERROR);
+        }
     }
 
     @Override
@@ -364,7 +394,7 @@ public class AppMain extends Application {
                             Platform.runLater(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Funcoes.alerta("A aplicação está desactualizada, a versão actual é a build " + versao + "\nCopie o link abaixo e cole no seu browser para efectuar o download da aplicação.",
+                                    Funcoes.alertaVersion("A aplicação está desactualizada, a versão actual é a build " + versao + "\nCopie o link abaixo e cole no seu browser para efectuar o download da aplicação.",
                                             "https://dl.dropboxusercontent.com/u/6390478/Bamer/Apps/SetupPlaneamentoFRB.exe"
                                             , Alert.AlertType.WARNING);
                                 }
@@ -1089,5 +1119,4 @@ public class AppMain extends Application {
     public void setMainStage(Stage mainStage) {
         this.mainStage = mainStage;
     }
-
 }

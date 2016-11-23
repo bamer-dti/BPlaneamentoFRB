@@ -1,14 +1,21 @@
 package utils;
 
+import bamer.AppMain;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.DialogEvent;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
@@ -167,6 +174,75 @@ public class Funcoes {
         }
         alert.showAndWait();
     }
+
+    public static void alertaVersion(String mensagem, String selectable, Alert.AlertType tipoAlerta) {
+        String titulo = "";
+        switch (tipoAlerta) {
+            case ERROR:
+                titulo = "Erro";
+                break;
+            case INFORMATION:
+                titulo = "Nota";
+                break;
+            case CONFIRMATION:
+                titulo = "Resposta";
+                break;
+            case WARNING:
+                titulo = "Aviso";
+                break;
+        }
+//        mensagem = Funcoes.textoEmUTF8(mensagem);
+        Alert alert = new Alert(tipoAlerta);
+        alert.setTitle(titulo);
+        alert.setHeaderText(null);
+        alert.setContentText(mensagem);
+
+        // Get the Stage.
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+
+// Add a custom icon.
+        stage.getIcons().add(Funcoes.iconeBamer());
+        if (!selectable.equals("")) {
+            TextArea textArea = new TextArea(selectable);
+            textArea.setEditable(false);
+            textArea.setWrapText(true);
+
+            textArea.setMaxWidth(Double.MAX_VALUE);
+            textArea.setMaxHeight(Double.MAX_VALUE);
+            GridPane.setVgrow(textArea, Priority.ALWAYS);
+            GridPane.setHgrow(textArea, Priority.ALWAYS);
+
+            GridPane expContent = new GridPane();
+            expContent.setMaxWidth(Double.MAX_VALUE);
+            expContent.add(textArea, 0, 0);
+
+            Button btversion = new Button("histórico de alterações");
+            btversion.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    try {
+                        AppMain.abrirFicheiroVersionTXT();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            GridPane.setMargin(btversion, new Insets(10f, 10f, 10f, 10f));
+            expContent.add(btversion, 0, 1);
+
+            // Set expandable Exception into the dialog pane.
+            alert.getDialogPane().setExpandableContent(expContent);
+            alert.getDialogPane().setExpanded(true);
+        }
+        alert.setOnCloseRequest(new EventHandler<DialogEvent>() {
+            @Override
+            public void handle(DialogEvent event) {
+                AppMain.eliminarFicheiroVersionTXT();
+            }
+        });
+        alert.showAndWait();
+    }
+
 
     public static void AlertaException(Exception e) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
