@@ -623,38 +623,38 @@ public class VBoxOSBO extends VBox {
     private void configurarContextMenu() {
         contextMenu = new ContextMenu();
 
-        Menu menuCor = new Menu("colorir");
-        MenuItem menuItemAmarelo = new MenuItem("amarelo");
-        menuItemAmarelo.setOnAction(new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent e) {
-                pintar(COR_AMARELO);
-            }
-        });
-        menuCor.getItems().add(menuItemAmarelo);
-
-        MenuItem menuItemVermelho = new MenuItem("vermelho");
-        menuItemVermelho.setOnAction(new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent e) {
-                pintar(COR_VERMELHO);
-            }
-        });
-        menuCor.getItems().add(menuItemVermelho);
-
-        MenuItem menuItemAzul = new MenuItem("azul");
-        menuItemAzul.setOnAction(new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent e) {
-                pintar(COR_AZUL);
-            }
-        });
-        menuCor.getItems().add(menuItemAzul);
-
-        MenuItem menuItemVerde = new MenuItem("verde");
-        menuItemVerde.setOnAction(new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent e) {
-                pintar(COR_VERDE);
-            }
-        });
-        menuCor.getItems().add(menuItemVerde);
+//        Menu menuCor = new Menu("colorir");
+//        MenuItem menuItemAmarelo = new MenuItem("amarelo");
+//        menuItemAmarelo.setOnAction(new EventHandler<ActionEvent>() {
+//            public void handle(ActionEvent e) {
+//                pintar(COR_AMARELO);
+//            }
+//        });
+//        menuCor.getItems().add(menuItemAmarelo);
+//
+//        MenuItem menuItemVermelho = new MenuItem("vermelho");
+//        menuItemVermelho.setOnAction(new EventHandler<ActionEvent>() {
+//            public void handle(ActionEvent e) {
+//                pintar(COR_VERMELHO);
+//            }
+//        });
+//        menuCor.getItems().add(menuItemVermelho);
+//
+//        MenuItem menuItemAzul = new MenuItem("azul");
+//        menuItemAzul.setOnAction(new EventHandler<ActionEvent>() {
+//            public void handle(ActionEvent e) {
+//                pintar(COR_AZUL);
+//            }
+//        });
+//        menuCor.getItems().add(menuItemAzul);
+//
+//        MenuItem menuItemVerde = new MenuItem("verde");
+//        menuItemVerde.setOnAction(new EventHandler<ActionEvent>() {
+//            public void handle(ActionEvent e) {
+//                pintar(COR_VERDE);
+//            }
+//        });
+//        menuCor.getItems().add(menuItemVerde);
 
         Menu menuAccoes = new Menu("tools");
         MenuItem itemNota = new MenuItem("notas");
@@ -671,7 +671,8 @@ public class VBoxOSBO extends VBox {
         });
         menuAccoes.getItems().add(itemNota);
 
-        contextMenu.getItems().addAll(menuCor, menuAccoes);
+//        contextMenu.getItems().addAll(menuCor, menuAccoes);
+        contextMenu.getItems().addAll(menuAccoes);
     }
 
     private void pintar(int cor) {
