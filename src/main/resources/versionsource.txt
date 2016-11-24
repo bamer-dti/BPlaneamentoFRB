@@ -1,3 +1,8 @@
+2.0.5
+Correcção de erro na cor de OP em produção
+Melhorado o controlo interno de versão
+Retirada a tabela de linhas OSBI03, ganho de muito mais rapidez na abertura, menor "overhead". É pesquisada quando (e se) necessário.
+
 2.0.4
 Reversão de escrita online das notas, passou a efectuar apenas no fecho do ecrã.
 Alerta erro interno em português

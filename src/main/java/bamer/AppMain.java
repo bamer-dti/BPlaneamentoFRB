@@ -93,6 +93,18 @@ public class AppMain extends Application {
         return app;
     }
 
+    public static void eliminarFicheiroFirebase() {
+        System.out.println("A tentar eliminar o ficheiro firebase.db");
+        File file = new File("firebase.db");
+        boolean test = file.delete();
+        if (!test) {
+            System.out.println("Não foi possivel eliminar o ficheiro firebase.db");
+        }
+        else {
+            System.out.println("Ficheiro firebase.db eliminado com  sucesso");
+        }
+    }
+
     public static void abrirFicheiroVersionTXT() throws IOException {
         File file = new File("version.txt");
         InputStream inputStream = ClassLoader.getSystemResourceAsStream("versionsource.txt");
@@ -123,6 +135,8 @@ public class AppMain extends Application {
         if (app == null) {
             app = this;
         }
+
+        eliminarFicheiroFirebase();
 
         sqlite = DBSQLite.getInstancia();
 
