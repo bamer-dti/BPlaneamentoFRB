@@ -51,7 +51,7 @@ public class AppMain extends Application {
 
     public static final String TITULO_APP = "Planeamento " + VERSAO;
 
-    private static final boolean TESTING = false; //Se sim, só faz o load de BO e Notas
+    private static final boolean TESTING = true; //Se sim, só faz o load de BO e Notas
 
     private static final int MINIMO_COLUNAS = 30; //dias = + 1
     private static final String TAG = AppMain.class.getSimpleName();
@@ -116,7 +116,7 @@ public class AppMain extends Application {
         System.out.println("A tentar eliminar o ficheiro info.txt");
         File file = new File("version.txt");
         boolean test = file.delete();
-        if(!test) {
+        if (!test) {
             System.out.println("Não foi possivel eliminar o ficheiro info.txt");
         }
     }
@@ -388,7 +388,7 @@ public class AppMain extends Application {
                     if (d.getKey().equals("planning")) {
                         String versao = (String) d.getValue();
                         System.out.println("Versão cloud: " + versao);
-                        if (!versao.equals(VERSAO)) {
+                        if (versao.compareToIgnoreCase(VERSAO) > 0) {
                             Platform.runLater(new Runnable() {
                                 @Override
                                 public void run() {
