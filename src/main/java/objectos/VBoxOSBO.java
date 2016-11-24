@@ -300,6 +300,7 @@ public class VBoxOSBO extends VBox {
                 long tempoCalculado = DBSQLite.getInstancia().getTempoTotal(artigoOSBOProp.get().getBostamp());
                 int ultimaPosicao = DBSQLite.getInstancia().getUltimaPosicao(bostamp);
                 if (ultimaPosicao == Constantes.STARTED) {
+                    corProp.set(COR_VERMELHO);
                     mostrarRegistoEmModoStarted(bostampProp.get());
                 } else {
                     tempoCalculado = DBSQLite.getInstancia().getTempoTotal(bostamp);
