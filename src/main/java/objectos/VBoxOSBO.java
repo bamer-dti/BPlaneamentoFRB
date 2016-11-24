@@ -440,6 +440,7 @@ public class VBoxOSBO extends VBox {
                         }
                     });
                 }
+                tempoTotalProp.set(tempoTotalProp.get());// pintar com tempos
                 AppMain.getInstancia().actualizarTextoColunasZero(coluna);
             }
         });
