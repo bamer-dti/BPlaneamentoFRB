@@ -1,9 +1,5 @@
 package bamer;
 
-///**
-// * Created by miguel.silva on 08-06-2016.
-// */
-
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.database.*;
