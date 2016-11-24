@@ -44,7 +44,7 @@ public class GridPaneAtrasados extends GridPane {
         labelTotRecs.setText("" + lista.size());
         for (ArtigoOSBO artigoOSBO : lista) {
             try {
-                int qtt = DBSQLite.getInstancia().getQtdPedidaBostamp(artigoOSBO.getBostamp());
+                int qtt = artigoOSBO.getPecas();
                 ArtigoLinhaPlanOUAtraso artigoLinhaPlanOUAtras = new ArtigoLinhaPlanOUAtraso(artigoOSBO.getBostamp()
                         , artigoOSBO.getObrano()
                         , artigoOSBO.getFref()

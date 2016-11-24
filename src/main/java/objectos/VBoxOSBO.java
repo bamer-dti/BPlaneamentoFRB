@@ -303,6 +303,7 @@ public class VBoxOSBO extends VBox {
                     corProp.set(COR_VERMELHO);
                     mostrarRegistoEmModoStarted(bostampProp.get());
                 } else {
+                    qttProdProp.set(qttProdProp.get());
                     tempoCalculado = DBSQLite.getInstancia().getTempoTotal(bostamp);
                     if (tempoCalculado != 0) {
                         String textoTempo = Funcoes.milisegundos_em_HH_MM_SS(tempoCalculado * 1000);
@@ -855,6 +856,7 @@ public class VBoxOSBO extends VBox {
         estadoProp.set(artigoOSBO.getEstado());
         seccaoProp.set(artigoOSBO.getSeccao());
         obsProp.set(artigoOSBO.getObs());
+        qttProp.set(artigoOSBO.getPecas());
 
         dtcortefProp.set(Funcoes.cToD(artigoOSBO.getDtcortef()));
         dttransfProp.set(Funcoes.cToD(artigoOSBO.getDttransf()));
@@ -884,7 +886,7 @@ public class VBoxOSBO extends VBox {
             DBSQLite sql = DBSQLite.getInstancia();
             String bostamp = bostampProp.get();
             if (ordemProp.get() < 99) {
-                qttProp.set(sql.getQtdPedidaBostamp(bostamp));
+//                qttProp.set(sql.getQtdPedidaBostamp(bostamp));
                 qttProdProp.set(sql.getQtdProduzidaBostamp(bostamp));
                 tempoTotalProp.set(sql.getTempoTotal(bostamp));
                 Platform.runLater(new Runnable() {
@@ -964,11 +966,6 @@ public class VBoxOSBO extends VBox {
 
     public int getColuna() {
         return coluna;
-    }
-
-    public void actualizarQtdPedida() {
-        int qtt = DBSQLite.getInstancia().getQtdPedidaBostamp(bostampProp.get());
-        qttProp.set(qtt);
     }
 
     public void actualizarQtdProduzida() {

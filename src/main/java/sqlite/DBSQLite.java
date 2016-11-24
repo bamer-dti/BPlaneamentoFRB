@@ -1,6 +1,9 @@
 package sqlite;
 
-import pojos.*;
+import pojos.ArtigoLinhaPlanOUAtraso;
+import pojos.ArtigoOSBO;
+import pojos.ArtigoOSPROD;
+import pojos.ArtigoOSTIMER;
 import utils.Campos;
 
 import java.sql.*;
@@ -54,6 +57,7 @@ public class DBSQLite {
                 + Campos.OBRANO + " integer not null, "
                 + Campos.OBS + " text not null, "
                 + Campos.ORDEM + " integer not null, "
+                + Campos.PECAS + " integer not null, "
                 + Campos.SECCAO + " text not null"
                 + ")";
         Statement statement;
@@ -84,27 +88,6 @@ public class DBSQLite {
         } catch (SQLException e) {
             e.printStackTrace();
             System.out.println("***** ERRO AO CRIAR A TABELA " + Campos.TABELA_OSBOPLAN + " *****");
-            return null;
-        }
-
-        comandoSql = "CREATE TABLE IF NOT EXISTS " + Campos.TABELA_OSBI + "("
-                + Campos._ID + " integer primary key autoincrement, "
-                + Campos.BOSTAMP + " text not null, "
-                + Campos.BISTAMP + " text not null, "
-                + Campos.DESIGN + " text not null, "
-                + Campos.DIM + " text not null, "
-                + Campos.FAMILIA + " text not null, "
-                + Campos.MK + " text not null, "
-                + Campos.NUMLINHA + " text not null, "
-                + Campos.QTT + " real not null, "
-                + Campos.REF + " text not null, "
-                + Campos.TIPO + " text not null"
-                + ")";
-        try {
-            statement.executeUpdate(comandoSql);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("***** ERRO AO CRIAR A TABELA " + Campos.TABELA_OSBI + " *****");
             return null;
         }
 
@@ -163,7 +146,7 @@ public class DBSQLite {
             if (c != null) {
                 c.prepareStatement("delete from " + Campos.TABELA_OSBO).executeUpdate();
                 c.prepareStatement("delete from " + Campos.TABELA_OSBOPLAN).executeUpdate();
-                c.prepareStatement("delete from " + Campos.TABELA_OSBI).executeUpdate();
+//                c.prepareStatement("delete from " + Campos.TABELA_OSBI).executeUpdate();
                 c.prepareStatement("delete from " + Campos.TABELA_OSPROD).executeUpdate();
                 c.prepareStatement("delete from " + Campos.TABELA_OSTIMER).executeUpdate();
             }
@@ -192,8 +175,9 @@ public class DBSQLite {
                                 + Campos.OBRANO + ", "
                                 + Campos.OBS + ", "
                                 + Campos.ORDEM + ", "
+                                + Campos.PECAS + ", "
                                 + Campos.SECCAO + ")"
-                                + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                                + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
                 preparedStatement.setString(1, osbo.getBostamp());
                 preparedStatement.setInt(2, osbo.getCor());
                 preparedStatement.setString(3, osbo.getDtcliente());
@@ -207,7 +191,8 @@ public class DBSQLite {
                 preparedStatement.setInt(11, osbo.getObrano());
                 preparedStatement.setString(12, osbo.getObs());
                 preparedStatement.setInt(13, osbo.getOrdem());
-                preparedStatement.setString(14, osbo.getSeccao());
+                preparedStatement.setInt(14, osbo.getPecas());
+                preparedStatement.setString(15, osbo.getSeccao());
 
                 t = preparedStatement.executeUpdate();
                 preparedStatement.close();
@@ -246,47 +231,6 @@ public class DBSQLite {
                 preparedStatement.setString(7, artigoLinhaPlanOUAtraso.getObs());
                 preparedStatement.setString(8, artigoLinhaPlanOUAtraso.getSeccao());
                 preparedStatement.setInt(9, artigoLinhaPlanOUAtraso.getQtt());
-
-                t = preparedStatement.executeUpdate();
-                preparedStatement.close();
-                con.close();
-
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return t;
-    }
-
-    public int guardarOSBI(ArtigoOSBI osbi) {
-        Connection con = connect();
-        int t = 0;
-        if (con != null) {
-            try {
-                PreparedStatement preparedStatement = con.prepareStatement(
-                        "insert into " + Campos.TABELA_OSBI + " ("
-                                + Campos.BOSTAMP + ", "
-                                + Campos.BISTAMP + ", "
-                                + Campos.DESIGN + ", "
-                                + Campos.DIM + ", "
-                                + Campos.FAMILIA + ", "
-                                + Campos.MK + ", "
-                                + Campos.NUMLINHA + ", "
-                                + Campos.QTT + ", "
-                                + Campos.REF + ", "
-                                + Campos.TIPO
-                                + ")"
-                                + " VALUES (?,?,?,?,?,?,?,?,?,?)");
-                preparedStatement.setString(1, osbi.getBostamp());
-                preparedStatement.setString(2, osbi.getBistamp());
-                preparedStatement.setString(3, osbi.getDesign());
-                preparedStatement.setString(4, osbi.getDim());
-                preparedStatement.setString(5, osbi.getFamilia());
-                preparedStatement.setString(6, osbi.getMk());
-                preparedStatement.setString(7, osbi.getNumlinha());
-                preparedStatement.setInt(8, osbi.getQtt());
-                preparedStatement.setString(9, osbi.getRef());
-                preparedStatement.setString(10, osbi.getTipo());
 
                 t = preparedStatement.executeUpdate();
                 preparedStatement.close();
@@ -465,46 +409,6 @@ public class DBSQLite {
         return t;
     }
 
-    public int actualizarOSBI(ArtigoOSBI osbi) {
-        //TODO verificar se existe, se não criar o registo! Verificar se existe o OSBO.BOSTAMP!!!!
-        //TODO verificar se é mesmo necessária esta regra, em ambiente de testes
-        Connection con = connect();
-        int t = 0;
-        if (con != null) {
-            try {
-                PreparedStatement preparedStatement = con.prepareStatement(
-                        "update " + Campos.TABELA_OSBI + " SET "
-                                + Campos.DESIGN + "=?, "
-                                + Campos.DIM + "=?, "
-                                + Campos.FAMILIA + "=?, "
-                                + Campos.MK + "=?, "
-                                + Campos.NUMLINHA + "=?, "
-                                + Campos.QTT + "=?, "
-                                + Campos.REF + "=?, "
-                                + Campos.TIPO + "=?"
-                                + " where " + Campos.BISTAMP + "=?"
-                );
-                preparedStatement.setString(1, osbi.getDesign());
-                preparedStatement.setString(2, osbi.getDim());
-                preparedStatement.setString(3, osbi.getFamilia());
-                preparedStatement.setString(4, osbi.getMk());
-                preparedStatement.setString(5, osbi.getNumlinha());
-                preparedStatement.setInt(6, osbi.getQtt());
-                preparedStatement.setString(7, osbi.getRef());
-                preparedStatement.setString(8, osbi.getTipo());
-                preparedStatement.setString(9, osbi.getBistamp());
-
-                t = preparedStatement.executeUpdate();
-                preparedStatement.close();
-                con.close();
-
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return t;
-    }
-
     public int actualizarOSPROD(ArtigoOSPROD osprod) {
         Connection con = connect();
         int t = 0;
@@ -652,49 +556,6 @@ public class DBSQLite {
         return t;
     }
 
-    public int removerOSBIbostamp(ArtigoOSBI artigoOSBI) {
-        Connection con = connect();
-        int t = 0;
-        if (con != null) {
-            try {
-                PreparedStatement preparedStatement = con.prepareStatement(
-                        "delete from " + Campos.TABELA_OSBI
-                                + " where " + Campos.BOSTAMP + "=? AND " + Campos.BISTAMP + "=?"
-                );
-                preparedStatement.setString(1, artigoOSBI.getBostamp());
-                preparedStatement.setString(2, artigoOSBI.getBistamp());
-                t = preparedStatement.executeUpdate();
-                preparedStatement.close();
-                con.close();
-
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return t;
-    }
-
-    public int removerOSBIbostamp(ArtigoOSBO artigoOSBO) {
-        Connection con = connect();
-        int t = 0;
-        if (con != null) {
-            try {
-                PreparedStatement preparedStatement = con.prepareStatement(
-                        "delete from " + Campos.TABELA_OSBI
-                                + " where " + Campos.BOSTAMP + " =? "
-                );
-                preparedStatement.setString(1, artigoOSBO.getBostamp());
-                t = preparedStatement.executeUpdate();
-                preparedStatement.close();
-                con.close();
-
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return t;
-    }
-
     public int removerOSTIMER(ArtigoOSTIMER artigoOSTIMER) {
         Connection con = connect();
         int t = 0;
@@ -806,6 +667,7 @@ public class DBSQLite {
                             , resultSet.getString(Campos.DTCORTEF)
                             , resultSet.getInt(Campos.ORDEM)
                             , resultSet.getString(Campos.DTCLIENTE)
+                            , resultSet.getInt(Campos.PECAS)
                     );
                     lista.add(osbo);
                 }
@@ -847,6 +709,7 @@ public class DBSQLite {
                             , resultSet.getString(Campos.DTCORTEF)
                             , resultSet.getInt(Campos.ORDEM)
                             , resultSet.getString(Campos.DTCLIENTE)
+                            , resultSet.getInt(Campos.PECAS)
                     );
                     lista.add(osbo);
                 }
@@ -895,30 +758,6 @@ public class DBSQLite {
         return lista;
     }
 
-    public int getQtdPedidaBostamp(String bostamp) {
-        Connection con = connect();
-        int qtt = 0;
-        if (con != null) {
-            try {
-                PreparedStatement preparedStatement = con.prepareStatement(
-                        "select sum(qtt) as " + Campos.QTT + " from " + Campos.TABELA_OSBI
-                                + " where " + Campos.BOSTAMP + "=?"
-                );
-                preparedStatement.setString(1, bostamp);
-                ResultSet resultSet = preparedStatement.executeQuery();
-                while (resultSet.next()) {
-                    qtt += resultSet.getInt(Campos.QTT);
-                }
-                preparedStatement.close();
-                con.close();
-
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return qtt;
-    }
-
     public int getQtdProduzidaBostamp(String bostamp) {
         Connection con = connect();
         int qtt = 0;
@@ -947,25 +786,20 @@ public class DBSQLite {
         Connection con = connect();
         int qtt = 0;
         if (con != null) {
-            ArrayList<String> lista = new ArrayList<>();
             try {
                 PreparedStatement preparedStatement = con.prepareStatement(
-                        "select " + Campos.BOSTAMP + " from " + Campos.TABELA_OSBO
+                        "select SUM(" + Campos.PECAS + ") as " + Campos.PECAS + " from " + Campos.TABELA_OSBO
                                 + " where " + Campos.DTCORTEF + "=? AND " + Campos.SECCAO + "=?"
                 );
                 preparedStatement.setString(1, data);
                 preparedStatement.setString(2, seccao);
                 ResultSet resultSet = preparedStatement.executeQuery();
                 while (resultSet.next()) {
-                    lista.add(resultSet.getString(Campos.BOSTAMP));
+                    qtt += resultSet.getInt(Campos.PECAS);
                 }
                 preparedStatement.close();
             } catch (SQLException e) {
                 e.printStackTrace();
-            }
-
-            for (String bostamp : lista) {
-                qtt += getQtdPedidaBostamp(bostamp);
             }
 
             try {
@@ -1036,32 +870,6 @@ public class DBSQLite {
         return qtt;
     }
 
-    @SuppressWarnings("unused")
-    private long getTempoParcial(String stamp) {
-        Connection con = connect();
-        long qtt = 0;
-        if (con != null) {
-            try {
-                PreparedStatement preparedStatement = con.prepareStatement(
-                        "select " + Campos.UNIXTIME + " - " + Campos.LASTTIME + " as " + Campos.UNIXTIME + " from " + Campos.TABELA_OSTIMER
-                                + " where " + Campos.STAMP + "=? AND " + Campos.POSICAO + "=?"
-                );
-                preparedStatement.setString(1, stamp);
-                preparedStatement.setInt(2, 2);
-                ResultSet resultSet = preparedStatement.executeQuery();
-                while (resultSet.next()) {
-                    qtt += resultSet.getInt(Campos.UNIXTIME);
-                }
-                preparedStatement.close();
-                con.close();
-
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return qtt;
-    }
-
     public int getUltimaPosicao(String bostamp) {
         Connection con = connect();
         int qtt = 0;
@@ -1118,7 +926,6 @@ public class DBSQLite {
         Connection con = connect();
         int qtt = 0;
         if (con != null) {
-            ArrayList<String> lista = new ArrayList<>();
             try {
                 PreparedStatement preparedStatement = con.prepareStatement(
                         "select COUNT(" + Campos.BOSTAMP + ") as " + Campos.QTT + " from " + Campos.TABELA_OSBOPLAN

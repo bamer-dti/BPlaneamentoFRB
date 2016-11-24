@@ -16,6 +16,7 @@ public class ArtigoOSBO {
     private String dtcortef;
     private int ordem;
     private String dtcliente;
+    private int pecas;
 
     @SuppressWarnings("unused")
     public ArtigoOSBO() {
@@ -23,7 +24,7 @@ public class ArtigoOSBO {
     }
 
     public ArtigoOSBO(String bostamp, int obrano, String fref, String nmfref, String estado, String seccao
-            , String obs, int cor, String dttransf, String dtembala, String dtexpedi, String dtcortef, int ordem, String dtcliente) {
+            , String obs, int cor, String dttransf, String dtembala, String dtexpedi, String dtcortef, int ordem, String dtcliente, int pecas) {
         this.bostamp = bostamp;
         this.obrano  = obrano;
         this.fref = fref;
@@ -38,6 +39,7 @@ public class ArtigoOSBO {
         this.dtcortef = dtcortef;
         this.ordem = ordem;
         this.dtcliente = dtcliente;
+        this.pecas = pecas;
     }
 
     public ArtigoOSBO(String bostamp) {
@@ -50,7 +52,7 @@ public class ArtigoOSBO {
                 + ", nmfref: " + nmfref + ", estado: " + estado + ", seccao: " + seccao
                 + ", obs: " + obs + ", cor: " + cor + ", dttransf: " + dttransf
                 + ", dtembala: " + dtembala + ", dtexpedi: " + dtexpedi + ", dtcortef: " + dtcortef
-                + ", ordem: " + ordem + ", dtcliente: " + dtcliente
+                + ", ordem: " + ordem + ", dtcliente: " + dtcliente + ", pecas: " + pecas
                 ;
     }
 
@@ -116,5 +118,9 @@ public class ArtigoOSBO {
 
     public String getDtcliente() {
         return dtcliente;
+    }
+
+    public int getPecas() {
+        return pecas;
     }
 }

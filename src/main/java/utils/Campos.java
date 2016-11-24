@@ -3,7 +3,7 @@ package utils;
 public class Campos {
     public static final String TABELA_OSBO = "osbo";
     public static final String TABELA_OSBOPLAN = "osboplan";
-    public static final String TABELA_OSBI = "osbi";
+//    public static final String TABELA_OSBI = "osbi";
     public static final String TABELA_OSPROD = "osprod";
 
     public static final String TABELA_OSTIMER = "ostimer";
@@ -48,4 +48,5 @@ public class Campos {
     public static final String NUMLINHA = "numlinha";
     public static final String OPERADOR = "operador";
     public static final String STAMP = "stamp";
+    public static final String PECAS = "pecas";
 }

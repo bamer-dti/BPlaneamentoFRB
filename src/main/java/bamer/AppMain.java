@@ -31,7 +31,10 @@ import objectos.GridPaneAtrasados;
 import objectos.GridPaneCalendario;
 import objectos.GridPanePorPlanear;
 import objectos.VBoxOSBO;
-import pojos.*;
+import pojos.ArtigoLinhaPlanOUAtraso;
+import pojos.ArtigoOSBO;
+import pojos.ArtigoOSPROD;
+import pojos.ArtigoOSTIMER;
 import sqlite.DBSQLite;
 import sqlite.PreferenciasEmSQLite;
 import utils.*;
@@ -76,7 +79,7 @@ public class AppMain extends Application {
     private DBSQLite sqlite;
     private ChildEventListener listenerFirebaseOSBO;
     private ChildEventListener listenerFirebaseOSBOPLAN;
-    private ChildEventListener listenerFirebaseOSBI03;
+//    private ChildEventListener listenerFirebaseOSBI03;
     private ChildEventListener listenerFirebaseOSPROD;
     private ChildEventListener listenerFirebaseOSTIMER;
     private JFXButton but_mais;
@@ -409,9 +412,9 @@ public class AppMain extends Application {
 
         if (!Privado.TESTING) {
 
-            configurarListenerOSBI();
-            refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBI03);
-            refDataFireBase.addChildEventListener(listenerFirebaseOSBI03);
+//            configurarListenerOSBI();
+//            refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBI03);
+//            refDataFireBase.addChildEventListener(listenerFirebaseOSBI03);
 
             configurarListenerOSPROD();
             refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSPROD);
@@ -500,7 +503,6 @@ public class AppMain extends Application {
                         ArtigoOSBO artigoOSBO = dataSnapshot.getValue(ArtigoOSBO.class);
                         artigoOSBO.setBostamp(bostamp);
                         sqlite.removerOSBO(artigoOSBO);
-                        sqlite.removerOSBIbostamp(artigoOSBO);
                         lista.add(artigoOSBO);
                         actualizarGrelhaCalendario(lista, REMOVER);
                         return null;
@@ -599,83 +601,83 @@ public class AppMain extends Application {
 
     }
 
-    private void configurarListenerOSBI() {
-        listenerFirebaseOSBI03 = new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-//                Log.i(TAG, "OSBI03: onChildAdded: " + dataSnapshot.toString());
-                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
-                    @Override
-                    protected DataSnapshot call() throws Exception {
-                        String bostamp = dataSnapshot.getKey();
-                        for (DataSnapshot d : dataSnapshot.getChildren()) {
-                            String bistamp = d.getKey();
-                            ArtigoOSBI artigoOSBI = d.getValue(ArtigoOSBI.class);
-                            artigoOSBI.setBostamp(bostamp);
-                            artigoOSBI.setBistamp(bistamp);
-                            sqlite.guardarOSBI(artigoOSBI);
-                        }
-                        actualizarQtdPedida(bostamp);
-                        return null;
-                    }
-                };
-                new Thread(tarefa).run();
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                Log.i(TAG, "OSBI onChildChanged: " + dataSnapshot.toString());
-                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
-                    @Override
-                    protected DataSnapshot call() throws Exception {
-                        String bostamp = dataSnapshot.getKey();
-                        sqlite.removerOSBIbostamp(new ArtigoOSBO(bostamp));
-                        for (DataSnapshot d : dataSnapshot.getChildren()) {
-                            String bistamp = d.getKey();
-                            ArtigoOSBI artigoOSBI = d.getValue(ArtigoOSBI.class);
-                            artigoOSBI.setBostamp(bostamp);
-                            artigoOSBI.setBistamp(bistamp);
-                            sqlite.guardarOSBI(artigoOSBI);
-                        }
-                        actualizarQtdPedida(bostamp);
-                        return null;
-                    }
-                };
-                new Thread(tarefa).run();
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Log.i(TAG, "OSBI onChildRemoved: " + dataSnapshot.toString());
-                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
-                    @Override
-                    protected DataSnapshot call() throws Exception {
-                        String bostamp = dataSnapshot.getKey();
-                        for (DataSnapshot d : dataSnapshot.getChildren()) {
-                            String bistamp = d.getKey();
-                            ArtigoOSBI artigoOSBI = d.getValue(ArtigoOSBI.class);
-                            artigoOSBI.setBostamp(bostamp);
-                            artigoOSBI.setBistamp(bistamp);
-                            sqlite.removerOSBIbostamp(artigoOSBI);
-                        }
-                        actualizarQtdPedida(bostamp);
-                        return null;
-                    }
-                };
-                new Thread(tarefa).run();
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        };
-    }
+//    private void configurarListenerOSBI() {
+//        listenerFirebaseOSBI03 = new ChildEventListener() {
+//            @Override
+//            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+////                Log.i(TAG, "OSBI03: onChildAdded: " + dataSnapshot.toString());
+//                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
+//                    @Override
+//                    protected DataSnapshot call() throws Exception {
+//                        String bostamp = dataSnapshot.getKey();
+//                        for (DataSnapshot d : dataSnapshot.getChildren()) {
+//                            String bistamp = d.getKey();
+//                            ArtigoOSBI artigoOSBI = d.getValue(ArtigoOSBI.class);
+//                            artigoOSBI.setBostamp(bostamp);
+//                            artigoOSBI.setBistamp(bistamp);
+//                            sqlite.guardarOSBI(artigoOSBI);
+//                        }
+//                        actualizarQtdPedida(bostamp);
+//                        return null;
+//                    }
+//                };
+//                new Thread(tarefa).run();
+//            }
+//
+//            @Override
+//            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+//                Log.i(TAG, "OSBI onChildChanged: " + dataSnapshot.toString());
+//                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
+//                    @Override
+//                    protected DataSnapshot call() throws Exception {
+//                        String bostamp = dataSnapshot.getKey();
+//                        sqlite.removerOSBIbostamp(new ArtigoOSBO(bostamp));
+//                        for (DataSnapshot d : dataSnapshot.getChildren()) {
+//                            String bistamp = d.getKey();
+//                            ArtigoOSBI artigoOSBI = d.getValue(ArtigoOSBI.class);
+//                            artigoOSBI.setBostamp(bostamp);
+//                            artigoOSBI.setBistamp(bistamp);
+//                            sqlite.guardarOSBI(artigoOSBI);
+//                        }
+//                        actualizarQtdPedida(bostamp);
+//                        return null;
+//                    }
+//                };
+//                new Thread(tarefa).run();
+//            }
+//
+//            @Override
+//            public void onChildRemoved(DataSnapshot dataSnapshot) {
+//                Log.i(TAG, "OSBI onChildRemoved: " + dataSnapshot.toString());
+//                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
+//                    @Override
+//                    protected DataSnapshot call() throws Exception {
+//                        String bostamp = dataSnapshot.getKey();
+//                        for (DataSnapshot d : dataSnapshot.getChildren()) {
+//                            String bistamp = d.getKey();
+//                            ArtigoOSBI artigoOSBI = d.getValue(ArtigoOSBI.class);
+//                            artigoOSBI.setBostamp(bostamp);
+//                            artigoOSBI.setBistamp(bistamp);
+//                            sqlite.removerOSBIbostamp(artigoOSBI);
+//                        }
+//                        actualizarQtdPedida(bostamp);
+//                        return null;
+//                    }
+//                };
+//                new Thread(tarefa).run();
+//            }
+//
+//            @Override
+//            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+//
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError databaseError) {
+//
+//            }
+//        };
+//    }
 
     private void configurarListenerOSPROD() {
         listenerFirebaseOSPROD = new ChildEventListener() {
@@ -840,12 +842,12 @@ public class AppMain extends Application {
         }
     }
 
-    private void actualizarQtdPedida(String bostamp) {
-        VBoxOSBO vBoxOSBO = (VBoxOSBO) calendario.lookup("#" + bostamp);
-        if (vBoxOSBO != null) {
-            vBoxOSBO.actualizarQtdPedida();
-        }
-    }
+//    private void actualizarQtdPedida(String bostamp) {
+//        VBoxOSBO vBoxOSBO = (VBoxOSBO) calendario.lookup("#" + bostamp);
+//        if (vBoxOSBO != null) {
+//            vBoxOSBO.actualizarQtdPedida();
+//        }
+//    }
 
     private void actualizarQtdProduzida(String bostamp) {
         VBoxOSBO vBoxOSBO = (VBoxOSBO) calendario.lookup("#" + bostamp);
