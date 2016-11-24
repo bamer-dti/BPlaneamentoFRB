@@ -478,6 +478,7 @@ public class VBoxOSBO extends VBox {
                 calendario.add(vBoxOSBO, coluna, linha);
             }
         });
+        AppMain.getInstancia().actualizarTextoColunasZero(coluna);
     }
 
     private void configurarEventos() {
@@ -886,7 +887,6 @@ public class VBoxOSBO extends VBox {
             DBSQLite sql = DBSQLite.getInstancia();
             String bostamp = bostampProp.get();
             if (ordemProp.get() < 99) {
-//                qttProp.set(sql.getQtdPedidaBostamp(bostamp));
                 qttProdProp.set(sql.getQtdProduzidaBostamp(bostamp));
                 tempoTotalProp.set(sql.getTempoTotal(bostamp));
                 Platform.runLater(new Runnable() {
