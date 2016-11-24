@@ -51,8 +51,6 @@ public class AppMain extends Application {
 
     public static final String TITULO_APP = "Planeamento " + VERSAO;
 
-    private static final boolean TESTING = true; //Se sim, só faz o load de BO e Notas
-
     private static final int MINIMO_COLUNAS = 30; //dias = + 1
     private static final String TAG = AppMain.class.getSimpleName();
     private static final int ADICIONAR = 1;
@@ -413,7 +411,7 @@ public class AppMain extends Application {
         refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBO);
         refDataFireBase.addChildEventListener(listenerFirebaseOSBO);
 
-        if (!TESTING) {
+        if (!Privado.TESTING) {
 
             configurarListenerOSBI();
             refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBI03);
