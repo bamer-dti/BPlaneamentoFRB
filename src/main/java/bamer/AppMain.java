@@ -420,13 +420,14 @@ public class AppMain extends Application {
             refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSPROD);
             refDataFireBase.addChildEventListener(listenerFirebaseOSPROD);
 
+            configurarListenerOSBOPLAN();
+            refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBOPLAN);
+            refDataFireBase.addChildEventListener(listenerFirebaseOSBOPLAN);
+
             configurarListenerOSTIMER();
             refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSTIMER);
             refDataFireBase.addChildEventListener(listenerFirebaseOSTIMER);
 
-            configurarListenerOSBOPLAN();
-            refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBOPLAN);
-            refDataFireBase.addChildEventListener(listenerFirebaseOSBOPLAN);
         }
         //ALIMENTAR COMBO SECÇÃO
         FirebaseDatabase.getInstance().getReference(Campos.KEY_SECCAO).addListenerForSingleValueEvent(new ValueEventListener() {
