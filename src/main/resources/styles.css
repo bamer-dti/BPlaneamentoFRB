@@ -75,36 +75,59 @@
     -fx-background-color: transparent, #E9F0F2 ;
 }
 
-.button-raised-bamer{
-	-fx-padding: 0.7em 0.57em;
+.button-mais-menos-colunas{
+	-fx-padding: 7, 1;
     -fx-font-size: 14px;
-    -fx-button-type: RAISED;
-    -fx-background-color: rgb(77,102,204);
+    -fx-background-color: #303F9F;
     -fx-pref-width: 40;
     -fx-text-fill: WHITE;
 }
 
+.button-mais-menos-colunas:hover{
+    -fx-button-type: RAISED;
+    -fx-background-color: #5C6BC0;
+}
+
 .button-raised-bamer-aprovados{
-	-fx-padding: 0.7em 0.57em;
+    -fx-padding: top right bottom left;
+	-fx-padding: 10, 2, 10, 2;
     -fx-font-size: 14px;
     -fx-button-type: RAISED;
-    -fx-background-color: rgb(255,120,100);
+    -fx-background-color: #FF6F00;
     -fx-pref-width: 180;
     -fx-text-fill: WHITE;
+}
+.button-raised-bamer-aprovados:hover{
+    -fx-background-color: #FF8F00;
 }
 
 .button-raised-bamer-sizecolumn{
     -fx-padding: top right bottom left;
     -fx-padding: 1, 1, 1, 1;
     -fx-font-size: 9px;
-    -fx-background-color: rgb(120,120,100);
+    -fx-background-color: #6D4C41;
     -fx-pref-width: 20;
     -fx-pref-height: 5;
     -fx-text-fill: WHITE;
     -fx-background-insets: top right bottom left;
     -fx-background-insets: 2, 2, 2, 2 ;
 }
+.button-raised-bamer-sizecolumn:hover{
+    -fx-background-color: #A1887F;
+}
 
+.combo_seccao{
+    -fx-padding: top right bottom left;
+    -fx-padding: 6, 0, 0, 0;
+    -fx-font-size: 14px;
+    -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.4) , 5, 0.0 , 0 , 1 );
+    -fx-background-color: #4fC3F7;
+    -fx-pref-width: 200;
+    -fx-text-fill: WHITE;
+}
+.combo_seccao:hover{
+    -fx-background-color: #B3E5FC;
+}
 
 .scroll-bar{
  -fx-background-color: rgb(96,96,96);

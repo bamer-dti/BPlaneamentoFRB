@@ -210,7 +210,7 @@ public class AppMain extends Application {
         updateLabelCols();
 
         but_menos = new JFXButton("-");
-        but_menos.getStyleClass().add("button-raised-bamer");
+        but_menos.getStyleClass().add("button-mais-menos-colunas");
         but_menos.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -229,7 +229,7 @@ public class AppMain extends Application {
         hboxBarraFerramentas.getChildren().add(but_menos);
 
         but_mais = new JFXButton("+");
-        but_mais.getStyleClass().add("button-raised-bamer");
+        but_mais.getStyleClass().add("button-mais-menos-colunas");
         but_mais.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -305,6 +305,7 @@ public class AppMain extends Application {
         PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
         seccao = prefs.get(Constantes.PREF_SECCAO, ValoresDefeito.SECCAO);
         comboSeccao = new ComboBox<>();
+        comboSeccao.getStyleClass().add("combo_seccao");
         comboSeccao.getSelectionModel().select(seccao);
 //                comboSeccao.getItems().add(queryRow.getKey().toString());
         comboSeccao.valueProperty().addListener(new ChangeListener<String>() {
