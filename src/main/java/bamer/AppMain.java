@@ -127,17 +127,12 @@ public class AppMain extends Application {
         refDataFireBase.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                System.out.println(dataSnapshot);
-
                 for (DataSnapshot d : dataSnapshot.getChildren()) {
                     if (d.getKey().equals("planning")) {
                         versaoObj = d.getValue(VersaoObj.class);
                         System.out.println("Versão cloud: " + versaoObj);
-//                        System.out.println("Versão history: " + versaoObj.getHistory());
                         File file = new File(NOME_FICHEIRO_HISTORICO_VERSAO);
-//        InputStream inputStream = ClassLoader.getSystemResourceAsStream("versionsource.txt");
                         InputStream inputStream = new ByteArrayInputStream(versaoObj.getHistory().getBytes(StandardCharsets.UTF_8));
-                        // Copy file
                         try {
                             OutputStream outputStream = new FileOutputStream(file);
                             byte[] buffer = new byte[1024];
@@ -471,13 +466,10 @@ public class AppMain extends Application {
         refDataFireBase.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                System.out.println(dataSnapshot);
-
                 for (DataSnapshot d : dataSnapshot.getChildren()) {
                     if (d.getKey().equals("planning")) {
                         versaoObj = d.getValue(VersaoObj.class);
                         System.out.println("Versão cloud: " + versaoObj);
-                        System.out.println("Versão history: " + versaoObj.getHistory());
                         if (versaoObj.versao.compareToIgnoreCase(VERSAO) > 0) {
                             Platform.runLater(new Runnable() {
                                 @Override
