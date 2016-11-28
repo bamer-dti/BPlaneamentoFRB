@@ -1,36 +1,37 @@
 2.0.6
-Menu da App
-Icones
-Styling
+menu da App
+ícones para melhor experiência visual
+estilos de botões
+histórico passou para HTML
 
 2.0.5
-Correcção de erro na cor de OP em produção
-Melhorado o controlo interno de versão
-Retirada a tabela de linhas OSBI03, ganho de muito mais rapidez na abertura, menor "overhead". É pesquisada quando (e se) necessário.
+correcção de erro na cor de OP em produção
+melhorado o controlo interno de versão
+retirada a tabela de linhas OSBI03, ganho de muito mais rapidez na abertura, menor "overhead". É pesquisada quando (e se) necessário.
 
 2.0.4
-Reversão de escrita online das notas, passou a efectuar apenas no fecho do ecrã.
-Alerta erro interno em português
-Corrigir cor ao actualizar qtd produzida
-Melhor informação na actualização da App
-Retirado a opção de Colorir no context menu da VBoxOSBO
-Alterado o titulo da APP
-Protegidas constantes com dados sensiveis em ficheiro fora do controlo de versão
+reversão de escrita online das notas, passou a efectuar apenas no fecho do ecrã.
+alerta erro interno em português
+corrigir cor ao actualizar qtd produzida
+melhor informação na actualização da App
+retirado a opção de Colorir no context menu da VBoxOSBO
+alterado o titulo da APP
+protegidas constantes com dados sensiveis em ficheiro fora do controlo de versão
 
 2.0.3
-Implementação do sistema de notas
+implementação do sistema de notas
 
 2.0.2
-Colorir VBoxOSBO para verde se produção completa, amarelo se incompleta
-Configurar drag dos compromissos
-Remoção de livrarias não utilizadas
-Limpeza de código
+colorir VBoxOSBO para verde se produção completa, amarelo se incompleta
+configurar drag dos compromissos
+remoção de livrarias não utilizadas
+limpeza de código
 
 2.0.1
-Retirados variaveis Long de controlo de tempos
-Limpeza de variáveis estáticas obsoletas
-Correcção de erros
+retirados variaveis Long de controlo de tempos
+limpeza de variáveis estáticas obsoletas
+correcção de erros
 
 2.0.0
-Alteração de NoSQL Couchbase para Firebase
-Inicio de controlo subversion
+alteração de NoSQL Couchbase para Firebase
+inicio de controlo subversion

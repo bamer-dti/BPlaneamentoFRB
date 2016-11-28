@@ -17,7 +17,6 @@ gen/
 out/
 local.properties
 proguard/
-*.log
 .navigation/
 captures/
 *.jks
@@ -37,3 +36,4 @@ src/main/resources/firebase_auth.json
 firebase.db
 /src/main/resources/dbprefs.db
 /info.txt
+/src/main/resources/versionsource.txt

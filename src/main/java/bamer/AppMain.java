@@ -15,7 +15,6 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
@@ -37,27 +36,25 @@ import objectos.GridPaneAtrasados;
 import objectos.GridPaneCalendario;
 import objectos.GridPanePorPlanear;
 import objectos.VBoxOSBO;
-import pojos.ArtigoLinhaPlanOUAtraso;
-import pojos.ArtigoOSBO;
-import pojos.ArtigoOSPROD;
-import pojos.ArtigoOSTIMER;
+import pojos.*;
 import sqlite.DBSQLite;
 import sqlite.PreferenciasEmSQLite;
 import utils.*;
 
 import java.awt.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Optional;
 
 public class AppMain extends Application {
-    private static final String VERSAO = "2.0.6";
+    private static final String VERSAO = "2.0.5";
 
     public static final String TITULO_APP = "Planeamento " + VERSAO;
 
-    private static final int MINIMO_COLUNAS = 30; //dias = + 1
     private static final String TAG = AppMain.class.getSimpleName();
+    private static final String NOME_FICHEIRO_HISTORICO_VERSAO = "history.html";
     private static final int ADICIONAR = 1;
     private static final int ACTUALIZAR = 2;
     private static final int REMOVER = 3;
@@ -85,11 +82,11 @@ public class AppMain extends Application {
     private DBSQLite sqlite;
     private ChildEventListener listenerFirebaseOSBO;
     private ChildEventListener listenerFirebaseOSBOPLAN;
-    //    private ChildEventListener listenerFirebaseOSBI03;
     private ChildEventListener listenerFirebaseOSPROD;
     private ChildEventListener listenerFirebaseOSTIMER;
     private JFXButton but_mais;
     private JFXButton but_menos;
+    private VersaoObj versaoObj;
 
     public static void main(String[] args) {
         launch(args);
@@ -110,29 +107,66 @@ public class AppMain extends Application {
         }
     }
 
-    public static void abrirFicheiroVersionTXT() throws IOException {
-        File file = new File("version.txt");
-        InputStream inputStream = ClassLoader.getSystemResourceAsStream("versionsource.txt");
-        // Copy file
-        OutputStream outputStream = new FileOutputStream(file);
-        byte[] buffer = new byte[1024];
-        int length;
-        while ((length = inputStream.read(buffer)) > 0) {
-            outputStream.write(buffer, 0, length);
-        }
-        outputStream.close();
-        inputStream.close();
-        // Open file
-        Desktop.getDesktop().open(file);
-    }
-
     public static void eliminarFicheiroVersionTXT() {
         System.out.println("A tentar eliminar o ficheiro info.txt");
-        File file = new File("version.txt");
+        File file = new File(NOME_FICHEIRO_HISTORICO_VERSAO);
         boolean test = file.delete();
         if (!test) {
             System.out.println("Não foi possivel eliminar o ficheiro info.txt");
         }
+    }
+
+    public void abrirFicheiroVersionTXT() throws IOException {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                progressIndicator.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
+            }
+        });
+        DatabaseReference refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_VERSIONS);
+        refDataFireBase.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                System.out.println(dataSnapshot);
+
+                for (DataSnapshot d : dataSnapshot.getChildren()) {
+                    if (d.getKey().equals("planning")) {
+                        versaoObj = d.getValue(VersaoObj.class);
+                        System.out.println("Versão cloud: " + versaoObj);
+//                        System.out.println("Versão history: " + versaoObj.getHistory());
+                        File file = new File(NOME_FICHEIRO_HISTORICO_VERSAO);
+//        InputStream inputStream = ClassLoader.getSystemResourceAsStream("versionsource.txt");
+                        InputStream inputStream = new ByteArrayInputStream(versaoObj.getHistory().getBytes(StandardCharsets.UTF_8));
+                        // Copy file
+                        try {
+                            OutputStream outputStream = new FileOutputStream(file);
+                            byte[] buffer = new byte[1024];
+                            int length;
+                            while ((length = inputStream.read(buffer)) > 0) {
+                                outputStream.write(buffer, 0, length);
+                            }
+                            outputStream.close();
+                            inputStream.close();
+                            Desktop.getDesktop().open(file);
+                        } catch (IOException e) {
+                            Funcoes.AlertaException(e);
+                            e.printStackTrace();
+                        }
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                progressIndicator.setProgress(100);
+                            }
+                        });
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     @Override
@@ -187,7 +221,7 @@ public class AppMain extends Application {
         Menu menuAjuda = new Menu("Ajuda");
         menuAjuda.setGraphic(new ImageView(new Image("help_16.png")));
         MenuItem menuItemHistorico = new MenuItem("Histórico de versões");
-        menuItemHistorico.setGraphic(new ImageView(new Image("version_histori.png")));
+        menuItemHistorico.setGraphic(new ImageView(new Image("version_histori_16.png")));
         menuItemHistorico.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -216,7 +250,7 @@ public class AppMain extends Application {
             public void handle(ActionEvent event) {
                 PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
                 int colunas = prefs.getInt(Constantes.PREF_AGENDA_NUMCOLS, ValoresDefeito.AGENDA_NUMCOLS);
-                if (colunas < MINIMO_COLUNAS + 2)
+                if (colunas < 8)
                     return;
                 colunas--;
                 prefs.putInt(Constantes.PREF_AGENDA_NUMCOLS, colunas);
@@ -334,26 +368,6 @@ public class AppMain extends Application {
         HBox.setMargin(progressIndicator, new Insets(2, 30, 0, 30));
         progressIndicator.setProgress(100d);
         progressIndicator.setPrefWidth(30);
-        progressIndicator.setOnMousePressed(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                if (event.isSecondaryButtonDown()) {
-                    MenuItem about = new MenuItem("Histórico...");
-                    about.setOnAction(new EventHandler<ActionEvent>() {
-                        @Override
-                        public void handle(ActionEvent event) {
-                            try {
-                                abrirFicheiroVersionTXT();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    });
-                    ContextMenu contextMenu = new ContextMenu(about);
-                    contextMenu.show(progressIndicator, Side.LEFT, 0, 0);
-                }
-            }
-        });
         hboxBarraFerramentas.getChildren().add(progressIndicator);
 
         hboxBarraFerramentas.setAlignment(Pos.CENTER_LEFT);
@@ -461,20 +475,20 @@ public class AppMain extends Application {
 
                 for (DataSnapshot d : dataSnapshot.getChildren()) {
                     if (d.getKey().equals("planning")) {
-                        String versao = (String) d.getValue();
-                        System.out.println("Versão cloud: " + versao);
-                        if (versao.compareToIgnoreCase(VERSAO) > 0) {
+                        versaoObj = d.getValue(VersaoObj.class);
+                        System.out.println("Versão cloud: " + versaoObj);
+                        System.out.println("Versão history: " + versaoObj.getHistory());
+                        if (versaoObj.versao.compareToIgnoreCase(VERSAO) > 0) {
                             Platform.runLater(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Funcoes.alertaVersion("A aplicação está desactualizada, a versão actual é a build " + versao + "\nCopie o link abaixo e cole no seu browser para efectuar o download da aplicação.",
+                                    Funcoes.alertaVersion("A aplicação está desactualizada, a versão actual é a build " + versaoObj + "\nCopie o link abaixo e cole no seu browser para efectuar o download da aplicação.",
                                             "https://dl.dropboxusercontent.com/u/6390478/Bamer/Apps/SetupPlaneamentoFRB.exe"
                                             , Alert.AlertType.WARNING);
                                 }
                             });
                         }
                     }
-
                 }
             }
 

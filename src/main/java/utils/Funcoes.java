@@ -221,7 +221,7 @@ public class Funcoes {
                 @Override
                 public void handle(ActionEvent event) {
                     try {
-                        AppMain.abrirFicheiroVersionTXT();
+                        AppMain.getInstancia().abrirFicheiroVersionTXT();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
