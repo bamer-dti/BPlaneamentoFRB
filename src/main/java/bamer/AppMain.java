@@ -270,6 +270,7 @@ public class AppMain extends Application {
 
         //BOTÃO POR AGENDAR (ESTADO 00)
         but_porPlanear = new JFXButton("por planear (0)");
+        but_porPlanear.setGraphic(new ImageView(new Image("planear_16.png")));
         but_porPlanear.getStyleClass().add("button-raised-bamer-aprovados");
         but_porPlanear.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -285,6 +286,7 @@ public class AppMain extends Application {
 
         //BOTÂO ATRASADOS
         but_atrasados = new JFXButton("atrasos");
+        but_atrasados.setGraphic(new ImageView(new Image("delayed_16.png")));
         but_atrasados.getStyleClass().add("button-raised-bamer-aprovados");
         but_atrasados.setOnAction(new EventHandler<ActionEvent>() {
             @Override
