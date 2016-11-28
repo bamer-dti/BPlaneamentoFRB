@@ -15,11 +15,17 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
@@ -46,7 +52,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 public class AppMain extends Application {
-    private static final String VERSAO = "2.0.5";
+    private static final String VERSAO = "2.0.6";
 
     public static final String TITULO_APP = "Planeamento " + VERSAO;
 
@@ -99,8 +105,7 @@ public class AppMain extends Application {
         boolean test = file.delete();
         if (!test) {
             System.out.println("Não foi possivel eliminar o ficheiro firebase.db");
-        }
-        else {
+        } else {
             System.out.println("Ficheiro firebase.db eliminado com  sucesso");
         }
     }
@@ -164,8 +169,42 @@ public class AppMain extends Application {
         VBox.setVgrow(scrollPaneCalendario, Priority.ALWAYS);
         borderPane.setCenter(vBox);
 
-        HBox topBox = new HBox();
-        topBox.setId("topBox");
+        MenuBar menuBar = new MenuBar();
+//        menuBar.prefWidthProperty().bind(mainStage.widthProperty());
+
+        Menu menuSistema = new Menu("Sistema");
+        menuSistema.setGraphic(new ImageView(new Image("bamer_16.png")));
+        MenuItem menuItemSair = new MenuItem("Sair");
+        menuItemSair.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                System.exit(0);
+            }
+        });
+        menuItemSair.setGraphic(new ImageView(new Image("sair_16.png")));
+        menuSistema.getItems().add(menuItemSair);
+
+        Menu menuAjuda = new Menu("Ajuda");
+        menuAjuda.setGraphic(new ImageView(new Image("help_16.png")));
+        MenuItem menuItemHistorico = new MenuItem("Histórico de versões");
+        menuItemHistorico.setGraphic(new ImageView(new Image("version_histori.png")));
+        menuItemHistorico.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                try {
+                    abrirFicheiroVersionTXT();
+                } catch (IOException e) {
+                    Funcoes.AlertaException(e);
+                    e.printStackTrace();
+                }
+            }
+        });
+        menuAjuda.getItems().addAll(menuItemHistorico);
+
+        menuBar.getMenus().addAll(menuSistema, menuAjuda);
+
+        HBox hboxBarraFerramentas = new HBox();
+        hboxBarraFerramentas.setId("topBox");
 
         labelCols = new Label("0");
         updateLabelCols();
@@ -187,7 +226,7 @@ public class AppMain extends Application {
             }
         });
         HBox.setMargin(but_menos, new Insets(10f, 10f, 10f, 10f));
-        topBox.getChildren().add(but_menos);
+        hboxBarraFerramentas.getChildren().add(but_menos);
 
         but_mais = new JFXButton("+");
         but_mais.getStyleClass().add("button-raised-bamer");
@@ -204,7 +243,7 @@ public class AppMain extends Application {
             }
         });
         HBox.setMargin(but_mais, new Insets(10f, 10f, 10f, 10f));
-        topBox.getChildren().add(but_mais);
+        hboxBarraFerramentas.getChildren().add(but_mais);
 
         HBox.setMargin(labelCols, new Insets(10f, 10f, 10f, 10f));
         labelCols.setOnMousePressed(new EventHandler<MouseEvent>() {
@@ -227,7 +266,7 @@ public class AppMain extends Application {
                 }
             }
         });
-        topBox.getChildren().add(labelCols);
+        hboxBarraFerramentas.getChildren().add(labelCols);
 
         //BOTÃO POR AGENDAR (ESTADO 00)
         but_porPlanear = new JFXButton("por planear (0)");
@@ -242,7 +281,7 @@ public class AppMain extends Application {
             }
         });
         HBox.setMargin(but_porPlanear, new Insets(10f, 10f, 10f, 10f));
-        topBox.getChildren().add(but_porPlanear);
+        hboxBarraFerramentas.getChildren().add(but_porPlanear);
 
         //BOTÂO ATRASADOS
         but_atrasados = new JFXButton("atrasos");
@@ -258,7 +297,7 @@ public class AppMain extends Application {
             }
         });
         HBox.setMargin(but_atrasados, new Insets(10f, 10f, 10f, 10f));
-        topBox.getChildren().add(but_atrasados);
+        hboxBarraFerramentas.getChildren().add(but_atrasados);
 
         //COMBOBOX CENTRO
         PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
@@ -281,22 +320,44 @@ public class AppMain extends Application {
             }
         });
         comboSeccao.setVisible(false);
-        topBox.getChildren().add(comboSeccao);
+        hboxBarraFerramentas.getChildren().add(comboSeccao);
 
         Region region = new Region();
         HBox.setHgrow(region, Priority.ALWAYS);
-        topBox.getChildren().add(region);
+        hboxBarraFerramentas.getChildren().add(region);
 
         progressIndicator = new ProgressIndicator();
 
         HBox.setMargin(progressIndicator, new Insets(2, 30, 0, 30));
         progressIndicator.setProgress(100d);
         progressIndicator.setPrefWidth(30);
-        topBox.getChildren().add(progressIndicator);
+        progressIndicator.setOnMousePressed(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if (event.isSecondaryButtonDown()) {
+                    MenuItem about = new MenuItem("Histórico...");
+                    about.setOnAction(new EventHandler<ActionEvent>() {
+                        @Override
+                        public void handle(ActionEvent event) {
+                            try {
+                                abrirFicheiroVersionTXT();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                    ContextMenu contextMenu = new ContextMenu(about);
+                    contextMenu.show(progressIndicator, Side.LEFT, 0, 0);
+                }
+            }
+        });
+        hboxBarraFerramentas.getChildren().add(progressIndicator);
 
-        topBox.setAlignment(Pos.CENTER_LEFT);
+        hboxBarraFerramentas.setAlignment(Pos.CENTER_LEFT);
 
-        borderPane.setTop(topBox);
+        VBox vboxTOP = new VBox(menuBar, hboxBarraFerramentas);
+
+        borderPane.setTop(vboxTOP);
 
         Scene scenePrincipal = new Scene(borderPane, 1600, 780);
         scenePrincipal.getStylesheets().add("styles.css");
