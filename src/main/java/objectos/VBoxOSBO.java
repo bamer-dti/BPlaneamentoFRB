@@ -112,7 +112,7 @@ public class VBoxOSBO extends VBox {
 
         setArtigoOSBOProp(artigoOSBO);
 
-        setEstilo(getArtigoOSBOProp().getCor());
+        corProp.set(artigoOSBO.getCor());
 
         colocarEmAgenda();
 
@@ -162,13 +162,6 @@ public class VBoxOSBO extends VBox {
         hBoxNotificar.getChildren().add(labelTempos);
 
         getChildren().add(hBoxNotificar);
-
-//        //SECCAO
-//        Label labelSeccao = new Label();
-//        labelSeccao.setWrapText(true);
-//        labelSeccao.textProperty().bind(estadoPropProperty());
-//        setMargin(labelSeccao, new Insets(2, 2, 2, 2));
-//        this.getChildren().add(labelSeccao);
 
         //OBRA
         Label labelObra = new Label();
@@ -273,6 +266,8 @@ public class VBoxOSBO extends VBox {
         grelhaDatas.setStyle("-fx-background-color: white; -fx-background-insets: 0, 1 1 1 0 ;");
 
         getChildren().add(grelhaDatas);
+
+        Funcoes.colocarEstilo(this, "game-grid-cell-0");
     }
 
     private void configurarBinds() {
@@ -312,6 +307,7 @@ public class VBoxOSBO extends VBox {
                             labelProd.setText("");
                             labelResultado.setText("");
                             corProp.set(0);
+                            actualizarCronometros();
                         }
                     });
 
@@ -321,14 +317,13 @@ public class VBoxOSBO extends VBox {
                         public void run() {
                             labelProd.setText("-" + newValue);
                             labelResultado.setText("=" + (qttProp.get() - qttProdProp.get()));
-                            if (ultimaPosicao != Constantes.STARTED) {
-                                if (newValue.intValue() == qttProp.get()) {
-                                    corProp.set(COR_VERDE);
-                                }
-                                if (newValue.intValue() != qttProp.get()) {
-                                    corProp.set(COR_AMARELO);
-                                }
+                            if (newValue.intValue() == qttProp.get()) {
+                                corProp.set(COR_VERDE);
                             }
+                            if (newValue.intValue() != qttProp.get()) {
+                                corProp.set(COR_AMARELO);
+                            }
+                            actualizarCronometros();
                         }
                     });
                 }
@@ -345,50 +340,52 @@ public class VBoxOSBO extends VBox {
                     timer = null;
                 }
                 String bostamp = bostampProp.get();
+                int obrano = obranoProp.get();
+
                 long tempoCalculado = DBSQLite.getInstancia().getTempoTotal(artigoOSBOProp.get().getBostamp());
                 int ultimaPosicao = DBSQLite.getInstancia().getUltimaPosicao(bostamp);
+
+                System.out.println(obrano + " tem posicao " + ultimaPosicao + ", com um tempo calculado de " + tempoCalculado);
+
                 if (ultimaPosicao == Constantes.STARTED) {
                     corProp.set(COR_VERMELHO);
-                    mostrarRegistoEmModoStarted(bostampProp.get());
+                    mostrarRegistoEmModoStarted();
                 } else {
-                    qttProdProp.set(qttProdProp.get());
-                    tempoCalculado = DBSQLite.getInstancia().getTempoTotal(bostamp);
                     if (tempoCalculado != 0) {
                         String textoTempo = Funcoes.milisegundos_em_HH_MM_SS(tempoCalculado * 1000);
                         Platform.runLater(new Runnable() {
                             @Override
                             public void run() {
                                 labelTempos.setText("" + textoTempo);
+                                hBoxNotificar.setManaged(true);
+                                hBoxNotificar.setVisible(true);
+                                labelTempos.setManaged(true);
+                                labelTempos.setVisible(true);
                             }
                         });
-
                     } else {
                         Platform.runLater(new Runnable() {
                             @Override
                             public void run() {
                                 labelTempos.setText("");
+                                boolean valor = !notaProp.get().equals("");
+                                hBoxNotificar.setManaged(valor);
+                                hBoxNotificar.setVisible(valor);
+                                labelTempos.setVisible(valor);
+                                labelTempos.setManaged(valor);
                             }
                         });
                     }
                 }
-
-                boolean resultado = !(notaProp.get().equals("") && newValue.longValue() == 0);
-                hBoxNotificar.setManaged(resultado);
-                hBoxNotificar.setVisible(resultado);
-
-                labelTempos.setManaged(newValue.longValue() != 0);
-                labelTempos.setVisible(resultado);
-
-
             }
 
-            private void mostrarRegistoEmModoStarted(String bostamp) {
+            private void mostrarRegistoEmModoStarted() {
                 long tempoTotal = 0;
                 long ultimoTempo = 0;
                 DBSQLite slq = DBSQLite.getInstancia();
+                String bostamp = bostampProp.get();
                 tempoTotal = slq.getTempoTotal(bostamp);
                 ultimoTempo = slq.getUltimoTempo(bostamp);
-
 
                 final long finalTempoTotal = tempoTotal;
                 final long finalUltimoTempo = ultimoTempo;
@@ -416,6 +413,11 @@ public class VBoxOSBO extends VBox {
                 }
                 timer = new Timer();
                 timer.schedule(actualizarTempos, 1000, 1000);
+                hBoxNotificar.setManaged(true);
+                hBoxNotificar.setVisible(true);
+
+                labelTempos.setManaged(true);
+                labelTempos.setVisible(true);
             }
         });
 
@@ -463,11 +465,6 @@ public class VBoxOSBO extends VBox {
                 imageNotas.setVisible(true);
             }
         });
-    }
-
-    private void setEstilo(int conversor) {
-        String estilo = "game-grid-cell-" + conversor;
-        Funcoes.colocarEstilo(this, estilo);
     }
 
     private void colocarEmAgenda() {
@@ -632,39 +629,6 @@ public class VBoxOSBO extends VBox {
     private void configurarContextMenu() {
         contextMenu = new ContextMenu();
 
-//        Menu menuCor = new Menu("colorir");
-//        MenuItem menuItemAmarelo = new MenuItem("amarelo");
-//        menuItemAmarelo.setOnAction(new EventHandler<ActionEvent>() {
-//            public void handle(ActionEvent e) {
-//                pintar(COR_AMARELO);
-//            }
-//        });
-//        menuCor.getItems().add(menuItemAmarelo);
-//
-//        MenuItem menuItemVermelho = new MenuItem("vermelho");
-//        menuItemVermelho.setOnAction(new EventHandler<ActionEvent>() {
-//            public void handle(ActionEvent e) {
-//                pintar(COR_VERMELHO);
-//            }
-//        });
-//        menuCor.getItems().add(menuItemVermelho);
-//
-//        MenuItem menuItemAzul = new MenuItem("azul");
-//        menuItemAzul.setOnAction(new EventHandler<ActionEvent>() {
-//            public void handle(ActionEvent e) {
-//                pintar(COR_AZUL);
-//            }
-//        });
-//        menuCor.getItems().add(menuItemAzul);
-//
-//        MenuItem menuItemVerde = new MenuItem("verde");
-//        menuItemVerde.setOnAction(new EventHandler<ActionEvent>() {
-//            public void handle(ActionEvent e) {
-//                pintar(COR_VERDE);
-//            }
-//        });
-//        menuCor.getItems().add(menuItemVerde);
-
         Menu menuAccoes = new Menu("tools");
         MenuItem itemNota = new MenuItem("notas");
         itemNota.setOnAction(new EventHandler<ActionEvent>() {
@@ -679,31 +643,9 @@ public class VBoxOSBO extends VBox {
             }
         });
 
-//        MenuItem testes = new MenuItem("Abrir info versão");
-//        testes.setOnAction(new EventHandler<ActionEvent>() {
-//            @Override
-//            public void handle(ActionEvent event) {
-//                try {
-//                    AppMain.abrirFicheiroVersionTXT();
-//                } catch (IOException e) {
-//                    Funcoes.alertaException(e);
-//                    e.printStackTrace();
-//                }
-//            }
-//        });
         menuAccoes.getItems().add(itemNota);
 
-//        contextMenu.getItems().addAll(menuCor, menuAccoes);
-//        contextMenu.getItems().addAll(menuAccoes, testes);
         contextMenu.getItems().addAll(menuAccoes);
-    }
-
-    private void pintar(int cor) {
-        if (cor != getArtigoOSBOProp().getCor()) {
-            corProp.set(cor);
-            artigoOSBOProp.get().setCor(cor);
-            WSWorker.actualizarCor(bostampProp.get(), cor);
-        }
     }
 
     private void editarNota() throws IOException {
@@ -900,6 +842,7 @@ public class VBoxOSBO extends VBox {
                         GridPane.setConstraints(contexto, coluna, ordemProp.get());
                     }
                 });
+
                 DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child(Campos.KEY_NOTAS).child(bostamp);
                 ref.addValueEventListener(new ValueEventListener() {
                     @Override
@@ -979,7 +922,31 @@ public class VBoxOSBO extends VBox {
     }
 
     public void actualizarCronometros() {
-        tempoTotalProp.set(new DBSQLite().getTempoTotal(bostampProp.get()));
+        tempoTotalProp.set(0);
+        long tempoSQL = new DBSQLite().getTempoTotal(bostampProp.get());
+        if (tempoSQL != 0l) {
+            System.out.println("actualizarCronometros -> getTempoTotal(" + bostampProp.get() + "): " + tempoSQL + ", actual = " + tempoTotalProp.get());
+            tempoTotalProp.set(tempoSQL);
+            return;
+        }
+        //Não tem tempos registados, mas está iniciado!
+        int val = new DBSQLite().getCountOSTIMER(bostampProp.get());
+        if (val != 0) {
+            System.out.println("actualizarCronometros -> tempoTotal getCountOSTIMER(" + bostampProp.get() + "): " + val);
+            tempoTotalProp.set(1000L);
+            return;
+        }
+        //Não há registo de tempos:
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                labelTempos.setManaged(false);
+                labelTempos.setText("");
+                if (notaProp.get().equals("")) {
+                    hBoxNotificar.setManaged(false);
+                }
+            }
+        });
     }
 
     public SimpleObjectProperty<LocalDate> dtcortefPropProperty() {

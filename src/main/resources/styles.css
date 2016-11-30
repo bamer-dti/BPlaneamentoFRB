@@ -67,6 +67,15 @@
     -fx-background-color: transparent, #C5E1A5;
 }
 
+//DO BURRO QUE FOGE
+.game-grid-cell-4 {
+    -fx-padding: top right bottom left;
+    -fx-padding: 3, 3, 3, 3;
+    -fx-background-insets: top right bottom left;
+    -fx-background-insets: 0, 2, 0, 0 ;
+    -fx-background-color: transparent, #D500F9;
+}
+
 .game-grid-cell-viagem {
     -fx-padding: top right bottom left;
     -fx-padding: 3, 3, 3, 3;

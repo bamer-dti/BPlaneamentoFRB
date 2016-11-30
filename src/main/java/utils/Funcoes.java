@@ -29,6 +29,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.System.out;
@@ -182,60 +183,61 @@ public class Funcoes {
         alert.setTitle("Nova versão " + versaoNova);
         alert.setHeaderText(null);
 
-        // Get the Stage.
         Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
 
-// Add a custom icon.
         stage.getIcons().add(Funcoes.iconeBamer());
-        if (!versaoNova.equals("")) {
-            Hyperlink link = new Hyperlink();
-            link.setText("A versão instalada está desactualizada. Clique aqui para efectuar instalar a mais recente!");
-            link.setStyle("-fx-text-fill: red; -fx-background-insets: 0, 1 1 1 0 ;");
-            link.setOnAction(new EventHandler<ActionEvent>() {
-                @Override
-                public void handle(ActionEvent actionEvent) {
-                    try {
-                        URI uri = new URI("https://dl.dropboxusercontent.com/u/6390478/Bamer/Apps/SetupPlaneamentoFRB.exe");
-                        Desktop.getDesktop().browse(uri);
-                    } catch (URISyntaxException | IOException e) {
-                        e.printStackTrace();
-                        alertaException(e);
-                    }
+        Hyperlink link = new Hyperlink();
+        link.setText("A versão instalada está desactualizada. Clique aqui para efectuar instalar a mais recente!");
+        link.setStyle("-fx-text-fill: red; -fx-background-insets: 0, 1 1 1 0 ;");
+        link.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                try {
+                    URI uri = new URI("https://dl.dropboxusercontent.com/u/6390478/Bamer/Apps/SetupPlaneamentoFRB.exe");
+                    Desktop.getDesktop().browse(uri);
+                } catch (URISyntaxException | IOException e) {
+                    e.printStackTrace();
+                    alertaException(e);
                 }
-            });
+            }
+        });
 
-            GridPane expContent = new GridPane();
-            expContent.setMaxWidth(Double.MAX_VALUE);
+        GridPane expContent = new GridPane();
+        expContent.setMaxWidth(Double.MAX_VALUE);
 
-            expContent.add(link, 0, 0);
+        expContent.add(link, 0, 0);
 
-//            expContent.add(textArea, 0, 1);
-
-            Button btversion = new Button("histórico de alterações");
-            btversion.setOnAction(new EventHandler<ActionEvent>() {
-                @Override
-                public void handle(ActionEvent event) {
-                    try {
-                        AppMain.getInstancia().abrirFicheiroVersionTXT();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+        Button btversion = new Button("ver histórico de versões");
+        btversion.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                try {
+                    AppMain.getInstancia().abrirFicheiroVersionTXT();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            });
-            GridPane.setMargin(btversion, new Insets(10f, 10f, 10f, 10f));
-            expContent.add(btversion, 0, 2);
+            }
+        });
+        GridPane.setMargin(btversion, new Insets(10f, 10f, 10f, 10f));
+        expContent.add(btversion, 0, 2);
 
-            // Set expandable Exception into the dialog pane.
-            alert.getDialogPane().setContent(expContent);
-            alert.getDialogPane().setExpanded(true);
-        }
+        alert.getDialogPane().setContent(expContent);
+
+        ButtonType botaoFechar = new ButtonType("Fechar");
+        alert.getButtonTypes().setAll(botaoFechar);
+
         alert.setOnCloseRequest(new EventHandler<DialogEvent>() {
             @Override
             public void handle(DialogEvent event) {
                 AppMain.eliminarFicheiroVersionTXT();
+                System.exit(0);
             }
         });
-        alert.showAndWait();
+        Optional<ButtonType> resultado = alert.showAndWait();
+        if (resultado.get() == botaoFechar) {
+            AppMain.eliminarFicheiroVersionTXT();
+            System.exit(0);
+        }
     }
 
 

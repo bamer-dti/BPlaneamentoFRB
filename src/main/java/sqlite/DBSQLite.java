@@ -10,7 +10,6 @@ import java.sql.*;
 import java.util.ArrayList;
 
 public class DBSQLite {
-    @SuppressWarnings("unused")
     private static final String TAG = DBSQLite.class.getSimpleName() + ": ";
 
     private static DBSQLite sqlDefaults;
@@ -474,46 +473,6 @@ public class DBSQLite {
         return qtt;
     }
 
-    public int actualizarOSTIMER(ArtigoOSTIMER ostimer) {
-        Connection con = connect();
-        int t = 0;
-        if (con != null) {
-            try {
-                PreparedStatement preparedStatement = con.prepareStatement(
-                        "update " + Campos.TABELA_OSTIMER + " SET "
-                                + Campos.ESTADO + "=?, "
-                                + Campos.FREF + "=?, "
-                                + Campos.LASTTIME + "=?, "
-                                + Campos.MAQUINA + "=?, "
-                                + Campos.OBRANO + "=?, "
-                                + Campos.OPERADOR + "=?, "
-                                + Campos.POSICAO + "=?, "
-                                + Campos.SECCAO + "=?, "
-                                + Campos.UNIXTIME + "=? "
-                                + " where " + Campos.STAMP + "=?"
-                );
-                preparedStatement.setString(1, ostimer.getEstado());
-                preparedStatement.setString(2, ostimer.getFref());
-                preparedStatement.setLong(3, ostimer.getLasttime());
-                preparedStatement.setString(4, ostimer.getMaquina());
-                preparedStatement.setInt(5, ostimer.getObrano());
-                preparedStatement.setString(6, ostimer.getOperador());
-                preparedStatement.setInt(7, ostimer.getPosicao());
-                preparedStatement.setString(8, ostimer.getSeccao());
-                preparedStatement.setLong(9, ostimer.getUnixtime());
-                preparedStatement.setString(10, ostimer.getStamp());
-
-                t = preparedStatement.executeUpdate();
-                preparedStatement.close();
-                con.close();
-
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return t;
-    }
-
     public int removerOSBO(ArtigoOSBO artigoOSBO) {
         Connection con = connect();
         int t = 0;
@@ -951,6 +910,31 @@ public class DBSQLite {
                         "select count(" + Campos.BOSTAMP + ") as " + Campos.QTT
                                 + " from " + Campos.TABELA_OSBOPLAN
                 );
+                ResultSet resultSet = preparedStatement.executeQuery();
+                while (resultSet.next()) {
+                    cnt = resultSet.getInt(Campos.QTT);
+                }
+                preparedStatement.close();
+                con.close();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return cnt;
+    }
+
+    public int getCountOSTIMER(String bostamp) {
+        Connection con = connect();
+        int cnt = 0;
+        if (con != null) {
+            try {
+                PreparedStatement preparedStatement = con.prepareStatement(
+                        "select count(" + Campos.BOSTAMP + ") as " + Campos.QTT
+                                + " from " + Campos.TABELA_OSTIMER
+                        + " where " + Campos.BOSTAMP + " =?"
+                );
+                preparedStatement.setString(1, bostamp);
                 ResultSet resultSet = preparedStatement.executeQuery();
                 while (resultSet.next()) {
                     cnt = resultSet.getInt(Campos.QTT);

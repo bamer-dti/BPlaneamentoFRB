@@ -477,6 +477,8 @@ public class AppMain extends Application {
                                     Funcoes.alertaVersion(versaoObj.versao);
                                 }
                             });
+                        } else {
+                            configurarRestantesListenersFirebase();
                         }
                     }
                 }
@@ -487,9 +489,11 @@ public class AppMain extends Application {
 
             }
         });
+    }
 
+    private void configurarRestantesListenersFirebase() {
         configurarListenersOSBO();
-        refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBO);
+        DatabaseReference refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBO);
         refDataFireBase.addChildEventListener(listenerFirebaseOSBO);
 
         if (!Privado.TESTING) {
@@ -876,7 +880,7 @@ public class AppMain extends Application {
                             ArtigoOSTIMER artigoOSTIMER = d.getValue(ArtigoOSTIMER.class);
                             artigoOSTIMER.setBostamp(bostamp);
                             artigoOSTIMER.setStamp(stamp);
-                            sqlite.actualizarOSTIMER(artigoOSTIMER);
+                            sqlite.guardarOSTIMER(artigoOSTIMER);
                         }
                         actualizarTempo(bostamp);
                         return null;
@@ -924,13 +928,6 @@ public class AppMain extends Application {
             vBoxOSBO.actualizarCronometros();
         }
     }
-
-//    private void actualizarQtdPedida(String bostamp) {
-//        VBoxOSBO vBoxOSBO = (VBoxOSBO) calendario.lookup("#" + bostamp);
-//        if (vBoxOSBO != null) {
-//            vBoxOSBO.actualizarQtdPedida();
-//        }
-//    }
 
     private void actualizarQtdProduzida(String bostamp) {
         VBoxOSBO vBoxOSBO = (VBoxOSBO) calendario.lookup("#" + bostamp);
