@@ -474,7 +474,7 @@ public class AppMain extends Application {
                             Platform.runLater(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Funcoes.alertaVersion("A aplicação está desactualizada, a versão actual é a build " + versaoObj + "\nCopie o link abaixo e cole no seu browser para efectuar o download da aplicação.",
+                                    Funcoes.alertaVersion("A aplicação está desactualizada, a versão actual é " + VERSAO + "\nCopie o link abaixo e cole no seu browser para efectuar o download da aplicação.",
                                             "https://dl.dropboxusercontent.com/u/6390478/Bamer/Apps/SetupPlaneamentoFRB.exe"
                                             , Alert.AlertType.WARNING);
                                 }
