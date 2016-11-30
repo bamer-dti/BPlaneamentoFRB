@@ -288,6 +288,54 @@ public class VBoxOSBO extends VBox {
             }
         });
 
+        qttProp.addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        labelQtt.setText("" + newValue.intValue());
+                    }
+                });
+                AppMain.getInstancia().actualizarTextoColunasZero(coluna);
+            }
+        });
+
+        qttProdProp.addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                int ultimaPosicao = DBSQLite.getInstancia().getUltimaPosicao(bostampProp.get());
+                if (newValue.intValue() == 0) {
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            labelProd.setText("");
+                            labelResultado.setText("");
+                            corProp.set(0);
+                        }
+                    });
+
+                } else {
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            labelProd.setText("-" + newValue);
+                            labelResultado.setText("=" + (qttProp.get() - qttProdProp.get()));
+                            if (ultimaPosicao != Constantes.STARTED) {
+                                if (newValue.intValue() == qttProp.get()) {
+                                    corProp.set(COR_VERDE);
+                                }
+                                if (newValue.intValue() != qttProp.get()) {
+                                    corProp.set(COR_AMARELO);
+                                }
+                            }
+                        }
+                    });
+                }
+                AppMain.getInstancia().actualizarTextoColunasZero(coluna);
+            }
+        });
+
         tempoTotalProp.addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -327,8 +375,11 @@ public class VBoxOSBO extends VBox {
                 boolean resultado = !(notaProp.get().equals("") && newValue.longValue() == 0);
                 hBoxNotificar.setManaged(resultado);
                 hBoxNotificar.setVisible(resultado);
+
                 labelTempos.setManaged(newValue.longValue() != 0);
                 labelTempos.setVisible(resultado);
+
+
             }
 
             private void mostrarRegistoEmModoStarted(String bostamp) {
@@ -398,52 +449,6 @@ public class VBoxOSBO extends VBox {
             @Override
             public void changed(ObservableValue<? extends LocalDate> observable, LocalDate oldValue, LocalDate newValue) {
                 labelExped.setText(dtf.format(newValue));
-            }
-        });
-
-        qttProp.addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        labelQtt.setText("" + newValue.intValue());
-                    }
-                });
-                AppMain.getInstancia().actualizarTextoColunasZero(coluna);
-            }
-        });
-
-        qttProdProp.addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                if (newValue.intValue() == 0) {
-                    Platform.runLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            labelProd.setText("");
-                            labelResultado.setText("");
-                            corProp.set(0);
-                        }
-                    });
-
-                } else {
-                    Platform.runLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            labelProd.setText("-" + newValue);
-                            labelResultado.setText("=" + (qttProp.get() - qttProdProp.get()));
-                            if (newValue.intValue() == qttProp.get()) {
-                                corProp.set(COR_VERDE);
-                            }
-                            if (newValue.intValue() != qttProp.get()) {
-                                corProp.set(COR_AMARELO);
-                            }
-                        }
-                    });
-                }
-                tempoTotalProp.set(tempoTotalProp.get());// pintar com tempos
-                AppMain.getInstancia().actualizarTextoColunasZero(coluna);
             }
         });
 
@@ -888,7 +893,7 @@ public class VBoxOSBO extends VBox {
             String bostamp = bostampProp.get();
             if (ordemProp.get() < 99) {
                 qttProdProp.set(sql.getQtdProduzidaBostamp(bostamp));
-                tempoTotalProp.set(sql.getTempoTotal(bostamp));
+                actualizarCronometros();
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
@@ -974,7 +979,7 @@ public class VBoxOSBO extends VBox {
     }
 
     public void actualizarCronometros() {
-        tempoTotalProp.set(-1);
+        tempoTotalProp.set(new DBSQLite().getTempoTotal(bostampProp.get()));
     }
 
     public SimpleObjectProperty<LocalDate> dtcortefPropProperty() {
