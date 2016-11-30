@@ -144,7 +144,7 @@ public class AppMain extends Application {
                             inputStream.close();
                             Desktop.getDesktop().open(file);
                         } catch (IOException e) {
-                            Funcoes.AlertaException(e);
+                            Funcoes.alertaException(e);
                             e.printStackTrace();
                         }
                         Platform.runLater(new Runnable() {
@@ -223,7 +223,7 @@ public class AppMain extends Application {
                 try {
                     abrirFicheiroVersionTXT();
                 } catch (IOException e) {
-                    Funcoes.AlertaException(e);
+                    Funcoes.alertaException(e);
                     e.printStackTrace();
                 }
             }
@@ -474,9 +474,7 @@ public class AppMain extends Application {
                             Platform.runLater(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Funcoes.alertaVersion("A aplicação está desactualizada, a versão actual é " + VERSAO + "\nCopie o link abaixo e cole no seu browser para efectuar o download da aplicação.",
-                                            "https://dl.dropboxusercontent.com/u/6390478/Bamer/Apps/SetupPlaneamentoFRB.exe"
-                                            , Alert.AlertType.WARNING);
+                                    Funcoes.alertaVersion(versaoObj.versao);
                                 }
                             });
                         }

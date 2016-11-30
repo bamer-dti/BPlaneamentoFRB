@@ -145,7 +145,7 @@ public class VBoxOSBO extends VBox {
                     try {
                         editarNota();
                     } catch (IOException e) {
-                        Funcoes.AlertaException(e);
+                        Funcoes.alertaException(e);
                         e.printStackTrace();
                     }
                 }
@@ -673,7 +673,7 @@ public class VBoxOSBO extends VBox {
                 try {
                     editarNota();
                 } catch (IOException e) {
-                    Funcoes.AlertaException(e);
+                    Funcoes.alertaException(e);
                     e.printStackTrace();
                 }
             }
@@ -686,7 +686,7 @@ public class VBoxOSBO extends VBox {
 //                try {
 //                    AppMain.abrirFicheiroVersionTXT();
 //                } catch (IOException e) {
-//                    Funcoes.AlertaException(e);
+//                    Funcoes.alertaException(e);
 //                    e.printStackTrace();
 //                }
 //            }
@@ -917,7 +917,7 @@ public class VBoxOSBO extends VBox {
 
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
-                        Funcoes.AlertaException(databaseError.toException());
+                        Funcoes.alertaException(databaseError.toException());
                     }
                 });
 

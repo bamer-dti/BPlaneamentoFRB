@@ -6,18 +6,20 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
+import javafx.scene.control.*;
 import javafx.scene.control.Button;
-import javafx.scene.control.DialogEvent;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.stage.Stage;
 
+import java.awt.*;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -175,46 +177,39 @@ public class Funcoes {
         alert.showAndWait();
     }
 
-    public static void alertaVersion(String mensagem, String selectable, Alert.AlertType tipoAlerta) {
-        String titulo = "";
-        switch (tipoAlerta) {
-            case ERROR:
-                titulo = "Erro";
-                break;
-            case INFORMATION:
-                titulo = "Nota";
-                break;
-            case CONFIRMATION:
-                titulo = "Resposta";
-                break;
-            case WARNING:
-                titulo = "Aviso";
-                break;
-        }
-//        mensagem = Funcoes.textoEmUTF8(mensagem);
-        Alert alert = new Alert(tipoAlerta);
-        alert.setTitle(titulo);
+    public static void alertaVersion(String versaoNova) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Nova versão " + versaoNova);
         alert.setHeaderText(null);
-        alert.setContentText(mensagem);
 
         // Get the Stage.
         Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
 
 // Add a custom icon.
         stage.getIcons().add(Funcoes.iconeBamer());
-        if (!selectable.equals("")) {
-            TextArea textArea = new TextArea(selectable);
-            textArea.setEditable(false);
-            textArea.setWrapText(true);
-
-            textArea.setMaxWidth(Double.MAX_VALUE);
-            textArea.setMaxHeight(Double.MAX_VALUE);
-            GridPane.setVgrow(textArea, Priority.ALWAYS);
-            GridPane.setHgrow(textArea, Priority.ALWAYS);
+        if (!versaoNova.equals("")) {
+            Hyperlink link = new Hyperlink();
+            link.setText("A versão instalada está desactualizada. Clique aqui para efectuar instalar a mais recente!");
+            link.setStyle("-fx-text-fill: red; -fx-background-insets: 0, 1 1 1 0 ;");
+            link.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent actionEvent) {
+                    try {
+                        URI uri = new URI("https://dl.dropboxusercontent.com/u/6390478/Bamer/Apps/SetupPlaneamentoFRB.exe");
+                        Desktop.getDesktop().browse(uri);
+                    } catch (URISyntaxException | IOException e) {
+                        e.printStackTrace();
+                        alertaException(e);
+                    }
+                }
+            });
 
             GridPane expContent = new GridPane();
             expContent.setMaxWidth(Double.MAX_VALUE);
-            expContent.add(textArea, 0, 0);
+
+            expContent.add(link, 0, 0);
+
+//            expContent.add(textArea, 0, 1);
 
             Button btversion = new Button("histórico de alterações");
             btversion.setOnAction(new EventHandler<ActionEvent>() {
@@ -228,10 +223,10 @@ public class Funcoes {
                 }
             });
             GridPane.setMargin(btversion, new Insets(10f, 10f, 10f, 10f));
-            expContent.add(btversion, 0, 1);
+            expContent.add(btversion, 0, 2);
 
             // Set expandable Exception into the dialog pane.
-            alert.getDialogPane().setExpandableContent(expContent);
+            alert.getDialogPane().setContent(expContent);
             alert.getDialogPane().setExpanded(true);
         }
         alert.setOnCloseRequest(new EventHandler<DialogEvent>() {
@@ -244,7 +239,7 @@ public class Funcoes {
     }
 
 
-    public static void AlertaException(Exception e) {
+    public static void alertaException(Exception e) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
 
         alert.setTitle("Erro interno");
