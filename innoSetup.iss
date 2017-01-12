@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Planeamento FRB"
-#define MyAppVersion "3.0.0"
+#define MyAppVersion "2.0.8"
 #define MyAppPublisher "DTI Bamer"
 #define MyAppExeName "planeamentofrb.exe"
 
