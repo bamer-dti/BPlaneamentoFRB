@@ -49,7 +49,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 public class AppMain extends Application {
-    private static final String VERSAO = "2.0.7";
+    private static final String VERSAO = "2.0.8";
 
     public static final String TITULO_APP = "Planeamento " + VERSAO;
 

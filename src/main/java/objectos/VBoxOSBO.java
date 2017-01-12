@@ -847,13 +847,13 @@ public class VBoxOSBO extends VBox {
                 ref.addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        if (stageEditarNota == null)
+                        if (stageEditarNota != null && stageEditarNota.isShowing()) {
+                            System.out.println("stageEditarNota.isShowing = " + stageEditarNota.isShowing());
                             return;
-                        if (stageEditarNota.isShowing())
-                            return;
+                        }
                         Nota nota = dataSnapshot.getValue(Nota.class);
                         if (nota != null) {
-                            System.out.println(dataSnapshot);
+                            System.out.println("NOTA: " + dataSnapshot);
                             notaProp.set(nota.texto);
                         }
                     }
