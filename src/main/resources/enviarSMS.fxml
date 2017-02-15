@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<GridPane xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
+          minWidth="450.0" xmlns="http://javafx.com/javafx/8.0.112" fx:controller="bamer.ControllerEnviarSMS">
+    <columnConstraints>
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+        <ColumnConstraints/>
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints vgrow="NEVER"/>
+        <RowConstraints vgrow="SOMETIMES"/>
+        <RowConstraints vgrow="NEVER"/>
+    </rowConstraints>
+    <children>
+        <VBox GridPane.columnSpan="2">
+            <children>
+                <HBox alignment="CENTER_LEFT">
+                    <children>
+                        <Label fx:id="para" text="Para">
+                            <HBox.margin>
+                                <Insets bottom="3.0" left="3.0" right="3.0" top="3.0"/>
+                            </HBox.margin>
+                        </Label>
+                        <Label fx:id="tokenLabel" text="Token" visible="false"/>
+                    </children>
+                </HBox>
+                <HBox alignment="CENTER_LEFT">
+                    <children>
+                        <Label text="Assunto">
+                            <HBox.margin>
+                                <Insets bottom="3.0" left="3.0" right="3.0" top="3.0"/>
+                            </HBox.margin>
+                        </Label>
+                        <TextField fx:id="assunto" prefWidth="300.0" promptText="(assunto, não obrigatório)"
+                                   HBox.hgrow="ALWAYS">
+                            <HBox.margin>
+                                <Insets bottom="3.0" left="3.0" right="3.0" top="3.0"/>
+                            </HBox.margin>
+                        </TextField>
+                    </children>
+                </HBox>
+            </children>
+            <GridPane.margin>
+                <Insets bottom="3.0" left="3.0" right="3.0" top="3.0"/>
+            </GridPane.margin>
+        </VBox>
+        <TextArea fx:id="mensagem" prefHeight="200.0" prefWidth="400.0" promptText="(mensagem - obrigatório) "
+                  GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
+            <GridPane.margin>
+                <Insets bottom="3.0" left="3.0" right="3.0" top="3.0"/>
+            </GridPane.margin>
+        </TextArea>
+        <HBox alignment="CENTER_RIGHT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2">
+            <children>
+                <Button mnemonicParsing="false" onAction="#gravar" prefWidth="80.0" text="Gravar">
+                    <HBox.margin>
+                        <Insets bottom="3.0" left="3.0" right="3.0" top="3.0"/>
+                    </HBox.margin>
+                </Button>
+                <Button mnemonicParsing="false" onAction="#cancelar" prefWidth="80.0" text="Cancelar">
+                    <HBox.margin>
+                        <Insets bottom="3.0" left="3.0" right="3.0" top="3.0"/>
+                    </HBox.margin>
+                </Button>
+            </children>
+            <GridPane.margin>
+                <Insets bottom="3.0" left="3.0" right="3.0" top="3.0"/>
+            </GridPane.margin>
+        </HBox>
+    </children>
+</GridPane>

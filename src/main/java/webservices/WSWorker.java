@@ -172,4 +172,59 @@ public class WSWorker {
         };
         new Thread(taskHttp).run();
     }
+
+    public void enviarSMS(Stage stage, JSONObject json) {
+        stage.setTitle("A enviar...");
+        Task<Void> taskHttp = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                Unirest.post(Privado.URL_ENVIAR_SMS).body(json).asJsonAsync(new Callback<JsonNode>() {
+                    @Override
+                    public void completed(HttpResponse<JsonNode> response) {
+                        if (response.getStatus() != 200) {
+                            Platform.runLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Funcoes.alerta("Erro ao gravar os dados", response.getStatusText(), Alert.AlertType.ERROR);
+                                }
+                            });
+
+                        } else {
+                            System.out.println("Sucesso: " + response.getBody().toString());
+                            Platform.runLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Funcoes.alerta("Colocada em fila com sucesso", "", Alert.AlertType.INFORMATION);
+                                    stage.close();
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void failed(UnirestException e) {
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                Funcoes.alerta("Erro ao gravar os dados", e.getMessage(), Alert.AlertType.ERROR);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void cancelled() {
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                Funcoes.alerta("O pedido WebService foi cancelado", "", Alert.AlertType.ERROR);
+                            }
+                        });
+
+                    }
+                });
+                return null;
+            }
+        };
+        new Thread(taskHttp).run();
+    }
 }

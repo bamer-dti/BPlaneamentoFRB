@@ -210,3 +210,40 @@
 .scroll-bar:horizontal:focused {
  -fx-background-color: transparent,rgb(96,96,96),rgb(96,96,96);
 }
+
+.machine_on {
+    -fx-padding: top right bottom left;
+    -fx-padding: 3, 3, 3, 3;
+    -fx-background-insets: top right bottom left;
+    -fx-background-insets: 0, 2, 0, 0 ;
+    -fx-background-color: transparent, #CCFFCC ;
+}
+
+.machine_off {
+    -fx-padding: top right bottom left;
+    -fx-padding: 3, 3, 3, 3;
+    -fx-background-insets: top right bottom left;
+    -fx-background-insets: 0, 2, 0, 0 ;
+    -fx-background-color: transparent, #FFCCCC ;
+}
+
+.botao_nao_lidas {
+    -fx-button-type: RAISED;
+    -fx-background-color: #CC0033;
+    -fx-text-fill: WHITE;
+    -fx-text-ali
+}
+
+.botao_lidas {
+    -fx-button-type: RAISED;
+    -fx-background-color: #4d4d00;
+    -fx-text-fill: WHITE;
+    -fx-text-ali
+}
+
+.botao_lidas_inactivo {
+    -fx-button-type: RAISED;
+    -fx-background-color: #BFBFBF;
+    -fx-text-fill: WHITE;
+    -fx-text-ali
+}

@@ -18,6 +18,8 @@ dependencies {
     compile files('libs/sqljdbc42.jar')
     runtime fileTree(dir: 'libs', include: '*.jar')
 
+    compile 'joda-time:joda-time:2.9.7'
+
 //    compile group: 'org.jfxtras', name: 'jfxtras-agenda', version: '8.0-r4'
 //    compile group: 'org.jfxtras', name: 'jfxtras-common', version: '8.0-r4'
 //    compile group: 'org.jfxtras', name: 'jfxtras-controls', version: '8.0-r4'

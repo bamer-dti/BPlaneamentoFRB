@@ -1,5 +1,6 @@
 package sqlite;
 
+import objectos.Machina;
 import pojos.ArtigoLinhaPlanOUAtraso;
 import pojos.ArtigoOSBO;
 import pojos.ArtigoOSPROD;
@@ -10,6 +11,7 @@ import java.sql.*;
 import java.util.ArrayList;
 
 public class DBSQLite {
+    @SuppressWarnings("unused")
     private static final String TAG = DBSQLite.class.getSimpleName() + ": ";
 
     private static DBSQLite sqlDefaults;
@@ -130,6 +132,23 @@ public class DBSQLite {
             System.out.println("***** ERRO AO CRIAR A TABELA " + Campos.TABELA_OSTIMER + " *****");
             return null;
         }
+
+        comandoSql = "CREATE TABLE IF NOT EXISTS " + Campos.TABELA_MACHINA + "("
+                + Campos._ID + " integer primary key autoincrement, "
+                + Campos.SECCAO + " text not null, "
+                + Campos.CODIGO + " text not null, "
+                + Campos.FUNCAO + " text not null, "
+                + Campos.NOME + " text not null, "
+                + Campos.ORDEM + " integer not null"
+                + ")";
+        try {
+            statement.executeUpdate(comandoSql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("***** ERRO AO CRIAR A TABELA " + Campos.TABELA_MACHINA + " *****");
+            return null;
+        }
+
         try {
             statement.close();
         } catch (SQLException e) {
@@ -148,6 +167,7 @@ public class DBSQLite {
 //                c.prepareStatement("delete from " + Campos.TABELA_OSBI).executeUpdate();
                 c.prepareStatement("delete from " + Campos.TABELA_OSPROD).executeUpdate();
                 c.prepareStatement("delete from " + Campos.TABELA_OSTIMER).executeUpdate();
+                c.prepareStatement("delete from " + Campos.TABELA_MACHINA).executeUpdate();
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -311,6 +331,36 @@ public class DBSQLite {
                 preparedStatement.setString(10, ostimer.getSeccao());
                 preparedStatement.setLong(11, ostimer.getUnixtime());
 
+                t = preparedStatement.executeUpdate();
+                preparedStatement.close();
+                con.close();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return t;
+    }
+
+    public int guardarMachina(Machina machina) {
+        Connection con = connect();
+        int t = 0;
+        if (con != null) {
+            try {
+                PreparedStatement preparedStatement = con.prepareStatement(
+                        "insert into " + Campos.TABELA_MACHINA + " ("
+                                + Campos.SECCAO + ", "
+                                + Campos.CODIGO + ", "
+                                + Campos.FUNCAO + ", "
+                                + Campos.NOME + ", "
+                                + Campos.ORDEM
+                                + ")"
+                                + " VALUES (?,?,?,?,?)");
+                preparedStatement.setString(1, machina.getSeccao());
+                preparedStatement.setString(2, machina.getCodigo());
+                preparedStatement.setString(3, machina.getFuncao());
+                preparedStatement.setString(4, machina.getNome());
+                preparedStatement.setLong(5, machina.getOrdem());
                 t = preparedStatement.executeUpdate();
                 preparedStatement.close();
                 con.close();
@@ -932,7 +982,7 @@ public class DBSQLite {
                 PreparedStatement preparedStatement = con.prepareStatement(
                         "select count(" + Campos.BOSTAMP + ") as " + Campos.QTT
                                 + " from " + Campos.TABELA_OSTIMER
-                        + " where " + Campos.BOSTAMP + " =?"
+                                + " where " + Campos.BOSTAMP + " =?"
                 );
                 preparedStatement.setString(1, bostamp);
                 ResultSet resultSet = preparedStatement.executeQuery();
@@ -948,4 +998,6 @@ public class DBSQLite {
         }
         return cnt;
     }
+
+
 }

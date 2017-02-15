@@ -10,11 +10,13 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
@@ -32,10 +34,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
-import objectos.GridPaneAtrasados;
-import objectos.GridPaneCalendario;
-import objectos.GridPanePorPlanear;
-import objectos.VBoxOSBO;
+import objectos.*;
 import pojos.*;
 import sqlite.DBSQLite;
 import sqlite.PreferenciasEmSQLite;
@@ -49,7 +48,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 public class AppMain extends Application {
-    private static final String VERSAO = "2.0.8";
+    private static final String VERSAO = "2.0.9";
 
     public static final String TITULO_APP = "Planeamento " + VERSAO;
 
@@ -87,6 +86,9 @@ public class AppMain extends Application {
     private JFXButton but_mais;
     private JFXButton but_menos;
     private VersaoObj versaoObj;
+    private Image imageOn;
+    private Image imageOff;
+    private HBoxMachinas hboxMaquinas;
 
     public static void main(String[] args) {
         launch(args);
@@ -170,11 +172,16 @@ public class AppMain extends Application {
             app = this;
         }
 
+        imageOn = Funcoes.imagemResource("on.png", 16, 16);
+        imageOff = Funcoes.imagemResource("off.png", 16, 16);
+
         eliminarFicheiroFirebase();
 
         sqlite = DBSQLite.getInstancia();
 
         setMainStage(mainStage);
+
+        iniciarFirebase();
 
         BorderPane borderPane = new BorderPane();
 
@@ -330,7 +337,7 @@ public class AppMain extends Application {
         HBox.setMargin(but_atrasados, new Insets(10f, 10f, 10f, 10f));
         hboxBarraFerramentas.getChildren().add(but_atrasados);
 
-        //COMBOBOX CENTRO
+        //COMBOBOX SECÇÃO
         PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
         seccao = prefs.get(Constantes.PREF_SECCAO, ValoresDefeito.SECCAO);
         comboSeccao = new ComboBox<>();
@@ -349,6 +356,7 @@ public class AppMain extends Application {
                 prefs.put(Constantes.PREF_SECCAO, newValue);
                 setColunas();
 //                actualizarTextoColunasZero();
+                actualizarMostradorMaquinas();
             }
         });
         comboSeccao.setVisible(false);
@@ -367,7 +375,9 @@ public class AppMain extends Application {
 
         hboxBarraFerramentas.setAlignment(Pos.CENTER_LEFT);
 
-        VBox vboxTOP = new VBox(menuBar, hboxBarraFerramentas);
+        hboxMaquinas = setupHBoxMaquinas();
+
+        VBox vboxTOP = new VBox(menuBar, hboxBarraFerramentas, hboxMaquinas);
 
         borderPane.setTop(vboxTOP);
 
@@ -394,8 +404,6 @@ public class AppMain extends Application {
             }
         });
 
-        iniciarFirebase();
-
         colocarObjectosVisiveis(false);
 
         configurarTaskStage();
@@ -403,6 +411,29 @@ public class AppMain extends Application {
         configurarStageAtrasados();
 
         configurarStagePorPlanear();
+    }
+
+    public void actualizarMostradorMaquinas() {
+        HBoxMachinas objBase = hboxMaquinas;
+        ObservableList<Node> children = objBase.getChildren();
+        for (Node child : children) {
+            if (child instanceof GridButtonMachina) {
+                GridButtonMachina botao = (GridButtonMachina) child;
+                Machina machina = botao.getMachinaProp();
+                if (machina.getSeccao().equals(seccao)) {
+                    botao.setVisible(true);
+                    botao.setManaged(true);
+                } else {
+                    botao.setVisible(false);
+                    botao.setManaged(false);
+                }
+            }
+        }
+    }
+
+    private HBoxMachinas setupHBoxMaquinas() {
+        HBoxMachinas boxMachinas = new HBoxMachinas();
+        return boxMachinas;
     }
 
     public void colocarObjectosVisiveis(boolean isVisivel) {
@@ -1192,5 +1223,13 @@ public class AppMain extends Application {
 
     public void setMainStage(Stage mainStage) {
         this.mainStage = mainStage;
+    }
+
+    public Image getImageOn() {
+        return imageOn;
+    }
+
+    public Image getImageOff() {
+        return imageOff;
     }
 }

@@ -1,6 +1,7 @@
 package utils;
 
 import bamer.AppMain;
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -13,6 +14,7 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.stage.Stage;
+import org.joda.time.DateTime;
 
 import java.awt.*;
 import java.io.IOException;
@@ -22,6 +24,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -29,6 +32,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -47,6 +51,7 @@ public class Funcoes {
     public final static long ONE_HOUR = ONE_MINUTE * 60;
     public final static long ONE_DAY = ONE_HOUR * 24;
     public static String FORMATO_A_M_DTh_m_s_sssZ = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+    public static String FORMATO_A_M__HH_mm_ss = "dd.MM.yyyy HH:mm:ss";
     public static String FORMATO_h_m_s = "HH:mm:ss";
 
     public static String dToCZeroHour(LocalDateTime data) {
@@ -281,11 +286,16 @@ public class Funcoes {
 
 
     public static void colocarEstilo(Node node, String estilo) {
-        for (int i = 0; i < node.getStyleClass().size(); i++) {
-            String style = node.getStyleClass().get(i);
-            node.getStyleClass().remove(style);
-        }
-        node.getStyleClass().add(estilo);
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i < node.getStyleClass().size(); i++) {
+                    String style = node.getStyleClass().get(i);
+                    node.getStyleClass().remove(style);
+                }
+                node.getStyleClass().add(estilo);
+            }
+        });
     }
 
     public static String milisegundos_em_HH_MM_SS(long millis) {
@@ -293,6 +303,13 @@ public class Funcoes {
                 TimeUnit.MILLISECONDS.toMinutes(millis) % TimeUnit.HOURS.toMinutes(1),
                 TimeUnit.MILLISECONDS.toSeconds(millis) % TimeUnit.MINUTES.toSeconds(1));
         return hms;
+    }
+
+    public static String segundos_em_DD_MM_AAAA_HH_MM_SS(long segundos) {
+        DateTime someDate = new DateTime(segundos);
+        DateFormat formatter = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault());
+        String data = formatter.format(someDate.getMillis());
+        return data;
     }
 
     public static LocalDate cToD(String datastring) {

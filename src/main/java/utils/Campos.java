@@ -5,8 +5,9 @@ public class Campos {
     public static final String TABELA_OSBOPLAN = "osboplan";
 //    public static final String TABELA_OSBI = "osbi";
     public static final String TABELA_OSPROD = "osprod";
-
     public static final String TABELA_OSTIMER = "ostimer";
+    public static final String TABELA_MACHINA = "osmachina";
+
     public static final String OBRANO = "obrano";
     public static final String FREF = "fref";
     public static final String NMFREF = "nmfref";
@@ -49,4 +50,7 @@ public class Campos {
     public static final String OPERADOR = "operador";
     public static final String STAMP = "stamp";
     public static final String PECAS = "pecas";
+    public static final String CODIGO = "codigo";
+    public static final String FUNCAO = "funcao";
+    public static final String NOME = "nome";
 }
