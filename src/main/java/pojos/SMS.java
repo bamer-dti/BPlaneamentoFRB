@@ -65,7 +65,7 @@ public class SMS {
     @Override
     public String toString() {
         String str = "bostamp: " + bostamp
-                + "; para: " + para
+                + "; paraLabel: " + para
                 + "; de: " + de
                 + "; assunto: " + assunto
                 + "; mensagem: " + mensagem

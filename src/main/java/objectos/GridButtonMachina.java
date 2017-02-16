@@ -1,20 +1,17 @@
 package objectos;
 
 import bamer.AppMain;
-import bamer.ControllerEnviarSMS;
 import com.google.firebase.database.*;
+import ecras.EnviarSMS;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.VPos;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
@@ -23,14 +20,10 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.text.Font;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import pojos.TokenMachina;
 import utils.Funcoes;
 
 import java.io.IOException;
-import java.net.URL;
 
 import static utils.Constantes.SMS_MACHINA;
 import static utils.Constantes.SMS_OPERADOR;
@@ -42,17 +35,17 @@ public class GridButtonMachina extends GridPane {
     private static final String TAG = GridButtonMachina.class.getSimpleName();
     private final GridButtonMachina context;
     public SimpleObjectProperty<TokenMachina> tokenMachinaProp = new SimpleObjectProperty<>();
+    public SimpleStringProperty codigoProp = new SimpleStringProperty();
+    public SimpleStringProperty operadorProp = new SimpleStringProperty();
+    public SimpleStringProperty tokenProp = new SimpleStringProperty();
     private SimpleStringProperty seccaoProp = new SimpleStringProperty();
-    private SimpleStringProperty codigoProp = new SimpleStringProperty();
     private SimpleStringProperty funcaoProp = new SimpleStringProperty();
     private SimpleStringProperty nomeProp = new SimpleStringProperty();
     private SimpleIntegerProperty ordemProp = new SimpleIntegerProperty();
     private SimpleObjectProperty<Machina> machinaProp = new SimpleObjectProperty<>();
     private SimpleStringProperty dataTokenProp = new SimpleStringProperty();
     private SimpleBooleanProperty onlineProp = new SimpleBooleanProperty();
-    private SimpleStringProperty operadorProp = new SimpleStringProperty();
     private SimpleLongProperty timestampProp = new SimpleLongProperty();
-    private SimpleStringProperty tokenProp = new SimpleStringProperty();
 
     public GridButtonMachina(Machina machina) {
         context = this;
@@ -80,7 +73,7 @@ public class GridButtonMachina extends GridPane {
         operadorProp.addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                System.out.println(TAG + ": operador passou para '" + newValue + "' na máquina " + codigoProp.get());
+                System.out.println(TAG + ": operador passou paraLabel '" + newValue + "' na máquina " + codigoProp.get());
             }
         });
     }
@@ -156,12 +149,7 @@ public class GridButtonMachina extends GridPane {
         menuSmsMachina.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                try {
-                    enviarSMS(SMS_MACHINA);
-                } catch (IOException e) {
-                    Funcoes.alertaException(e);
-                    e.printStackTrace();
-                }
+                enviarSMS(SMS_MACHINA);
             }
         });
 
@@ -170,12 +158,7 @@ public class GridButtonMachina extends GridPane {
         menuSmsOperador.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                try {
-                    enviarSMS(SMS_OPERADOR);
-                } catch (IOException e) {
-                    Funcoes.alertaException(e);
-                    e.printStackTrace();
-                }
+                enviarSMS(SMS_OPERADOR);
             }
         });
 
@@ -193,27 +176,20 @@ public class GridButtonMachina extends GridPane {
                         menuSmsOperador.setText("Novo SMS " + operadorProp.get());
                         contextMenu.show(context, event.getScreenX(), event.getScreenY());
                         event.consume();
-                        System.out.println(TAG + ": Chamar menu para a máquina " + nomeProp.get());
+                        System.out.println(TAG + ": Chamar menu paraLabel a máquina " + nomeProp.get());
                     }
                 }
             }
         });
     }
 
-    private void enviarSMS(int tipoSMS) throws IOException {
-        URL location = ClassLoader.getSystemResource("enviarSMS.fxml");
-        FXMLLoader loader = new FXMLLoader(location);
-        Parent root = loader.load();
-        Stage stageEnviarSMS = new Stage();
-        stageEnviarSMS.setTitle("Enviar SMS");
-        stageEnviarSMS.setScene(new Scene(root));
-        ControllerEnviarSMS controller = loader.getController();
-        controller.para.textProperty().bind(tipoSMS == SMS_MACHINA ? codigoProp : operadorProp);
-        controller.tipoSMS = tipoSMS;
-        controller.tokenLabel.textProperty().bind(tokenProp);
-        stageEnviarSMS.initModality(Modality.APPLICATION_MODAL);
-        stageEnviarSMS.initStyle(StageStyle.UTILITY);
-        stageEnviarSMS.show();
+    private void enviarSMS(int tipoSMS) {
+        try {
+            new EnviarSMS(tipoSMS, this);
+        } catch (IOException e) {
+            e.printStackTrace();
+            Funcoes.alertaException(e);
+        }
     }
 
     private void setupBinders(Machina machina) {

@@ -6,6 +6,7 @@ import com.google.firebase.database.*;
 import com.google.firebase.internal.Log;
 import com.jfoenix.controls.JFXButton;
 import com.mashape.unirest.http.Unirest;
+import ecras.EnviarSMS;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -95,6 +96,9 @@ public class AppMain extends Application {
     }
 
     public static AppMain getInstancia() {
+        if (app == null) {
+            app = new AppMain();
+        }
         return app;
     }
 
@@ -116,54 +120,6 @@ public class AppMain extends Application {
         if (!test) {
             System.out.println("Não foi possivel eliminar o ficheiro info.txt");
         }
-    }
-
-    public void abrirFicheiroVersionTXT() throws IOException {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                progressIndicator.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
-            }
-        });
-        DatabaseReference refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_VERSIONS);
-        refDataFireBase.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot d : dataSnapshot.getChildren()) {
-                    if (d.getKey().equals("planning")) {
-                        versaoObj = d.getValue(VersaoObj.class);
-                        System.out.println("Versão cloud: " + versaoObj);
-                        File file = new File(NOME_FICHEIRO_HISTORICO_VERSAO);
-                        InputStream inputStream = new ByteArrayInputStream(versaoObj.getHistory().getBytes(StandardCharsets.UTF_8));
-                        try {
-                            OutputStream outputStream = new FileOutputStream(file);
-                            byte[] buffer = new byte[1024];
-                            int length;
-                            while ((length = inputStream.read(buffer)) > 0) {
-                                outputStream.write(buffer, 0, length);
-                            }
-                            outputStream.close();
-                            inputStream.close();
-                            Desktop.getDesktop().open(file);
-                        } catch (IOException e) {
-                            Funcoes.alertaException(e);
-                            e.printStackTrace();
-                        }
-                        Platform.runLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                progressIndicator.setProgress(100);
-                            }
-                        });
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
     }
 
     @Override
@@ -220,6 +176,25 @@ public class AppMain extends Application {
         menuItemSair.setGraphic(new ImageView(new Image("sair_16.png")));
         menuSistema.getItems().add(menuItemSair);
 
+        Menu menuGestao = new Menu("Gestão");
+        Menu suBMenuItemSMS = new Menu("SMS");
+        suBMenuItemSMS.setGraphic(new ImageView(new Image("sms_16.png")));
+        MenuItem subMenuSMS_Enviar = new MenuItem("novo SMS");
+        subMenuSMS_Enviar.setGraphic(new ImageView(new Image("enviarsms_16.png")));
+        subMenuSMS_Enviar.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                try {
+                    new EnviarSMS(0, null);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Funcoes.alertaException(e);
+                }
+            }
+        });
+        suBMenuItemSMS.getItems().addAll(subMenuSMS_Enviar);
+        menuGestao.getItems().addAll(suBMenuItemSMS);
+
         Menu menuAjuda = new Menu("Ajuda");
         menuAjuda.setGraphic(new ImageView(new Image("help_16.png")));
         MenuItem menuItemHistorico = new MenuItem("Histórico de versões");
@@ -237,7 +212,7 @@ public class AppMain extends Application {
         });
         menuAjuda.getItems().addAll(menuItemHistorico);
 
-        menuBar.getMenus().addAll(menuSistema, menuAjuda);
+        menuBar.getMenus().addAll(menuSistema, menuGestao, menuAjuda);
 
         HBox hboxBarraFerramentas = new HBox();
         hboxBarraFerramentas.setId("topBox");
@@ -347,7 +322,7 @@ public class AppMain extends Application {
         comboSeccao.valueProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                System.out.println("Secção alterada de " + oldValue + " para " + newValue);
+                System.out.println("Secção alterada de " + oldValue + " paraLabel " + newValue);
                 seccao = newValue;
                 if (oldValue.equals(newValue)) {
                     return;
@@ -411,6 +386,54 @@ public class AppMain extends Application {
         configurarStageAtrasados();
 
         configurarStagePorPlanear();
+    }
+
+    public void abrirFicheiroVersionTXT() throws IOException {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                progressIndicator.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
+            }
+        });
+        DatabaseReference refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_VERSIONS);
+        refDataFireBase.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot d : dataSnapshot.getChildren()) {
+                    if (d.getKey().equals("planning")) {
+                        versaoObj = d.getValue(VersaoObj.class);
+                        System.out.println("Versão cloud: " + versaoObj);
+                        File file = new File(NOME_FICHEIRO_HISTORICO_VERSAO);
+                        InputStream inputStream = new ByteArrayInputStream(versaoObj.getHistory().getBytes(StandardCharsets.UTF_8));
+                        try {
+                            OutputStream outputStream = new FileOutputStream(file);
+                            byte[] buffer = new byte[1024];
+                            int length;
+                            while ((length = inputStream.read(buffer)) > 0) {
+                                outputStream.write(buffer, 0, length);
+                            }
+                            outputStream.close();
+                            inputStream.close();
+                            Desktop.getDesktop().open(file);
+                        } catch (IOException e) {
+                            Funcoes.alertaException(e);
+                            e.printStackTrace();
+                        }
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                progressIndicator.setProgress(100);
+                            }
+                        });
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     public void actualizarMostradorMaquinas() {
@@ -523,11 +546,11 @@ public class AppMain extends Application {
     }
 
     private void configurarRestantesListenersFirebase() {
-        configurarListenersOSBO();
-        DatabaseReference refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBO);
-        refDataFireBase.addChildEventListener(listenerFirebaseOSBO);
-
         if (!Privado.TESTING) {
+            configurarListenersOSBO();
+            DatabaseReference refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBO);
+            refDataFireBase.addChildEventListener(listenerFirebaseOSBO);
+
 
 //            configurarListenerOSBI();
 //            refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBI03);
@@ -1120,7 +1143,7 @@ public class AppMain extends Application {
         stagePorPlanear = new Stage();
         stagePorPlanear.setScene(scene);
         stagePorPlanear.getIcons().add(Funcoes.iconeBamer());
-        stagePorPlanear.setTitle("para planear");
+        stagePorPlanear.setTitle("paraLabel planear");
     }
 
     private void setColunas() {

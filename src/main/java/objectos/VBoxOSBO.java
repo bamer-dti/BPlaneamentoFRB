@@ -186,7 +186,7 @@ public class VBoxOSBO extends VBox {
 
         //GRELHA DAS DATAS
         GridPane grelhaDatas = new GridPane();
-        tooltip = new Tooltip("(duplo clique para editar os dados)");
+        tooltip = new Tooltip("(duplo clique paraLabel editar os dados)");
         Tooltip.install(grelhaDatas, tooltip);
         ColumnConstraints coluna1 = new ColumnConstraints();
         coluna1.setHalignment(HPos.RIGHT);

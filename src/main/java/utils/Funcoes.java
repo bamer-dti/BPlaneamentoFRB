@@ -192,7 +192,7 @@ public class Funcoes {
 
         stage.getIcons().add(Funcoes.iconeBamer());
         Hyperlink link = new Hyperlink();
-        link.setText("A versão instalada está desactualizada. Clique aqui para efectuar instalar a mais recente!");
+        link.setText("A versão instalada está desactualizada. Clique aqui paraLabel efectuar instalar a mais recente!");
         link.setStyle("-fx-text-fill: red; -fx-background-insets: 0, 1 1 1 0 ;");
         link.setOnAction(new EventHandler<ActionEvent>() {
             @Override
