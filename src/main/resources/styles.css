@@ -31,7 +31,6 @@
     -fx-background-insets: 10 ;
 }
 
-//AZUL
 .game-grid-cell-0 {
     -fx-padding: top right bottom left;
     -fx-padding: 3, 3, 3, 3;
@@ -40,7 +39,6 @@
     -fx-background-color: transparent, #A6E1F5 ;
 }
 
-//AMARELO
 .game-grid-cell-1 {
     -fx-padding: top right bottom left;
     -fx-padding: 3, 3, 3, 3;
@@ -49,7 +47,6 @@
     -fx-background-color: transparent, #FFF176;
 }
 
-//VERMELHO
 .game-grid-cell-2 {
     -fx-padding: top right bottom left;
     -fx-padding: 3, 3, 3, 3;
@@ -58,7 +55,6 @@
     -fx-background-color: transparent, #F5BFBF ;
 }
 
-//VERDE
 .game-grid-cell-3 {
     -fx-padding: top right bottom left;
     -fx-padding: 3, 3, 3, 3;
@@ -67,7 +63,6 @@
     -fx-background-color: transparent, #C5E1A5;
 }
 
-//DO BURRO QUE FOGE
 .game-grid-cell-4 {
     -fx-padding: top right bottom left;
     -fx-padding: 3, 3, 3, 3;
@@ -212,38 +207,35 @@
 }
 
 .machine_on {
-    -fx-padding: top right bottom left;
-    -fx-padding: 3, 3, 3, 3;
-    -fx-background-insets: top right bottom left;
-    -fx-background-insets: 0, 2, 0, 0 ;
-    -fx-background-color: transparent, #CCFFCC ;
+-fx-padding: top right bottom left;
+-fx-padding: 3, 3, 3, 3;
+-fx-background-insets: top right bottom left;
+-fx-background-insets: 0, 2, 0, 0 ;
+-fx-background-color: transparent, #CCFFCC ;
 }
 
 .machine_off {
-    -fx-padding: top right bottom left;
-    -fx-padding: 3, 3, 3, 3;
-    -fx-background-insets: top right bottom left;
-    -fx-background-insets: 0, 2, 0, 0 ;
-    -fx-background-color: transparent, #FFCCCC ;
+-fx-padding: top right bottom left;
+-fx-padding: 3, 3, 3, 3;
+-fx-background-insets: top right bottom left;
+-fx-background-insets: 0, 2, 0, 0 ;
+-fx-background-color: transparent, #FFCCCC ;
 }
 
 .botao_nao_lidas {
-    -fx-button-type: RAISED;
-    -fx-background-color: #CC0033;
-    -fx-text-fill: WHITE;
-    -fx-text-ali
+-fx-button-type: RAISED;
+-fx-background-color: #CC0033;
+-fx-text-fill: WHITE;
 }
 
 .botao_lidas {
-    -fx-button-type: RAISED;
-    -fx-background-color: #4d4d00;
-    -fx-text-fill: WHITE;
-    -fx-text-ali
+-fx-button-type: RAISED;
+-fx-background-color: #4d4d00;
+-fx-text-fill: WHITE;
 }
 
 .botao_lidas_inactivo {
-    -fx-button-type: RAISED;
-    -fx-background-color: #BFBFBF;
-    -fx-text-fill: WHITE;
-    -fx-text-ali
+-fx-button-type: RAISED;
+-fx-background-color: #BFBFBF;
+-fx-text-fill: WHITE;
 }

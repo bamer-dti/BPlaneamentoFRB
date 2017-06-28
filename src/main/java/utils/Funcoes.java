@@ -15,6 +15,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.stage.Stage;
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
 
 import java.awt.*;
 import java.io.IOException;
@@ -75,6 +76,12 @@ public class Funcoes {
     public static String dToC(LocalDate data, String formato) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(formato);
         String formattedDateTime = data.format(formatter);
+        return formattedDateTime;
+    }
+
+    public static String dToC(DateTime data, String formato) {
+        org.joda.time.format.DateTimeFormatter dtf = DateTimeFormat.forPattern(formato);
+        String formattedDateTime = dtf.print(data);
         return formattedDateTime;
     }
 
@@ -239,7 +246,7 @@ public class Funcoes {
             }
         });
         Optional<ButtonType> resultado = alert.showAndWait();
-        if (resultado.get() == botaoFechar) {
+        if (resultado.orElse(null) == botaoFechar) {
             AppMain.eliminarFicheiroVersionTXT();
             System.exit(0);
         }
@@ -314,6 +321,13 @@ public class Funcoes {
 
     public static LocalDate cToD(String datastring) {
         LocalDate data = Timestamp.valueOf(datastring).toLocalDateTime().truncatedTo(ChronoUnit.DAYS).toLocalDate();
+        return data;
+    }
+
+    public static String millis_em_FormatoAEscolher(long millis, String formato) {
+        DateTime someDate = new DateTime(millis);
+        DateFormat formatter = new SimpleDateFormat(formato, Locale.getDefault());
+        String data = formatter.format(someDate.getMillis());
         return data;
     }
 }

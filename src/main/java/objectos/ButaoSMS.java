@@ -12,6 +12,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.HBox;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
@@ -29,10 +30,12 @@ import static utils.Constantes.SMS_MACHINA;
 public class ButaoSMS extends HBox {
     private static final String TAG = ButaoSMS.class.getSimpleName();
     private static final double RADIUS_CIRCULO = 11;
+    private boolean allreadyStarted;
     private ArrayList<SMS> lista;
     private SimpleIntegerProperty naoLidaIntProp = new SimpleIntegerProperty(-1);
 
     public ButaoSMS(Machina machina, int tipoSMS, boolean lida) {
+        DropShadow dropShadow = new DropShadow();
         Button botao = new Button("");
         botao.setAlignment(Pos.CENTER);
         botao.textProperty().bind(Bindings.concat("", naoLidaIntProp));
@@ -41,7 +44,7 @@ public class ButaoSMS extends HBox {
         Tooltip tooltip = new Tooltip();
         tooltip.textProperty().bind(Bindings.concat(lida ? "" : "não ", "concluidas: ", naoLidaIntProp));
         botao.setTooltip(tooltip);
-        Insets inseto = new Insets(1);
+        Insets inseto = new Insets(3);
         ButaoSMS.setMargin(botao, inseto);
         setAlignment(Pos.CENTER_RIGHT);
 
@@ -49,6 +52,8 @@ public class ButaoSMS extends HBox {
         botao.setShape(new Circle(r));
         botao.setMinSize(2 * r, 2 * r);
         botao.setMaxSize(2 * r, 2 * r);
+
+        allreadyStarted = false;
 
         naoLidaIntProp.addListener(new ChangeListener<Number>() {
             @Override
@@ -87,6 +92,7 @@ public class ButaoSMS extends HBox {
                             naoLidaIntProp.set(lista.size());
                         }
                     });
+                    allreadyStarted = true;
                 }
 
                 @Override
@@ -105,6 +111,22 @@ public class ButaoSMS extends HBox {
                     e.printStackTrace();
                     Funcoes.alertaException(e);
                 }
+            }
+        });
+
+        botao.setOnMouseEntered(new EventHandler<javafx.scene.input.MouseEvent>() {
+            @Override
+            public void handle(javafx.scene.input.MouseEvent event) {
+
+                botao.setEffect(dropShadow);
+            }
+        });
+
+
+        botao.setOnMouseExited(new EventHandler<javafx.scene.input.MouseEvent>() {
+            @Override
+            public void handle(javafx.scene.input.MouseEvent event) {
+                botao.setEffect(null);
             }
         });
     }

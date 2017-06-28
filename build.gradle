@@ -7,16 +7,16 @@ tasks.withType(JavaCompile) {
 
 repositories {
     mavenCentral()
-//    jcenter()
+    jcenter()
 }
 
 //group 'bamer.pt'
 //version '2.0.4'
 
 dependencies {
+    runtime fileTree(dir: 'libs', include: '*.jar')
     compile files('libs/jfoenix-0.0.0-SNAPSHOT.jar')
     compile files('libs/sqljdbc42.jar')
-    runtime fileTree(dir: 'libs', include: '*.jar')
 
     compile 'joda-time:joda-time:2.9.7'
 
@@ -42,6 +42,9 @@ dependencies {
     compile 'org.apache.httpcomponents:httpasyncclient:4.1.2'
     compile 'org.apache.httpcomponents:httpmime:4.5.2'
     compile 'org.json:json:20160810'
+
+    compile 'org.kordamp.ikonli:ikonli-javafx:1.9.0'
+    compile 'org.kordamp.ikonli:ikonli-fontawesome-pack:1.9.0'
 }
 
 apply from: "http://dl.bintray.com/content/shemnon/javafx-gradle/8.1.1/javafx.plugin"
@@ -56,6 +59,8 @@ javafx {
     // Application name and ID presented by target OS
     appID 'Planeamento Firebase'
     appName 'PlaneamentoFRB'
+    //noinspection GroovyAssignabilityCheck
+    version '2.0.9'
 
     // Main class of application
     mainClass 'bamer.AppMain'

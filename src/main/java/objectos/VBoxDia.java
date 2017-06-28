@@ -8,6 +8,8 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -19,6 +21,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import org.kordamp.ikonli.fontawesome.FontAwesome;
+import org.kordamp.ikonli.javafx.FontIcon;
 import pojos.ArtigoLinhaPlanOUAtraso;
 import pojos.ArtigoOSBO;
 import sqlite.PreferenciasEmSQLite;
@@ -26,12 +30,17 @@ import utils.*;
 import webservices.WSWorker;
 
 import java.time.LocalDate;
+import java.util.Timer;
 import java.util.concurrent.ExecutionException;
 
 import static java.lang.System.out;
 
 public class VBoxDia extends VBox {
-
+    @SuppressWarnings("unused")
+    private static final String TAG = VBoxDia.class.getSimpleName();
+    public Timer chronoWeather;
+    public int tempoRemanescente;
+    public String keyIPMA;
     private int coluna;
     private Text textDiaDaSemana;
     private Text textDiaMes;
@@ -39,12 +48,28 @@ public class VBoxDia extends VBox {
     private Text textQtdFeita;
     private boolean mostraResize;
     private Text textSemana;
+    private ImageView imageViewTempo;
+    private Label labelTempMax;
+    private Label labelTempMin;
+
 
     VBoxDia(Boolean mostraResizee) {
         this.mostraResize = mostraResizee;
         objectos();
         configurarEventos();
         resize();
+    }
+
+    public Label getLabelTempMax() {
+        return labelTempMax;
+    }
+
+    public Label getLabelTempMin() {
+        return labelTempMin;
+    }
+
+    public ImageView getImageViewTempo() {
+        return imageViewTempo;
     }
 
     public void resize() {
@@ -58,10 +83,28 @@ public class VBoxDia extends VBox {
         HBox hBox = new HBox();
         hBox.setAlignment(Pos.CENTER);
 
+        VBox vBoxTemp = new VBox(1);
+        labelTempMax = new Label("--º");
+        labelTempMin = new Label("--º");
+        labelTempMax.setManaged(false);
+        labelTempMin.setManaged(false);
+        vBoxTemp.setAlignment(Pos.TOP_RIGHT);
+        vBoxTemp.getChildren().addAll(labelTempMax, labelTempMin);
+        hBox.getChildren().add(vBoxTemp);
+
+        imageViewTempo = new ImageView();
+        imageViewTempo.setManaged(false);
+        imageViewTempo.setVisible(false);
+        hBox.getChildren().add(imageViewTempo);
+
         if (mostraResize) {
             VBox vBoxPlusMinus = new VBox();
 
-            JFXButton btplus = new JFXButton("+");
+            FontIcon icone = new FontIcon();
+            icone.setIconCode(FontAwesome.PLUS);
+            icone.setIconColor(Color.ALICEBLUE);
+            JFXButton btplus = new JFXButton();
+            btplus.setGraphic(icone);
             btplus.getStyleClass().add("button-raised-bamer-sizecolumn");
             btplus.setOnAction(new EventHandler<ActionEvent>() {
                 @Override
@@ -77,7 +120,11 @@ public class VBoxDia extends VBox {
             });
             vBoxPlusMinus.getChildren().add(btplus);
 
-            JFXButton btminus = new JFXButton("-");
+            icone = new FontIcon();
+            icone.setIconCode(FontAwesome.MINUS);
+            icone.setIconColor(Color.ALICEBLUE);
+            JFXButton btminus = new JFXButton();
+            btminus.setGraphic(icone);
             btminus.getStyleClass().add("button-raised-bamer-sizecolumn");
             btminus.setOnAction(new EventHandler<ActionEvent>() {
                 @Override
@@ -284,13 +331,6 @@ public class VBoxDia extends VBox {
         });
     }
 
-    void setColuna(int coluna) {
-        this.coluna = coluna;
-        textDiaDaSemana.setId("header0" + coluna);
-        textQtd.setId("qtttot" + coluna);
-        textQtdFeita.setId("qttfeita" + coluna);
-    }
-
     public void setDataText(String dataText) {
         textDiaDaSemana.setText(dataText);
     }
@@ -301,5 +341,16 @@ public class VBoxDia extends VBox {
 
     public void setTextoSemana(String textoSemana) {
         textSemana.setText(textoSemana);
+    }
+
+    public int getColuna() {
+        return coluna;
+    }
+
+    void setColuna(int coluna) {
+        this.coluna = coluna;
+        textDiaDaSemana.setId("header0" + coluna);
+        textQtd.setId("qtttot" + coluna);
+        textQtdFeita.setId("qttfeita" + coluna);
     }
 }

@@ -6,6 +6,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import sqlite.PreferenciasEmSQLite;
+import utils.ChronoWeather;
 import utils.Constantes;
 import utils.Singleton;
 import utils.ValoresDefeito;
@@ -30,6 +31,9 @@ public class GridPaneCalendario extends GridPane {
         this.tipoCalendario = tipoCalendariotipoCalendario;
         this.rows = 1;
         construct();
+        if (tipoCalendario == TIPO_TOPO) {
+            new ChronoWeather(this);
+        }
     }
 
     private void construct() {

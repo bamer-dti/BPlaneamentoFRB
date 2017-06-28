@@ -5,6 +5,7 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:id="borderpane" maxHeight="-Infinity" maxWidth="-Infinity"
             prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8"
             fx:controller="bamer.ControllerEcraTabelaSMS">
@@ -18,7 +19,11 @@
     <bottom>
         <HBox alignment="CENTER_RIGHT">
             <children>
-                <Button fx:id="butfechar" mnemonicParsing="false" onAction="#fechar" prefWidth="80.0" text="Sair"/>
+                <Button fx:id="butfechar" mnemonicParsing="false" onAction="#fechar" prefWidth="80.0" text="Sair">
+                    <graphic>
+                        <FontIcon iconLiteral="fa-close" iconSize="16" iconColor="red"/>
+                    </graphic>
+                </Button>
             </children>
             <BorderPane.margin>
                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>

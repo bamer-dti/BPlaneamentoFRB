@@ -30,12 +30,15 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 import objectos.*;
+import org.kordamp.ikonli.fontawesome.FontAwesome;
+import org.kordamp.ikonli.javafx.FontIcon;
 import pojos.*;
 import sqlite.DBSQLite;
 import sqlite.PreferenciasEmSQLite;
@@ -49,10 +52,9 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 public class AppMain extends Application {
+    public static final long INTERVALO_CRONOS = 1;
     private static final String VERSAO = "2.0.9";
-
     public static final String TITULO_APP = "Planeamento " + VERSAO;
-
     private static final String TAG = AppMain.class.getSimpleName();
     private static final String NOME_FICHEIRO_HISTORICO_VERSAO = "history.html";
     private static final int ADICIONAR = 1;
@@ -145,20 +147,21 @@ public class AppMain extends Application {
         calendarioTopo = new GridPaneCalendario(GridPaneCalendario.TIPO_TOPO);
 
         scrollPaneTopo = new ScrollPane(calendarioTopo);
-        scrollPaneTopo.setMinHeight(43);
+        scrollPaneTopo.setMinHeight(50);
         scrollPaneTopo.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPaneTopo.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+        scrollPaneTopo.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
         scrollPaneCalendario = new ScrollPane(calendario);
         scrollPaneCalendario.setFitToWidth(true);
         scrollPaneCalendario.setFitToHeight(true);
+
         scrollPaneCalendario.getStyleClass().add("scroll-bar");
 
         scrollPaneTopo.hvalueProperty().bindBidirectional(scrollPaneCalendario.hvalueProperty());
 
         VBox vBox = new VBox();
         vBox.getChildren().addAll(scrollPaneTopo, scrollPaneCalendario);
-        VBox.setVgrow(scrollPaneCalendario, Priority.ALWAYS);
+//        VBox.setVgrow(scrollPaneCalendario, Priority.ALWAYS);
         borderPane.setCenter(vBox);
 
         MenuBar menuBar = new MenuBar();
@@ -166,6 +169,9 @@ public class AppMain extends Application {
 
         Menu menuSistema = new Menu("Sistema");
         menuSistema.setGraphic(new ImageView(new Image("bamer_16.png")));
+        FontIcon icone = new FontIcon();
+        icone.setIconCode(FontAwesome.SIGN_OUT);
+        icone.setIconColor(Color.BLACK);
         MenuItem menuItemSair = new MenuItem("Sair");
         menuItemSair.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -173,14 +179,27 @@ public class AppMain extends Application {
                 System.exit(0);
             }
         });
-        menuItemSair.setGraphic(new ImageView(new Image("sair_16.png")));
+        menuItemSair.setGraphic(icone);
         menuSistema.getItems().add(menuItemSair);
 
+//        MENU GESTÃO
+        icone = new FontIcon();
+        icone.setIconCode(FontAwesome.COG);
+        icone.setIconColor(Color.BLACK);
         Menu menuGestao = new Menu("Gestão");
+        menuGestao.setGraphic(icone);
+
+        icone = new FontIcon();
+        icone.setIconCode(FontAwesome.ENVELOPE_O);
+        icone.setIconColor(Color.BLACK);
         Menu suBMenuItemSMS = new Menu("SMS");
-        suBMenuItemSMS.setGraphic(new ImageView(new Image("sms_16.png")));
+        suBMenuItemSMS.setGraphic(icone);
+
+        icone = new FontIcon();
+        icone.setIconCode(FontAwesome.COMMENTING_O);
+        icone.setIconColor(Color.BLACK);
         MenuItem subMenuSMS_Enviar = new MenuItem("novo SMS");
-        subMenuSMS_Enviar.setGraphic(new ImageView(new Image("enviarsms_16.png")));
+        subMenuSMS_Enviar.setGraphic(icone);
         subMenuSMS_Enviar.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -195,8 +214,12 @@ public class AppMain extends Application {
         suBMenuItemSMS.getItems().addAll(subMenuSMS_Enviar);
         menuGestao.getItems().addAll(suBMenuItemSMS);
 
+//        MENU HELP
+        icone = new FontIcon();
+        icone.setIconCode(FontAwesome.QUESTION_CIRCLE);
+        icone.setIconColor(Color.BLACK);
         Menu menuAjuda = new Menu("Ajuda");
-        menuAjuda.setGraphic(new ImageView(new Image("help_16.png")));
+        menuAjuda.setGraphic(icone);
         MenuItem menuItemHistorico = new MenuItem("Histórico de versões");
         menuItemHistorico.setGraphic(new ImageView(new Image("version_histori_16.png")));
         menuItemHistorico.setOnAction(new EventHandler<ActionEvent>() {
@@ -220,8 +243,12 @@ public class AppMain extends Application {
         labelCols = new Label("0");
         updateLabelCols();
 
-        but_menos = new JFXButton("-");
+        icone = new FontIcon();
+        icone.setIconCode(FontAwesome.MINUS_SQUARE);
+        icone.setIconColor(Color.ALICEBLUE);
+        but_menos = new JFXButton();
         but_menos.getStyleClass().add("button-mais-menos-colunas");
+        but_menos.setGraphic(icone);
         but_menos.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -239,7 +266,11 @@ public class AppMain extends Application {
         HBox.setMargin(but_menos, new Insets(10f, 10f, 10f, 10f));
         hboxBarraFerramentas.getChildren().add(but_menos);
 
-        but_mais = new JFXButton("+");
+        icone = new FontIcon();
+        icone.setIconColor(Color.ALICEBLUE);
+        icone.setIconCode(FontAwesome.PLUS_SQUARE);
+        but_mais = new JFXButton();
+        but_mais.setGraphic(icone);
         but_mais.getStyleClass().add("button-mais-menos-colunas");
         but_mais.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -280,8 +311,11 @@ public class AppMain extends Application {
         hboxBarraFerramentas.getChildren().add(labelCols);
 
         //BOTÃO POR AGENDAR (ESTADO 00)
+        icone = new FontIcon();
+        icone.setIconCode(FontAwesome.CALENDAR_O);
+        icone.setIconColor(Color.ALICEBLUE);
         but_porPlanear = new JFXButton("por planear (0)");
-        but_porPlanear.setGraphic(new ImageView(new Image("planear_16.png")));
+        but_porPlanear.setGraphic(icone);
         but_porPlanear.getStyleClass().add("button-raised-bamer-aprovados");
         but_porPlanear.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -296,8 +330,12 @@ public class AppMain extends Application {
         hboxBarraFerramentas.getChildren().add(but_porPlanear);
 
         //BOTÂO ATRASADOS
+        icone = new FontIcon();
+        icone.setIconCode(FontAwesome.CLOCK_O);
+        icone.setIconColor(Color.ALICEBLUE);
+        icone.setIconSize(16);
         but_atrasados = new JFXButton("atrasos");
-        but_atrasados.setGraphic(new ImageView(new Image("delayed_16.png")));
+        but_atrasados.setGraphic(icone);
         but_atrasados.getStyleClass().add("button-raised-bamer-aprovados");
         but_atrasados.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -363,6 +401,7 @@ public class AppMain extends Application {
         mainStage.getIcons().add(Funcoes.iconeBamer());
         mainStage.setTitle(TITULO_APP);
         mainStage.show();
+//        ScenicView.show(scenePrincipal);
 
         mainStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
@@ -386,6 +425,7 @@ public class AppMain extends Application {
         configurarStageAtrasados();
 
         configurarStagePorPlanear();
+
     }
 
     public void abrirFicheiroVersionTXT() throws IOException {
@@ -1143,7 +1183,7 @@ public class AppMain extends Application {
         stagePorPlanear = new Stage();
         stagePorPlanear.setScene(scene);
         stagePorPlanear.getIcons().add(Funcoes.iconeBamer());
-        stagePorPlanear.setTitle("paraLabel planear");
+        stagePorPlanear.setTitle("por planear");
     }
 
     private void setColunas() {
@@ -1151,6 +1191,18 @@ public class AppMain extends Application {
         calendario = new GridPaneCalendario(GridPaneCalendario.TIPO_GRELHA);
         scrollPaneCalendario.setContent(calendario);
 
+        if (calendarioTopo != null) {
+            ObservableList<Node> childs = calendarioTopo.getChildren();
+            for (Node node : childs) {
+                if (node instanceof VBoxDia) {
+                    VBoxDia vboxdia = (VBoxDia) node;
+                    if (vboxdia.chronoWeather != null) {
+                        vboxdia.chronoWeather.cancel();
+                        vboxdia.chronoWeather.purge();
+                    }
+                }
+            }
+        }
         calendarioTopo = new GridPaneCalendario(GridPaneCalendario.TIPO_TOPO);
         scrollPaneTopo.setContent(calendarioTopo);
 
@@ -1254,5 +1306,9 @@ public class AppMain extends Application {
 
     public Image getImageOff() {
         return imageOff;
+    }
+
+    public GridPaneCalendario getCalendarioTopo() {
+        return calendarioTopo;
     }
 }
