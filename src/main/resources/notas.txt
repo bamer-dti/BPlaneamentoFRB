@@ -2,4 +2,4 @@
 . Serão utilizados todos os estados a partir de 01 – CORTE (inclusive)
 . A Data Fim de Transformação (DFT) em 110 – Ordem de Serviço – separador Outros Dados passará a ser utilizada para o estado de planeamento da operação. Se estiver em 01.01.1900 significa que está por planear.
 . Ao alterar o estado para um outro, a DFT passará para 01.01.1900 automaticamente (atenção a este ponto!)
-. Ao fechar um dossier, cessará qualquer planeamento da OS. Se reabrir, ficará no estado e DFT que estiver na OS
+. Ao fechar o dossier, cessará qualquer planeamento da OS. Se reabrir, ficará no estado e DFT que estiver na OS
