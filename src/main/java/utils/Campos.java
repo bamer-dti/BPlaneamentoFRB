@@ -37,7 +37,7 @@ public class Campos {
     public static final String KEY_OSTIMER = "ostimer";
     public static final String KEY_SECCAO = "seccao";
     public static final String KEY_ESTADO = "estados";
-    public static final String KEY_NOTAS = "notas";
+    public static final String KEY_NOTAS = "notas.txt";
     public static final String KEY_VERSIONS = "versions";
 
     public static final String UNIXTIME = "unixtime";

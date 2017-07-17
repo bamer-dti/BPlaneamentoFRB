@@ -630,7 +630,7 @@ public class VBoxOSBO extends VBox {
         contextMenu = new ContextMenu();
 
         Menu menuAccoes = new Menu("tools");
-        MenuItem itemNota = new MenuItem("notas");
+        MenuItem itemNota = new MenuItem("notas.txt");
         itemNota.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
