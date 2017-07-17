@@ -133,6 +133,19 @@
     -fx-background-color: #B3E5FC;
 }
 
+.combo_estado{
+    -fx-padding: top right bottom left;
+    -fx-padding: 6, 0, 0, 0;
+    -fx-font-size: 14px;
+    -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.4) , 5, 0.0 , 0 , 1 );
+    -fx-background-color: #339933;
+    -fx-pref-width: 200;
+    -fx-text-fill: WHITE;
+}
+.combo_estado:hover{
+    -fx-background-color: #53c653;
+}
+
 .scroll-bar{
  -fx-background-color: rgb(96,96,96);
  -fx-background-radius: 2em;

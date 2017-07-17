@@ -26,7 +26,10 @@ import org.kordamp.ikonli.javafx.FontIcon;
 import pojos.ArtigoLinhaPlanOUAtraso;
 import pojos.ArtigoOSBO;
 import sqlite.PreferenciasEmSQLite;
-import utils.*;
+import utils.Constantes;
+import utils.Funcoes;
+import utils.Singleton;
+import utils.ValoresDefeito;
 import webservices.WSWorker;
 
 import java.time.LocalDate;
@@ -293,7 +296,7 @@ public class VBoxDia extends VBox {
                         int ordemNova = 999;
                         String bostamp = artigoOSBOemDRAG.getBostamp();
                         String seccao = artigoOSBOemDRAG.getSeccao();
-                        String estado = Campos.ESTADO_01_CORTE;
+                        String estado = Constantes.ESTADO_01_CORTE;
                         LocalDate u_dtcortef = Singleton.getInstancia().dataInicioAgenda.plusDays(coluna);
                         LocalDate u_dttransf = u_dtcortef.plusDays(1);
                         try {
@@ -319,7 +322,7 @@ public class VBoxDia extends VBox {
                     LocalDate u_dtcortef = dataDeCorte;
                     LocalDate u_dttransf = dataDeCorte.plusDays(1);
                     String seccao = artigoLinhaPlanOUAtraso.getSeccao();
-                    String estado = Campos.ESTADO_01_CORTE;
+                    String estado = Constantes.ESTADO_01_CORTE;
                     try {
                         WSWorker.actualizarOrdem(bostamp, ordemNova, Funcoes.dToC(u_dtcortef, "yyyyMMdd"), Funcoes.dToC(u_dttransf, "yyyyMMdd"), seccao, estado);
                     } catch (ExecutionException | InterruptedException e) {

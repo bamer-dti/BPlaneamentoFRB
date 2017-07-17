@@ -5,6 +5,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
+import utils.Constantes;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -33,10 +34,11 @@ public class ControllerEditar implements Initializable {
 
         combo_estado.getItems().clear();
 
+        //todo alimentar os estados com firebase
         combo_estado.getItems().addAll(
                 "00 - APROV.",
                 "00 - PLANEAMENTO",
-                "01 - CORTE",
+                Constantes.ESTADO_01_CORTE,
                 "02 - TRANSFORMAÇÃO",
                 "021 - ORLAGEM",
                 "03 - LACAGEM",

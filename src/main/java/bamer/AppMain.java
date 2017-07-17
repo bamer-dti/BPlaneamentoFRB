@@ -64,6 +64,7 @@ public class AppMain extends Application {
     public BorderPane borderPaneAtrasados;
     public BorderPane borderPanePorPlanear;
     private String seccao;
+    private String estado;
     private Label labelCols;
     private GridPaneCalendario calendario;
     private Stage stagePorPlanear;
@@ -71,6 +72,7 @@ public class AppMain extends Application {
     private GridPaneCalendario calendarioTopo;
     private ScrollPane scrollPaneTopo;
     private ComboBox<String> comboSeccao;
+    private ComboBox<String> comboEstado;
     private Stage taskUpdateStage;
     private Stage stageAtrasados;
     private JFXButton but_atrasados;
@@ -373,7 +375,30 @@ public class AppMain extends Application {
             }
         });
         comboSeccao.setVisible(false);
+        HBox.setMargin(comboSeccao, new Insets(10f, 10f, 10f, 10f));
         hboxBarraFerramentas.getChildren().add(comboSeccao);
+
+        estado = prefs.get(Constantes.PREF_ESTADO, Constantes.ESTADO_01_CORTE);
+        comboEstado = new ComboBox<>();
+        comboEstado.getStyleClass().add("combo_estado");
+        comboEstado.getSelectionModel().select(estado);
+        comboEstado.valueProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                if (oldValue.equals(newValue)) {
+                    return;
+                }
+                estado = newValue;
+                PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
+                prefs.put(Constantes.PREF_ESTADO, newValue);
+                setColunas();
+//                actualizarTextoColunasZero();
+                actualizarMostradorMaquinas();
+            }
+        });
+        comboEstado.setVisible(false);
+        HBox.setMargin(comboEstado, new Insets(10f, 10f, 10f, 10f));
+        hboxBarraFerramentas.getChildren().add(comboEstado);
 
         Region region = new Region();
         HBox.setHgrow(region, Priority.ALWAYS);
@@ -512,6 +537,7 @@ public class AppMain extends Application {
         but_mais.setVisible(isVisivel);
         labelCols.setVisible(isVisivel);
         comboSeccao.setVisible(isVisivel);
+        comboEstado.setVisible(isVisivel);
     }
 
     private void iniciarFirebase() {
@@ -609,6 +635,7 @@ public class AppMain extends Application {
             refDataFireBase.addChildEventListener(listenerFirebaseOSTIMER);
 
         }
+
         //ALIMENTAR COMBO SECÇÃO
         FirebaseDatabase.getInstance().getReference(Campos.KEY_SECCAO).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -629,8 +656,30 @@ public class AppMain extends Application {
 
             }
         });
+
+        //ALIMENTAR COMBO ESTADO
+        FirebaseDatabase.getInstance().getReference(Campos.KEY_ESTADO).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot d : dataSnapshot.getChildren()) {
+                    comboEstado.getItems().add(d.getValue(Estado.class).getTitulo());
+                }
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        colocarObjectosVisiveis(true);
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
+    //        todo filtrar listener por estado (lista geral)
     private void configurarListenersOSBO() {
         listenerFirebaseOSBO = new ChildEventListener() {
             @Override
