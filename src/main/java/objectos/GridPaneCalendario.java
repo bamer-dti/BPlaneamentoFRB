@@ -6,7 +6,6 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import sqlite.PreferenciasEmSQLite;
-import utils.ChronoWeather;
 import utils.Constantes;
 import utils.Singleton;
 import utils.ValoresDefeito;
@@ -30,18 +29,18 @@ public class GridPaneCalendario extends GridPane {
     public GridPaneCalendario(int tipoCalendariotipoCalendario) {
         this.tipoCalendario = tipoCalendariotipoCalendario;
         this.rows = 1;
-        construct();
-        if (tipoCalendario == TIPO_TOPO) {
-            new ChronoWeather(this);
-        }
+        definir();
+//        if (tipoCalendario == TIPO_TOPO) {
+//            new ChronoWeather(this);
+//        }
     }
 
-    private void construct() {
+    private void definir() {
         this.setPadding(new Insets(0, 0, 0, 0));
         this.getStyleClass().add("game-grid");
 
         PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
-        int colunas = prefs.getInt(Constantes.PREF_AGENDA_NUMCOLS, ValoresDefeito.AGENDA_NUMCOLS);
+        int colunas = prefs.getInt(Constantes.Preferencias.PREF_AGENDA_NUMCOLS, ValoresDefeito.AGENDA_NUMCOLS);
         LocalDate data = LocalDate.now().minusDays(1);
         Singleton.getInstancia().dataInicioAgenda = data;
 

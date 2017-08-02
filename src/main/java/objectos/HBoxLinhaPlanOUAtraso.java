@@ -18,6 +18,7 @@ import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import pojos.ArtigoLinhaPlanOUAtraso;
 import utils.Funcoes;
+import utils.Procedimentos;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,31 +26,33 @@ import java.util.Map;
 public class HBoxLinhaPlanOUAtraso extends HBox {
     public static final int TIPO_PORPLANEAR = 1;
     public static final int TIPO_ATRASADO = 2;
-    private final int tipo;
-    private final String dtcliente;
-    private final int obrano;
-    private final String bostamp;
-    private final String dtexpedi;
-    private final String fref;
-    private final String nmfref;
-    private final String obs;
-    private final ArtigoLinhaPlanOUAtraso artigoLinhaPlanOUAtraso;
+    private int tipo;
+    private String dtcliente;
+    private int obrano;
+    private String bostamp;
+    private String dtexpedi;
+    private String fref;
+    private String nmfref;
+    private String obs;
+    private ArtigoLinhaPlanOUAtraso artigoLinhaPlanOUAtraso;
+    private String estado;
     private String seccao;
-    private HBoxLinhaPlanOUAtraso contexto = this;
+    private HBoxLinhaPlanOUAtraso hBoxLinhaPlanOUAtraso = this;
     private int linha;
 
     public HBoxLinhaPlanOUAtraso(ArtigoLinhaPlanOUAtraso artigo, int linha, int tipoRegisto) {
         this.artigoLinhaPlanOUAtraso = artigo;
         this.seccao = artigo.getSeccao();
-        this.dtcliente = artigo.getDt1();
+        this.dtcliente = artigo.getDtcli();
         this.obrano = artigo.getObrano();
         this.bostamp = artigo.getBostamp();
-        this.dtexpedi = artigo.getDt2();
+        this.dtexpedi = artigo.getDtexp();
         this.fref = artigo.getFref();
         this.nmfref = artigo.getNmfref();
         this.obs = artigo.getObs();
         this.linha = linha;
         this.tipo = tipoRegisto;
+        this.estado = artigoLinhaPlanOUAtraso.getEstado();
 
         try {
             criarObjectos();
@@ -62,10 +65,12 @@ public class HBoxLinhaPlanOUAtraso extends HBox {
     private void criarObjectos() {
         int qtt = artigoLinhaPlanOUAtraso.getQtt();
         {
-            Label labelSeccao = new Label(seccao);
+            Label labelSeccao = new Label(seccao + "\n(" + estado + ")");
             labelSeccao.setWrapText(true);
             setMargin(labelSeccao, new Insets(2, 2, 2, 2));
-            labelSeccao.setPrefWidth(100);
+            labelSeccao.setPrefWidth(130);
+            Font font = labelSeccao.getFont();
+            labelSeccao.setFont(new Font(11));
             this.getChildren().add(labelSeccao);
 
             Label labelOS = new Label("OS " + obrano);
@@ -97,7 +102,7 @@ public class HBoxLinhaPlanOUAtraso extends HBox {
             }
 
             VBox vboxFref = new VBox();
-            vboxFref.setPrefWidth(300);
+            vboxFref.setPrefWidth(270);
             setMargin(vboxFref, new Insets(2, 2, 2, 20));
 
             Label labelFref = new Label(fref + " - " + nmfref);
@@ -114,11 +119,11 @@ public class HBoxLinhaPlanOUAtraso extends HBox {
             VBox vBoxQtt = new VBox();
             setMargin(vBoxQtt, new Insets(2, 2, 2, 20));
             Label labelQtt = new Label("" + qtt);
-            labelQtt.setWrapText(true);
+            labelQtt.setWrapText(false);
             Font fontBase = labelQtt.getFont();
             labelQtt.setFont(Font.font(fontBase.getFamily(), FontWeight.BOLD, FontPosture.REGULAR, 16f));
             labelQtt.setStyle("-fx-text-fill: blue; -fx-background-insets: 0, 1 1 1 0 ;");
-            vBoxQtt.setAlignment(Pos.CENTER);
+            vBoxQtt.setAlignment(Pos.CENTER_RIGHT);
 //        setMargin(labelFref, new Insets(2, 2, 2, 20));
             vBoxQtt.getChildren().add(labelQtt);
 
@@ -130,22 +135,22 @@ public class HBoxLinhaPlanOUAtraso extends HBox {
         setOnDragDetected(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
-                String seccaoPref = AppMain.getInstancia().getComboSeccao().getValue().toString();
-                if (seccao.equals(seccaoPref)) {
+                String seccaoEscolhida = AppMain.getInstancia().getComboSeccao().getValue().toString();
+                if (seccao.equals(seccaoEscolhida)) {
                     Dragboard dragboard = startDragAndDrop(TransferMode.MOVE);
                     Map<DataFormat, Object> map = new HashMap<>();
-                    map.put(DataFormat.RTF, contexto);
+                    map.put(DataFormat.RTF, hBoxLinhaPlanOUAtraso);
                     dragboard.setContent(map);
                     setStyle("-fx-background-color: orange; -fx-background-insets: 0, 1 1 1 0 ;");
-                    Rectangle rect = new Rectangle(200, contexto.getHeight());
+                    Rectangle rect = new Rectangle(200, hBoxLinhaPlanOUAtraso.getHeight());
                     rect.setFill(Color.GAINSBORO);
                     Image image = rect.snapshot(null, null);
-                    double x = contexto.getTranslateX();
-                    double y = contexto.getTranslateY();
+                    double x = hBoxLinhaPlanOUAtraso.getTranslateX();
+                    double y = hBoxLinhaPlanOUAtraso.getTranslateY();
                     dragboard.setDragView(image, x, y);
                     event.consume();
                 } else {
-                    Funcoes.alerta("Não pertence ao mesmo sector","", Alert.AlertType.WARNING);
+                    Procedimentos.alerta("Não pertence ao mesmo sector", "", Alert.AlertType.WARNING);
                 }
             }
         });
@@ -159,11 +164,16 @@ public class HBoxLinhaPlanOUAtraso extends HBox {
                     setStyle("-fx-background-color: rgb(220,220,220); -fx-background-insets: 0, 1 1 1 0 ;");
                 }
                 event.consume();
+
             }
         });
     }
 
     public ArtigoLinhaPlanOUAtraso getArtigoLinhaPlanOUAtraso() {
         return artigoLinhaPlanOUAtraso;
+    }
+
+    public int getTipo() {
+        return tipo;
     }
 }

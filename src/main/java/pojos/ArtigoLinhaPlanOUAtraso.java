@@ -2,14 +2,15 @@ package pojos;
 
 
 public class ArtigoLinhaPlanOUAtraso {
+    private String estado;
     private String bostamp;
     private int obrano;
     private String fref;
     private String nmfref;
     private String seccao;
     private String obs;
-    private String dt1; //Data de cliente
-    private String dt2; //Data de Expedição (planeamento) ou Data de Corte (atrasos)
+    private String dtexp; //Data de cliente
+    private String dtcli; //Data de Expedição (planeamento) ou Data de Corte (atrasos)
     private String dtcliente;
     private String dtexpedi;
     private int qtt;
@@ -18,16 +19,17 @@ public class ArtigoLinhaPlanOUAtraso {
 
     }
 
-    public ArtigoLinhaPlanOUAtraso(String bostamp, int obrano, String fref, String nmfref, String seccao, String obs, String dt1, String dt2, int qtt) {
+    public ArtigoLinhaPlanOUAtraso(String bostamp, int obrano, String fref, String nmfref, String seccao, String obs, String dtexp, String dtcli, int qtt, String estado) {
         this.bostamp = bostamp;
         this.obrano = obrano;
         this.fref = fref;
         this.nmfref = nmfref;
         this.seccao = seccao;
         this.obs = obs;
-        this.dt1 = dt1;
-        this.dt2 = dt2;
+        this.dtexp = dtexp;
+        this.dtcli = dtcli;
         this.qtt = qtt;
+        this.estado = estado;
     }
 
     public String getDtcliente() {
@@ -35,7 +37,7 @@ public class ArtigoLinhaPlanOUAtraso {
     }
 
     public void setDtcliente(String dtcliente) {
-        this.dt1 = dtcliente;
+        this.dtexp = dtcliente;
         this.dtcliente = dtcliente;
     }
 
@@ -44,7 +46,7 @@ public class ArtigoLinhaPlanOUAtraso {
     }
 
     public void setDtexpedi(String dtexpedi) {
-        this.dt2 = dtexpedi;
+        this.dtcli = dtexpedi;
         this.dtexpedi = dtexpedi;
     }
 
@@ -53,8 +55,8 @@ public class ArtigoLinhaPlanOUAtraso {
         return "bostamp: " + bostamp + ", obrano: " + obrano + ", fref: " + fref
                 + ", nmfref: " + nmfref + ", qtt: " + qtt + ", seccao: " + seccao
                 + ", obs: " + obs
-                + ", dt1: " + dt1
-                + ", dt2: " + dt2
+                + ", dtexp: " + dtexp
+                + ", dtcli: " + dtcli
                 ;
     }
 
@@ -106,21 +108,21 @@ public class ArtigoLinhaPlanOUAtraso {
         this.obs = obs;
     }
 
-    public String getDt1() {
-        return dt1;
+    public String getDtexp() {
+        return dtexp;
     }
 
-    public void setDt1(String dataTxt) {
-        this.dt1 = dataTxt;
+    public void setDtexp(String dataTxt) {
+        this.dtexp = dataTxt;
         this.dtcliente = dataTxt;
     }
 
-    public String getDt2() {
-        return dt2;
+    public String getDtcli() {
+        return dtcli;
     }
 
-    public void setDt2(String dataTxt) {
-        this.dt2 = dataTxt;
+    public void setDtcli(String dataTxt) {
+        this.dtcli = dataTxt;
         this.dtexpedi = dataTxt;
     }
 
@@ -130,5 +132,19 @@ public class ArtigoLinhaPlanOUAtraso {
 
     public void setQtt(int qtt) {
         this.qtt = qtt;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+    public ArtigoOSBO transformar_Em_OSBO(int ordem, String data) {
+        System.out.println("transformar_Em_OSBO: " + data);
+        ArtigoOSBO ar = new ArtigoOSBO(bostamp, obrano, fref, nmfref, estado, seccao, obs, 1, data, data, data, data, ordem, data, qtt, data, 0);
+        return ar;
     }
 }

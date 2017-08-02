@@ -21,7 +21,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.text.Font;
 import pojos.TokenMachina;
-import utils.Funcoes;
+import utils.Procedimentos;
 
 import java.io.IOException;
 
@@ -188,7 +188,7 @@ public class GridButtonMachina extends GridPane {
             new EnviarSMS(tipoSMS, this);
         } catch (IOException e) {
             e.printStackTrace();
-            Funcoes.alertaException(e);
+            Procedimentos.alertaException(e);
         }
     }
 
@@ -201,7 +201,7 @@ public class GridButtonMachina extends GridPane {
                 funcaoProp.set(newValue.getFuncao());
                 nomeProp.set(newValue.getNome());
                 ordemProp.set(newValue.getOrdem());
-                Funcoes.colocarEstilo(context, "machine_off");
+                Procedimentos.colocarEstilo(context, "machine_off");
             }
         });
 
@@ -227,9 +227,9 @@ public class GridButtonMachina extends GridPane {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 if (newValue) {
-                    Funcoes.colocarEstilo(context, "machine_on");
+                    Procedimentos.colocarEstilo(context, "machine_on");
                 } else {
-                    Funcoes.colocarEstilo(context, "machine_off");
+                    Procedimentos.colocarEstilo(context, "machine_off");
                 }
             }
         });

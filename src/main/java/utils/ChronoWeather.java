@@ -138,7 +138,7 @@ public class ChronoWeather {
             if (tempoRemanescente <= 0) {
                 DateTime dateTime = new DateTime();
                 DateTime futuro = dateTime.plusSeconds(Math.toIntExact(rotacao));
-                System.out.println(Funcoes.currentTimeStringStamp(Funcoes.FORMATO_h_m_s) + ": " + "; próxima: " + Funcoes.dToC(futuro, "HH:mm:ss"));
+//                System.out.println(Funcoes.currentTimeStringStamp(Funcoes.FORMATO_h_m_s) + ": " + "; próxima: " + Funcoes.dToC(futuro, "HH:mm:ss"));
 
                 DatabaseReference ref = FirebaseDatabase.getInstance().getReference("weather").child("wunderground").child("actual");
                 ref.addListenerForSingleValueEvent(new ValueEventListener() {

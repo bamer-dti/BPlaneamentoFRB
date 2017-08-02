@@ -1,7 +1,12 @@
 package pojos;
 
 
+import org.json.JSONObject;
+import utils.Campos;
+import utils.Funcoes;
+
 public class ArtigoOSBO {
+    private long unixtime;
     private String bostamp;
     private int obrano;
     private String fref;
@@ -17,6 +22,8 @@ public class ArtigoOSBO {
     private int ordem;
     private String dtcliente;
     private int pecas;
+    private int pecasprodz;
+    private String dtoper;
 
     @SuppressWarnings("unused")
     public ArtigoOSBO() {
@@ -24,9 +31,9 @@ public class ArtigoOSBO {
     }
 
     public ArtigoOSBO(String bostamp, int obrano, String fref, String nmfref, String estado, String seccao
-            , String obs, int cor, String dttransf, String dtembala, String dtexpedi, String dtcortef, int ordem, String dtcliente, int pecas) {
+            , String obs, int cor, String dttransf, String dtembala, String dtexpedi, String dtcortef, int ordem, String dtcliente, int pecas, String dtoper, int pecasprodz) {
         this.bostamp = bostamp;
-        this.obrano  = obrano;
+        this.obrano = obrano;
         this.fref = fref;
         this.nmfref = nmfref;
         this.estado = estado;
@@ -40,10 +47,27 @@ public class ArtigoOSBO {
         this.ordem = ordem;
         this.dtcliente = dtcliente;
         this.pecas = pecas;
+        this.pecasprodz = pecasprodz;
+        this.dtoper = dtoper;
     }
 
-    public ArtigoOSBO(String bostamp) {
+    public ArtigoOSBO(String bostamp, String estado, int cor, int ordem, String dtoper, long unixtime) {
         this.bostamp = bostamp;
+        this.estado = estado;
+        this.cor = cor;
+        this.ordem = ordem;
+        this.dtoper = dtoper;
+        this.unixtime = unixtime;
+    }
+
+    public JSONObject toJSON() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put(Campos.BOSTAMP, bostamp);
+        jsonObject.put(Campos.ESTADO, estado);
+        jsonObject.put(Campos.COR, cor);
+        jsonObject.put(Campos.ORDEM, ordem);
+        jsonObject.put(Campos.DTOPER, Funcoes.cToSQL(dtoper));
+        return jsonObject;
     }
 
     @Override
@@ -52,7 +76,7 @@ public class ArtigoOSBO {
                 + ", nmfref: " + nmfref + ", estado: " + estado + ", seccao: " + seccao
                 + ", obs: " + obs + ", cor: " + cor + ", dttransf: " + dttransf
                 + ", dtembala: " + dtembala + ", dtexpedi: " + dtexpedi + ", dtcortef: " + dtcortef
-                + ", ordem: " + ordem + ", dtcliente: " + dtcliente + ", pecas: " + pecas
+                + ", ordem: " + ordem + ", dtcliente: " + dtcliente + ", pecas: " + pecas + ", pecasprodz: " + pecasprodz
                 ;
     }
 
@@ -123,4 +147,33 @@ public class ArtigoOSBO {
     public int getPecas() {
         return pecas;
     }
+
+    public String getDtoper() {
+        return dtoper;
+    }
+
+    public void setDtoper(String dtoper) {
+        this.dtoper = dtoper;
+    }
+
+    public int getPecasprodz() {
+        return pecasprodz;
+    }
+
+    public void setPecasprodz(int pecasprodz) {
+        this.pecasprodz = pecasprodz;
+    }
+
+    public void setOrdem(int ordem) {
+        this.ordem = ordem;
+    }
+
+    public void setDtcortef(String dtcortef) {
+        this.dtcortef = dtcortef;
+    }
+
+    public long getUnixtime() {
+        return unixtime;
+    }
 }
+

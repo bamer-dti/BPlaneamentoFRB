@@ -21,7 +21,7 @@ import static utils.Constantes.SMS_OPERADOR;
  */
 public class EnviarSMS {
     public EnviarSMS(int tipoSMS, Node nodeOrigem) throws IOException {
-        URL location = ClassLoader.getSystemResource("enviarSMS.fxml");
+        URL location = ClassLoader.getSystemResource("fxml/enviarSMS.fxml");
         FXMLLoader loader = new FXMLLoader(location);
         Parent root = loader.load();
         Stage stageEnviarSMS = new Stage();

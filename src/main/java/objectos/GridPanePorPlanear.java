@@ -18,20 +18,18 @@ public class GridPanePorPlanear extends GridPane {
         construct();
     }
 
-    public static void actualizarLista() {
-        ArrayList<ArtigoLinhaPlanOUAtraso> lista = new DBSQLite().getListaOSBOPLAN(AppMain.getInstancia().getTextFieldFiltroPorPlanear().getText());
+    public static void actualizar(String seccao, String estado, boolean apenas_mostrador) {
+        ArrayList<ArtigoLinhaPlanOUAtraso> lista = new DBSQLite().get_Lista_OS_Por_Planear(AppMain.getInstancia().getTextFieldFiltroPorPlanear().getText(), seccao, estado);
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                AppMain.getInstancia().getBut_porPlanear().setText("por planear (" + new DBSQLite().getCountOSBOPLAN() + ")");
+                AppMain.getInstancia().getBut_porPlanear().setText("por planear (" + lista.size() + ")");
             }
         });
-
-//        if (gridPanePorPlanear == null) {
-            gridPanePorPlanear = new GridPanePorPlanear();
-//        } else {
-//            gridPanePorPlanear.getChildren().removeAll(gridPanePorPlanear.getChildren());
-//        }
+        if (apenas_mostrador) {
+            return;
+        }
+        gridPanePorPlanear = new GridPanePorPlanear();
         Label labelTotRecs = AppMain.getInstancia().getLabelTotRecsPorPlanear();
         Platform.runLater(new Runnable() {
             @Override
@@ -40,14 +38,12 @@ public class GridPanePorPlanear extends GridPane {
             }
         });
 
-
         int linha = 0;
         for (ArtigoLinhaPlanOUAtraso artigoLinhaPlanOUAtraso : lista) {
-            String seccao = artigoLinhaPlanOUAtraso.getSeccao();
             int obrano = artigoLinhaPlanOUAtraso.getObrano();
-            String dtCliente =  artigoLinhaPlanOUAtraso.getDt1();
+            String dtCliente = artigoLinhaPlanOUAtraso.getDtexp();
             String bostamp = artigoLinhaPlanOUAtraso.getBostamp();
-            String dtexpedi = artigoLinhaPlanOUAtraso.getDt2();
+            String dtexpedi = artigoLinhaPlanOUAtraso.getDtcli();
             String fref = artigoLinhaPlanOUAtraso.getFref();
             String nmfref = artigoLinhaPlanOUAtraso.getNmfref();
             String obs = artigoLinhaPlanOUAtraso.getObs();
@@ -79,7 +75,6 @@ public class GridPanePorPlanear extends GridPane {
                 AppMain.getInstancia().borderPanePorPlanear.setCenter(scrollPane);
             }
         });
-
     }
 
     private void construct() {

@@ -2,9 +2,12 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Planeamento FRB"
-#define MyAppVersion "2.0.8"
+#define MyAppVersion "3.0.2"
 #define MyAppPublisher "DTI Bamer"
 #define MyAppExeName "planeamentofrb.exe"
+
+; não esquecer de ASSINAR:
+; "C:\Program Files (x86)\Microsoft SDKs\ClickOnce\SignTool\signtool.exe"  sign /f "f:\openssl\certificado.pfx" /p 123456 "c:\temp\apps\SetupPlaneamentoFRB.exe"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -23,7 +26,7 @@ DefaultGroupName="Bamer"
 AllowNoIcons=yes
 OutputDir=C:\temp\Apps\
 OutputBaseFilename=SetupPlaneamentoFRB
-SetupIconFile=C:\javaFX\Projectos\BamerExp\build\distributions\BamerExped\BamerExped.ico
+SetupIconFile=C:\javaFX\Projectos\bamer.ico
 Compression=lzma
 SolidCompression=yes
 

@@ -18,7 +18,7 @@ import java.util.ArrayList;
  */
 public class GridListaSMS {
     public GridListaSMS(Machina machina, boolean lida, ArrayList<SMS> lista) throws IOException {
-        URL location = ClassLoader.getSystemResource("ecraSMS.fxml");
+        URL location = ClassLoader.getSystemResource("fxml/ecraSMS.fxml");
         FXMLLoader loader = new FXMLLoader(location);
         Parent root = loader.load();
         Stage stage = new Stage();

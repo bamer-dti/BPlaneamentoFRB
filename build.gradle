@@ -35,7 +35,7 @@ dependencies {
 
     compile 'org.apache.poi:poi-ooxml:3.15-beta1'
 
-    compile 'com.google.firebase:firebase-server-sdk:3.0.1'
+//    compile 'com.google.firebase:firebase-server-sdk:3.0.3'
 
     compile 'com.mashape.unirest:unirest-java:1.4.9'
     compile 'org.apache.httpcomponents:httpclient:4.5.2'
@@ -45,6 +45,14 @@ dependencies {
 
     compile 'org.kordamp.ikonli:ikonli-javafx:1.9.0'
     compile 'org.kordamp.ikonli:ikonli-fontawesome-pack:1.9.0'
+
+    // https://mvnrepository.com/artifact/com.google.firebase/firebase-server-sdk
+    compile group: 'com.google.firebase', name: 'firebase-server-sdk', version: '3.0.3'
+
+    // https://mvnrepository.com/artifact/commons-io/commons-io
+    compile group: 'commons-io', name: 'commons-io', version: '2.5'
+
+
 }
 
 apply from: "http://dl.bintray.com/content/shemnon/javafx-gradle/8.1.1/javafx.plugin"
@@ -60,7 +68,7 @@ javafx {
     appID 'Planeamento Firebase'
     appName 'PlaneamentoFRB'
     //noinspection GroovyAssignabilityCheck
-    version '2.0.9'
+    version '3.0'
 
     // Main class of application
     mainClass 'bamer.AppMain'

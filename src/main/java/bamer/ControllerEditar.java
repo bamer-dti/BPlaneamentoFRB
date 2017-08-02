@@ -5,7 +5,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
-import utils.Constantes;
+import utils.Singleton;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -24,6 +24,7 @@ public class ControllerEditar implements Initializable {
     public Button btgravar;
     public DatePicker dtcortef;
     public ComboBox combo_estado;
+    public DatePicker dtoper;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -31,20 +32,8 @@ public class ControllerEditar implements Initializable {
     }
 
     public void setData(String estado) {
-
         combo_estado.getItems().clear();
-
-        //todo alimentar os estados com firebase
-        combo_estado.getItems().addAll(
-                "00 - APROV.",
-                "00 - PLANEAMENTO",
-                Constantes.ESTADO_01_CORTE,
-                "02 - TRANSFORMAÇÃO",
-                "021 - ORLAGEM",
-                "03 - LACAGEM",
-                "03 - TRATAMENTO EXT.",
-                "04 - EMBALAGEM"
-        );
+        combo_estado.getItems().addAll(Singleton.getInstancia().getLista_de_estados());
         combo_estado.setValue(estado);
     }
 }

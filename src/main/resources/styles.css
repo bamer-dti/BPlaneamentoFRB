@@ -64,12 +64,20 @@
 }
 
 .game-grid-cell-4 {
-    -fx-padding: top right bottom left;
-    -fx-padding: 3, 3, 3, 3;
-    -fx-background-insets: top right bottom left;
-    -fx-background-insets: 0, 2, 0, 0 ;
-    -fx-background-color: transparent, #D500F9;
-}
+     -fx-padding: top right bottom left;
+     -fx-padding: 3, 3, 3, 3;
+     -fx-background-insets: top right bottom left;
+     -fx-background-insets: 0, 2, 0, 0 ;
+     -fx-background-color: transparent, #D500F9;
+ }
+
+ .game-grid-cell-5 {
+     -fx-padding: top right bottom left;
+     -fx-padding: 3, 3, 3, 3;
+     -fx-background-insets: top right bottom left;
+     -fx-background-insets: 0, 2, 0, 0 ;
+     -fx-background-color: transparent, #ffd1b3;
+ }
 
 .game-grid-cell-viagem {
     -fx-padding: top right bottom left;

@@ -1,7 +1,7 @@
 package webservices;
 
-import bamer.AppMain;
 import bamer.ControllerEditar;
+import com.google.firebase.internal.Log;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
@@ -13,72 +13,74 @@ import javafx.scene.control.Alert;
 import javafx.stage.Stage;
 import objectos.VBoxOSBO;
 import org.json.JSONObject;
+import pojos.ArtigoOSBO;
+import sqlite.DBSQLite;
 import utils.Campos;
-import utils.Funcoes;
 import utils.Privado;
-
-import java.util.concurrent.ExecutionException;
+import utils.Procedimentos;
+import utils.StackWorker;
 
 import static java.lang.System.out;
 
 public class WSWorker {
-    public static void actualizarOrdem(String bostamp, int ordemNova, String dtcortef, String dttransf, String seccao, String estado) throws ExecutionException, InterruptedException {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                AppMain.getInstancia().colocarObjectosVisiveis(false);
-            }
-        });
-        JSONObject json = new JSONObject();
-        json.put(Campos.BOSTAMP, bostamp);
-        json.put(Campos.ORDEM, ordemNova);
-        json.put(Campos.DTCORTEF, dtcortef);
-        json.put(Campos.DTTRANSF, dttransf);
-        json.put(Campos.SECCAO, seccao);
-        json.put(Campos.ESTADO, estado);
-
-        out.println("WSWorker " + json.toString());
-
-        Task<Void> taskHttp = new Task<Void>() {
+    public static void actualizarOSBO(StackWorker stackWorker, ArtigoOSBO artigoOSBO) {
+        JSONObject json = artigoOSBO.toJSON();
+        System.out.println(json);
+        stackWorker.setBusy(true);
+        Task<Void> tarefa = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
-                Unirest.post(Privado.URL_ALTERAR_ORDEM).body(json).asJsonAsync(new Callback<JsonNode>() {
+                Unirest.post(Privado.URL_ACTUALIZAR_OSBO).body(json).asJsonAsync(new Callback<JsonNode>() {
                     @Override
                     public void completed(HttpResponse<JsonNode> response) {
                         if (response.getStatus() != 200) {
-                            Funcoes.alerta("Erro ao gravar os dados:", response.getStatusText(), Alert.AlertType.ERROR);
+                            String mensagem = response.getBody().getObject().getString(Campos.WS_MENSAGEM_OSBO);
+                            System.out.println("Ocorreu um erro ao gravar " + json + "\n" + mensagem);
+                            stackWorker.setBusy(false);
                         } else {
-                            System.out.println("Sucesso: " + response.getBody().toString());
+                            boolean ok = response.getBody().getObject().getBoolean(Campos.WS_OS_OSBO);
+                            if (ok) {
+                                System.out.println("Sucesso: " + response.getBody().toString());
+                                int t = DBSQLite.getInstancia().deleteStack(artigoOSBO);
+                                if (t == 0) {
+                                    Log.wtf(WSWorker.class.getSimpleName(), "Erro ao eliminar do STACK", new Exception("Erro ao eliminar o STACK"));
+                                }
+                            } else {
+                                System.out.println("ERRO SQLServer: " + response.getBody().toString());
+                            }
+                            stackWorker.setBusy(false);
                         }
                     }
 
                     @Override
                     public void failed(UnirestException e) {
-                        Funcoes.alerta("Erro ao gravar os dados:", e.getMessage(), Alert.AlertType.ERROR);
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                Procedimentos.alerta("Erro ao gravar os dados", e.getMessage(), Alert.AlertType.ERROR);
+                            }
+                        });
                     }
 
                     @Override
                     public void cancelled() {
-                        Funcoes.alerta("O pedido WebService foi cancelado", "", Alert.AlertType.ERROR);
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                Procedimentos.alerta("O pedido WebService foi cancelado", "", Alert.AlertType.ERROR);
+                            }
+                        });
+
                     }
                 });
                 return null;
             }
-
-            @Override
-            protected void done() {
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        AppMain.getInstancia().colocarObjectosVisiveis(true);
-                    }
-                });
-            }
         };
-        new Thread(taskHttp).run();
+        new Thread(tarefa).run();
     }
 
-    public static void editarDadosOP(Stage stage, VBoxOSBO contexto, ControllerEditar controller, String bostamp, String dtcortef, String dttransf, String dtembala, String dtexpedi, String estado) {
+    public static void editarDadosOP(Stage stage, VBoxOSBO contexto, ControllerEditar controller, String bostamp, String dtcortef, String dttransf, String dtembala, String dtexpedi
+            , String estado, String dtoper) {
         JSONObject json = new JSONObject();
         json.put(Campos.BOSTAMP, bostamp);
         json.put(Campos.DTCORTEF, dtcortef);
@@ -86,6 +88,7 @@ public class WSWorker {
         json.put(Campos.DTEMBALA, dtembala);
         json.put(Campos.DTEXPEDI, dtexpedi);
         json.put(Campos.ESTADO, estado);
+        json.put(Campos.DTOPER, dtoper);
 
         out.println("WSWorker " + json.toString());
 
@@ -97,22 +100,22 @@ public class WSWorker {
                     public void completed(HttpResponse<JsonNode> response) {
                         stage.close();
                         if (response.getStatus() != 200) {
-                            Funcoes.alerta("Erro ao gravar os dados", response.getStatusText(), Alert.AlertType.ERROR);
+                            Procedimentos.alerta("Erro ao gravar os dados", response.getStatusText(), Alert.AlertType.ERROR);
                         } else {
-                            System.out.println("Sucesso: " + response.getBody().toString());
+                            System.out.println("Sucesso: code" + response.getStatus() + "-> " + response.getBody().toString());
                         }
                     }
 
                     @Override
                     public void failed(UnirestException e) {
                         stage.close();
-                        Funcoes.alerta("Erro ao gravar os dados", e.getMessage(), Alert.AlertType.ERROR);
+                        Procedimentos.alerta("Erro ao gravar os dados", e.getMessage(), Alert.AlertType.ERROR);
                     }
 
                     @Override
                     public void cancelled() {
                         stage.close();
-                        Funcoes.alerta("O pedido WebService foi cancelado", "", Alert.AlertType.ERROR);
+                        Procedimentos.alerta("O pedido WebService foi cancelado", "", Alert.AlertType.ERROR);
                     }
                 });
                 return null;
@@ -137,42 +140,6 @@ public class WSWorker {
         new Thread(taskHttp).run();
     }
 
-    public static void actualizarCor(String bostamp, int cor) {
-        JSONObject json = new JSONObject();
-        json.put(Campos.BOSTAMP, bostamp);
-        json.put(Campos.COR, cor);
-
-        out.println("WSWorker " + json.toString());
-
-        Task<Void> taskHttp = new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                Unirest.post(Privado.URL_ACTUALIZAR_COR).body(json).asJsonAsync(new Callback<JsonNode>() {
-                    @Override
-                    public void completed(HttpResponse<JsonNode> response) {
-                        if (response.getStatus() != 200) {
-                            Funcoes.alerta("Erro ao gravar os dados", response.getStatusText(), Alert.AlertType.ERROR);
-                        } else {
-                            System.out.println("Sucesso: " + response.getBody().toString());
-                        }
-                    }
-
-                    @Override
-                    public void failed(UnirestException e) {
-                        Funcoes.alerta("Erro ao gravar os dados", e.getMessage(), Alert.AlertType.ERROR);
-                    }
-
-                    @Override
-                    public void cancelled() {
-                        Funcoes.alerta("O pedido WebService foi cancelado", "", Alert.AlertType.ERROR);
-                    }
-                });
-                return null;
-            }
-        };
-        new Thread(taskHttp).run();
-    }
-
     public void enviarSMS(Stage stage, JSONObject json) {
         stage.setTitle("A enviar...");
         Task<Void> taskHttp = new Task<Void>() {
@@ -185,7 +152,7 @@ public class WSWorker {
                             Platform.runLater(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Funcoes.alerta("Erro ao gravar os dados", response.getStatusText(), Alert.AlertType.ERROR);
+                                    Procedimentos.alerta("Erro ao gravar os dados", response.getStatusText(), Alert.AlertType.ERROR);
                                 }
                             });
 
@@ -194,7 +161,7 @@ public class WSWorker {
                             Platform.runLater(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Funcoes.alerta("Colocada em fila com sucesso", "", Alert.AlertType.INFORMATION);
+                                    Procedimentos.alerta("Colocada em fila com sucesso", "", Alert.AlertType.INFORMATION);
                                     stage.close();
                                 }
                             });
@@ -206,7 +173,7 @@ public class WSWorker {
                         Platform.runLater(new Runnable() {
                             @Override
                             public void run() {
-                                Funcoes.alerta("Erro ao gravar os dados", e.getMessage(), Alert.AlertType.ERROR);
+                                Procedimentos.alerta("Erro ao gravar os dados", e.getMessage(), Alert.AlertType.ERROR);
                             }
                         });
                     }
@@ -216,10 +183,9 @@ public class WSWorker {
                         Platform.runLater(new Runnable() {
                             @Override
                             public void run() {
-                                Funcoes.alerta("O pedido WebService foi cancelado", "", Alert.AlertType.ERROR);
+                                Procedimentos.alerta("O pedido WebService foi cancelado", "", Alert.AlertType.ERROR);
                             }
                         });
-
                     }
                 });
                 return null;

@@ -2,10 +2,8 @@ package utils;
 
 public class Campos {
     public static final String TABELA_OSBO = "sqlosbo";
-    public static final String TABELA_OSBOPLAN = "sqlosboplan";
-    public static final String TABELA_OSPROD = "sqlosprod";
-    public static final String TABELA_OSTIMER = "sqlostimer";
     public static final String TABELA_MACHINA = "sqlosmachina";
+    public static final String TABELA_STACK = "sqlstack";
 
     public static final String OBRANO = "obrano";
     public static final String FREF = "fref";
@@ -32,12 +30,11 @@ public class Campos {
     public static final String COR = "cor";
     public static final String KEY_OSBI03 = "osbi03";
     public static final String KEY_OSBO = "osbo";
-    public static final String KEY_OSBOPLAN = "osboplan";
     public static final String KEY_OSPROD = "osprod";
     public static final String KEY_OSTIMER = "ostimer";
     public static final String KEY_SECCAO = "seccao";
     public static final String KEY_ESTADO = "estados";
-    public static final String KEY_NOTAS = "notas.txt";
+    public static final String KEY_NOTAS = "notas";
     public static final String KEY_VERSIONS = "versions";
 
     public static final String UNIXTIME = "unixtime";
@@ -49,7 +46,11 @@ public class Campos {
     public static final String OPERADOR = "operador";
     public static final String STAMP = "stamp";
     public static final String PECAS = "pecas";
+    public static final String PECASPRODZ = "pecasprodz";
     public static final String CODIGO = "codigo";
     public static final String FUNCAO = "funcao";
     public static final String NOME = "nome";
+    public static final String DTOPER = "dtoper";
+    public static final String WS_MENSAGEM_OSBO = "mensagem";
+    public static final String WS_OS_OSBO = "ok";
 }

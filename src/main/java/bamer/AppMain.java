@@ -15,9 +15,12 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
@@ -32,14 +35,13 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
-import javafx.stage.WindowEvent;
+import javafx.stage.*;
 import objectos.*;
 import org.kordamp.ikonli.fontawesome.FontAwesome;
 import org.kordamp.ikonli.javafx.FontIcon;
-import pojos.*;
+import pojos.ArtigoOSBO;
+import pojos.Estado;
+import pojos.VersaoObj;
 import sqlite.DBSQLite;
 import sqlite.PreferenciasEmSQLite;
 import utils.*;
@@ -53,13 +55,14 @@ import java.util.Optional;
 
 public class AppMain extends Application {
     public static final long INTERVALO_CRONOS = 1;
-    private static final String VERSAO = "2.0.9";
+    private static final String VERSAO = "3.1.0";
     public static final String TITULO_APP = "Planeamento " + VERSAO;
+    @SuppressWarnings("unused")
     private static final String TAG = AppMain.class.getSimpleName();
     private static final String NOME_FICHEIRO_HISTORICO_VERSAO = "history.html";
-    private static final int ADICIONAR = 1;
-    private static final int ACTUALIZAR = 2;
-    private static final int REMOVER = 3;
+
+    private static final double STAGE_ATRASOS_COMPRIMENTO = 750f;
+    private static final double STAGE_ATRASOS_ALTURA = 770f;
     private static AppMain app;
     public BorderPane borderPaneAtrasados;
     public BorderPane borderPanePorPlanear;
@@ -85,35 +88,34 @@ public class AppMain extends Application {
     private ProgressIndicator progressIndicator;
     private DBSQLite sqlite;
     private ChildEventListener listenerFirebaseOSBO;
-    private ChildEventListener listenerFirebaseOSBOPLAN;
-    private ChildEventListener listenerFirebaseOSPROD;
-    private ChildEventListener listenerFirebaseOSTIMER;
     private JFXButton but_mais;
     private JFXButton but_menos;
     private VersaoObj versaoObj;
-    private Image imageOn;
-    private Image imageOff;
     private HBoxMachinas hboxMaquinas;
+    private Scene scenePrincipal;
+    private StackWorker timerStack;
+    private BorderPane borderPanePrincipal;
+    private ControllerLogin controllerLogin;
+    private TextField textField_filtro_obra;
+    private Label labelResultadoObra;
+    private Label labelFiltroObra;
 
     public static void main(String[] args) {
         launch(args);
     }
 
     public static AppMain getInstancia() {
-        if (app == null) {
-            app = new AppMain();
-        }
-        return app;
+        return Singleton.getInstancia().appMain;
     }
 
     public static void eliminarFicheiroFirebase() {
-        System.out.println("A tentar eliminar o ficheiro firebase.db");
-        File file = new File("firebase.db");
+        System.out.println("A tentar eliminar o ficheiro " + Constantes.NOME_BASE_DADOS_SQL);
+        File file = new File(Constantes.NOME_BASE_DADOS_SQL);
         boolean test = file.delete();
         if (!test) {
-            System.out.println("Não foi possivel eliminar o ficheiro firebase.db");
+            System.out.println("Não foi possivel eliminar o ficheiro " + Constantes.NOME_BASE_DADOS_SQL);
         } else {
-            System.out.println("Ficheiro firebase.db eliminado com  sucesso");
+            System.out.println("Ficheiro " + Constantes.NOME_BASE_DADOS_SQL + " eliminado com  sucesso");
         }
     }
 
@@ -127,24 +129,89 @@ public class AppMain extends Application {
     }
 
     @Override
-    public void start(Stage mainStage) {
+    public void start(Stage primaryStage) throws IOException {
+        setMainStage(primaryStage);
         if (app == null) {
             app = this;
         }
-
-        imageOn = Funcoes.imagemResource("on.png", 16, 16);
-        imageOff = Funcoes.imagemResource("off.png", 16, 16);
+        //todo verificar se as imagens ON/OFF não serão uma boa aposta
+//        Image imageOn = Funcoes.imagemResource("on.png", 16, 16);
+//        Image imageOff = Funcoes.imagemResource("off.png", 16, 16);
 
         eliminarFicheiroFirebase();
 
         sqlite = DBSQLite.getInstancia();
 
-        setMainStage(mainStage);
-
         iniciarFirebase();
 
-        BorderPane borderPane = new BorderPane();
+        borderPanePrincipal = new BorderPane();
+        scenePrincipal = new Scene(borderPanePrincipal, 1600, 780);
+        scenePrincipal.getStylesheets().add("styles.css");
 
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
+        Parent parent = fxmlLoader.load();
+        SceneWithId sceneLogin = new SceneWithId(parent);
+        controllerLogin = fxmlLoader.getController();
+        controllerLogin.setStage(mainStage);
+        controllerLogin.setScenePrincipal(scenePrincipal);
+
+
+        getMainStage().setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent event) {
+                if (stagePorPlanear != null)
+                    stagePorPlanear.close();
+                if (stageAtrasados != null)
+                    stageAtrasados.close();
+                try {
+                    Unirest.shutdown();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                timerStack.getTimer().cancel();
+                timerStack.getTimer().purge();
+                Platform.exit();
+                System.exit(0);
+            }
+        });
+
+        getMainStage().sceneProperty().addListener(new ChangeListener<Scene>() {
+            @Override
+            public void changed(ObservableValue<? extends Scene> observable, Scene oldValue, Scene newValue) {
+                if (newValue == scenePrincipal) {
+                    interfacePlaneamento();
+
+                    Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
+                    getMainStage().setX((primScreenBounds.getWidth() - primaryStage.getWidth()) / 2);
+                    getMainStage().setY((primScreenBounds.getHeight() - primaryStage.getHeight()) / 2);
+
+                    colocarObjectosVisiveis(false);
+                    configurarTaskStage();
+                    configurarStageAtrasados();
+                    configurarStagePorPlanear();
+                    getMainStage().setResizable(true);
+
+                    getMainStage().setMaximized(true);
+
+                    povoarAgendamento();
+
+                    GridPanePorPlanear.actualizar(seccao, estado, true);
+                    GridPaneAtrasados.actualizar(seccao, estado, true);
+                }
+            }
+        });
+
+        timerStack = new StackWorker();
+        Singleton.getInstancia().appMain = this;
+
+        mainStage.setScene(sceneLogin);
+        mainStage.getIcons().add(Funcoes.iconeBamer());
+        mainStage.setTitle(TITULO_APP);
+        mainStage.show();
+        mainStage.setResizable(false);
+    }
+
+    private void interfacePlaneamento() {
         calendario = new GridPaneCalendario(GridPaneCalendario.TIPO_GRELHA);
         calendarioTopo = new GridPaneCalendario(GridPaneCalendario.TIPO_TOPO);
 
@@ -164,7 +231,7 @@ public class AppMain extends Application {
         VBox vBox = new VBox();
         vBox.getChildren().addAll(scrollPaneTopo, scrollPaneCalendario);
 //        VBox.setVgrow(scrollPaneCalendario, Priority.ALWAYS);
-        borderPane.setCenter(vBox);
+        borderPanePrincipal.setCenter(vBox);
 
         MenuBar menuBar = new MenuBar();
 //        menuBar.prefWidthProperty().bind(mainStage.widthProperty());
@@ -209,7 +276,7 @@ public class AppMain extends Application {
                     new EnviarSMS(0, null);
                 } catch (IOException e) {
                     e.printStackTrace();
-                    Funcoes.alertaException(e);
+                    Procedimentos.alertaException(e);
                 }
             }
         });
@@ -230,7 +297,7 @@ public class AppMain extends Application {
                 try {
                     abrirFicheiroVersionTXT();
                 } catch (IOException e) {
-                    Funcoes.alertaException(e);
+                    Procedimentos.alertaException(e);
                     e.printStackTrace();
                 }
             }
@@ -255,13 +322,13 @@ public class AppMain extends Application {
             @Override
             public void handle(ActionEvent event) {
                 PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
-                int colunas = prefs.getInt(Constantes.PREF_AGENDA_NUMCOLS, ValoresDefeito.AGENDA_NUMCOLS);
+                int colunas = prefs.getInt(Constantes.Preferencias.PREF_AGENDA_NUMCOLS, ValoresDefeito.AGENDA_NUMCOLS);
                 if (colunas < 8)
                     return;
                 colunas--;
-                prefs.putInt(Constantes.PREF_AGENDA_NUMCOLS, colunas);
+                prefs.putInt(Constantes.Preferencias.PREF_AGENDA_NUMCOLS, colunas);
 
-                setColunas();
+                povoarAgendamento();
                 updateLabelCols();
             }
         });
@@ -278,11 +345,11 @@ public class AppMain extends Application {
             @Override
             public void handle(ActionEvent event) {
                 PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
-                int colunas = prefs.getInt(Constantes.PREF_AGENDA_NUMCOLS, ValoresDefeito.AGENDA_NUMCOLS);
+                int colunas = prefs.getInt(Constantes.Preferencias.PREF_AGENDA_NUMCOLS, ValoresDefeito.AGENDA_NUMCOLS);
                 colunas++;
-                prefs.putInt(Constantes.PREF_AGENDA_NUMCOLS, colunas);
+                prefs.putInt(Constantes.Preferencias.PREF_AGENDA_NUMCOLS, colunas);
 
-                setColunas();
+                povoarAgendamento();
                 updateLabelCols();
             }
         });
@@ -295,7 +362,7 @@ public class AppMain extends Application {
             public void handle(MouseEvent event) {
                 if (event.isPrimaryButtonDown() && event.getClickCount() > 1) {
                     PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
-                    int colunas = prefs.getInt(Constantes.PREF_AGENDA_NUMCOLS, ValoresDefeito.AGENDA_NUMCOLS);
+                    int colunas = prefs.getInt(Constantes.Preferencias.PREF_AGENDA_NUMCOLS, ValoresDefeito.AGENDA_NUMCOLS);
                     TextInputDialog dialog = new TextInputDialog("" + colunas);
                     dialog.setTitle("Configuração de colunas");
 //                    alerta.setHeaderText("Look, a Text Input Dialog");
@@ -303,8 +370,8 @@ public class AppMain extends Application {
 
                     Optional<String> result = dialog.showAndWait();
                     if (result.isPresent()) {
-                        prefs.putInt(Constantes.PREF_AGENDA_NUMCOLS, Integer.parseInt(result.get()));
-                        setColunas();
+                        prefs.putInt(Constantes.Preferencias.PREF_AGENDA_NUMCOLS, Integer.parseInt(result.get()));
+                        povoarAgendamento();
                         labelCols.setText(result.get());
                     }
                 }
@@ -316,12 +383,13 @@ public class AppMain extends Application {
         icone = new FontIcon();
         icone.setIconCode(FontAwesome.CALENDAR_O);
         icone.setIconColor(Color.ALICEBLUE);
-        but_porPlanear = new JFXButton("por planear (0)");
+        but_porPlanear = new JFXButtonPlanear("por planear (0)");
         but_porPlanear.setGraphic(icone);
         but_porPlanear.getStyleClass().add("button-raised-bamer-aprovados");
         but_porPlanear.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
+                GridPanePorPlanear.actualizar(seccao, estado, false);
                 if (!stagePorPlanear.isShowing()) {
                     stagePorPlanear.show();
                 }
@@ -342,7 +410,7 @@ public class AppMain extends Application {
         but_atrasados.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                GridPaneAtrasados.actualizarLista();
+                GridPaneAtrasados.actualizar(seccao, estado, false);
                 if (!stageAtrasados.isShowing()) {
                     stageAtrasados.show();
                 }
@@ -354,7 +422,7 @@ public class AppMain extends Application {
 
         //COMBOBOX SECÇÃO
         PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
-        seccao = prefs.get(Constantes.PREF_SECCAO, ValoresDefeito.SECCAO);
+        seccao = prefs.get(Constantes.Preferencias.PREF_SECCAO, ValoresDefeito.SECCAO);
         comboSeccao = new ComboBox<>();
         comboSeccao.getStyleClass().add("combo_seccao");
         comboSeccao.getSelectionModel().select(seccao);
@@ -368,17 +436,20 @@ public class AppMain extends Application {
                     return;
                 }
                 PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
-                prefs.put(Constantes.PREF_SECCAO, newValue);
-                setColunas();
+                prefs.put(Constantes.Preferencias.PREF_SECCAO, newValue);
+                povoarAgendamento();
 //                actualizarTextoColunasZero();
                 actualizarMostradorMaquinas();
+                GridPanePorPlanear.actualizar(seccao, estado, true);
+                GridPaneAtrasados.actualizar(seccao, estado, true);
             }
         });
         comboSeccao.setVisible(false);
         HBox.setMargin(comboSeccao, new Insets(10f, 10f, 10f, 10f));
         hboxBarraFerramentas.getChildren().add(comboSeccao);
 
-        estado = prefs.get(Constantes.PREF_ESTADO, Constantes.ESTADO_01_CORTE);
+        //COMBO ESTADO
+        estado = prefs.get(Constantes.Preferencias.PREF_ESTADO, Constantes.ESTADO_01_CORTE);
         comboEstado = new ComboBox<>();
         comboEstado.getStyleClass().add("combo_estado");
         comboEstado.getSelectionModel().select(estado);
@@ -390,15 +461,35 @@ public class AppMain extends Application {
                 }
                 estado = newValue;
                 PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
-                prefs.put(Constantes.PREF_ESTADO, newValue);
-                setColunas();
+                prefs.put(Constantes.Preferencias.PREF_ESTADO, newValue);
+                povoarAgendamento();
 //                actualizarTextoColunasZero();
                 actualizarMostradorMaquinas();
+                GridPanePorPlanear.actualizar(seccao, estado, true);
+                GridPaneAtrasados.actualizar(seccao, estado, true);
             }
         });
         comboEstado.setVisible(false);
         HBox.setMargin(comboEstado, new Insets(10f, 10f, 10f, 10f));
         hboxBarraFerramentas.getChildren().add(comboEstado);
+
+        labelFiltroObra = new Label("filtro obra: ");
+        labelResultadoObra = new Label("");
+        //Campo de pesquisa de obra
+        textField_filtro_obra = new TextField();
+        textField_filtro_obra.setPrefWidth(70f);
+        textField_filtro_obra.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                if (!newValue.matches("\\d*")) {
+                    textField_filtro_obra.setText(newValue.replaceAll("[^\\d]", ""));
+                }
+                povoarAgendamento();
+            }
+        });
+        HBox.setMargin(labelFiltroObra, new Insets(3));
+        HBox.setMargin(labelResultadoObra, new Insets(3));
+        hboxBarraFerramentas.getChildren().addAll(labelFiltroObra, textField_filtro_obra, labelResultadoObra);
 
         Region region = new Region();
         HBox.setHgrow(region, Priority.ALWAYS);
@@ -417,88 +508,9 @@ public class AppMain extends Application {
 
         VBox vboxTOP = new VBox(menuBar, hboxBarraFerramentas, hboxMaquinas);
 
-        borderPane.setTop(vboxTOP);
+        borderPanePrincipal.setTop(vboxTOP);
 
-        Scene scenePrincipal = new Scene(borderPane, 1600, 780);
-        scenePrincipal.getStylesheets().add("styles.css");
-
-        mainStage.setScene(scenePrincipal);
-        mainStage.getIcons().add(Funcoes.iconeBamer());
-        mainStage.setTitle(TITULO_APP);
-        mainStage.show();
-//        ScenicView.show(scenePrincipal);
-
-        mainStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-            @Override
-            public void handle(WindowEvent event) {
-                stagePorPlanear.close();
-                stageAtrasados.close();
-                try {
-                    Unirest.shutdown();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                Platform.exit();
-                System.exit(0);
-            }
-        });
-
-        colocarObjectosVisiveis(false);
-
-        configurarTaskStage();
-
-        configurarStageAtrasados();
-
-        configurarStagePorPlanear();
-
-    }
-
-    public void abrirFicheiroVersionTXT() throws IOException {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                progressIndicator.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
-            }
-        });
-        DatabaseReference refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_VERSIONS);
-        refDataFireBase.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot d : dataSnapshot.getChildren()) {
-                    if (d.getKey().equals("planning")) {
-                        versaoObj = d.getValue(VersaoObj.class);
-                        System.out.println("Versão cloud: " + versaoObj);
-                        File file = new File(NOME_FICHEIRO_HISTORICO_VERSAO);
-                        InputStream inputStream = new ByteArrayInputStream(versaoObj.getHistory().getBytes(StandardCharsets.UTF_8));
-                        try {
-                            OutputStream outputStream = new FileOutputStream(file);
-                            byte[] buffer = new byte[1024];
-                            int length;
-                            while ((length = inputStream.read(buffer)) > 0) {
-                                outputStream.write(buffer, 0, length);
-                            }
-                            outputStream.close();
-                            inputStream.close();
-                            Desktop.getDesktop().open(file);
-                        } catch (IOException e) {
-                            Funcoes.alertaException(e);
-                            e.printStackTrace();
-                        }
-                        Platform.runLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                progressIndicator.setProgress(100);
-                            }
-                        });
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+        configurarRestantesListenersFirebase();
     }
 
     public void actualizarMostradorMaquinas() {
@@ -530,30 +542,39 @@ public class AppMain extends Application {
         } else {
             progressIndicator.setProgress(100);
         }
-
-        but_porPlanear.setVisible(isVisivel);
-        but_atrasados.setVisible(isVisivel);
-        but_menos.setVisible(isVisivel);
-        but_mais.setVisible(isVisivel);
-        labelCols.setVisible(isVisivel);
-        comboSeccao.setVisible(isVisivel);
-        comboEstado.setVisible(isVisivel);
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                if (isVisivel)
+                    taskUpdateStage.hide();
+                else
+                    taskUpdateStage.show();
+//                calendario.setVisible(isVisivel);
+//                calendarioTopo.setVisible(isVisivel);
+                but_porPlanear.setVisible(isVisivel);
+                but_atrasados.setVisible(isVisivel);
+                but_menos.setVisible(isVisivel);
+                but_mais.setVisible(isVisivel);
+                labelCols.setVisible(isVisivel);
+                comboSeccao.setVisible(isVisivel);
+                comboEstado.setVisible(isVisivel);
+                textField_filtro_obra.setVisible(isVisivel);
+                labelFiltroObra.setVisible(isVisivel);
+                labelResultadoObra.setVisible(isVisivel);
+            }
+        });
     }
 
     private void iniciarFirebase() {
-
         DBSQLite.getInstancia().resetDados();
-
         try {
-            InputStream file = ClassLoader.getSystemResourceAsStream("firebase_auth.json");
+            InputStream file = ClassLoader.getSystemResourceAsStream(Constantes.Firebase.FICHEIRO_CREDENCIAIS_GOOGLE);
             System.out.println("Tamanho do ficheiro JSON: " + file.available());
             FirebaseOptions options = new FirebaseOptions.Builder()
                     .setServiceAccount(file)
-                    .setDatabaseUrl("https://bamer-os-section.firebaseio.com/")
+                    .setDatabaseUrl(Constantes.Firebase.FIREBASE_PROJECT_URL)
                     .build();
-
             FirebaseApp.initializeApp(options);
-
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -570,7 +591,11 @@ public class AppMain extends Application {
                     Platform.runLater(new Runnable() {
                         @Override
                         public void run() {
-                            taskUpdateStage.hide();
+                            if (!Singleton.getInstancia().loginComSucesso) {
+                                controllerLogin.btlogin.setDisable(false);
+                                controllerLogin.progresso.setVisible(false);
+                                controllerLogin.label_erro.setText("");
+                            }
                         }
                     });
                 }
@@ -594,11 +619,9 @@ public class AppMain extends Application {
                             Platform.runLater(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Funcoes.alertaVersion(versaoObj.versao);
+                                    Procedimentos.alertaVersion(versaoObj.versao);
                                 }
                             });
-                        } else {
-                            configurarRestantesListenersFirebase();
                         }
                     }
                 }
@@ -612,28 +635,11 @@ public class AppMain extends Application {
     }
 
     private void configurarRestantesListenersFirebase() {
+        System.out.println("configurarRestantesListenersFirebase");
         if (!Privado.TESTING) {
             configurarListenersOSBO();
             DatabaseReference refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBO);
             refDataFireBase.addChildEventListener(listenerFirebaseOSBO);
-
-
-//            configurarListenerOSBI();
-//            refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBI03);
-//            refDataFireBase.addChildEventListener(listenerFirebaseOSBI03);
-
-            configurarListenerOSPROD();
-            refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSPROD);
-            refDataFireBase.addChildEventListener(listenerFirebaseOSPROD);
-
-            configurarListenerOSBOPLAN();
-            refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSBOPLAN);
-            refDataFireBase.addChildEventListener(listenerFirebaseOSBOPLAN);
-
-            configurarListenerOSTIMER();
-            refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_OSTIMER);
-            refDataFireBase.addChildEventListener(listenerFirebaseOSTIMER);
-
         }
 
         //ALIMENTAR COMBO SECÇÃO
@@ -643,12 +649,6 @@ public class AppMain extends Application {
                 for (DataSnapshot d : dataSnapshot.getChildren()) {
                     comboSeccao.getItems().add(d.getKey());
                 }
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        colocarObjectosVisiveis(true);
-                    }
-                });
             }
 
             @Override
@@ -664,6 +664,7 @@ public class AppMain extends Application {
                 for (DataSnapshot d : dataSnapshot.getChildren()) {
                     comboEstado.getItems().add(d.getValue(Estado.class).getTitulo());
                 }
+                Singleton.getInstancia().setLista_de_estados(comboEstado.getItems());
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
@@ -679,7 +680,6 @@ public class AppMain extends Application {
         });
     }
 
-    //        todo filtrar listener por estado (lista geral)
     private void configurarListenersOSBO() {
         listenerFirebaseOSBO = new ChildEventListener() {
             @Override
@@ -693,9 +693,9 @@ public class AppMain extends Application {
                         ArtigoOSBO artigoOSBO = dataSnapshot.getValue(ArtigoOSBO.class);
                         artigoOSBO.setBostamp(bostamp);
                         sqlite.guardarOSBO(artigoOSBO);
-                        if (artigoOSBO.getSeccao().equals(seccao)) {
+                        if (artigoOSBO.getSeccao().equals(seccao) && artigoOSBO.getEstado().equals(estado)) {
                             lista.add(artigoOSBO);
-                            actualizarGrelhaCalendario(lista, ADICIONAR);
+                            actualizarGrelhaCalendario(lista, Constantes.Operacao.ADICIONAR);
                         }
                         return null;
                     }
@@ -715,7 +715,7 @@ public class AppMain extends Application {
                         artigoOSBO.setBostamp(bostamp);
                         sqlite.actualizarOSBO(artigoOSBO);
                         lista.add(artigoOSBO);
-                        actualizarGrelhaCalendario(lista, ACTUALIZAR);
+                        actualizarGrelhaCalendario(lista, Constantes.Operacao.ACTUALIZAR);
                         return null;
                     }
                 };
@@ -734,7 +734,7 @@ public class AppMain extends Application {
                         artigoOSBO.setBostamp(bostamp);
                         sqlite.removerOSBO(artigoOSBO);
                         lista.add(artigoOSBO);
-                        actualizarGrelhaCalendario(lista, REMOVER);
+                        actualizarGrelhaCalendario(lista, Constantes.Operacao.REMOVER);
                         return null;
                     }
                 };
@@ -753,354 +753,27 @@ public class AppMain extends Application {
         };
     }
 
-    private void configurarListenerOSBOPLAN() {
-        listenerFirebaseOSBOPLAN = new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-//                Log.i(TAG, "OSBOPLAN: onChildAdded: " + dataSnapshot.toString());
-                Task<DataSnapshot> taskInserirObjectoOSBO = new Task<DataSnapshot>() {
-                    @Override
-                    protected DataSnapshot call() throws Exception {
-                        String bostamp = dataSnapshot.getKey();
-                        ArtigoLinhaPlanOUAtraso artigoOSBO = dataSnapshot.getValue(ArtigoLinhaPlanOUAtraso.class);
-                        artigoOSBO.setBostamp(bostamp);
-                        sqlite.guardarOSBOPLAN(artigoOSBO);
-                        Platform.runLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                but_porPlanear.setText("por planear (" + new DBSQLite().getNumPlaneamento() + ")");
-                            }
-                        });
-                        GridPanePorPlanear.actualizarLista();
-                        return null;
-                    }
-                };
-                new Thread(taskInserirObjectoOSBO).run();
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                Log.i(TAG, "OSBOPLAN onChildChanged: " + dataSnapshot.toString());
-                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
-                    @Override
-                    protected DataSnapshot call() throws Exception {
-                        String bostamp = dataSnapshot.getKey();
-                        ArtigoLinhaPlanOUAtraso artigoLinhaPlanOUAtraso = dataSnapshot.getValue(ArtigoLinhaPlanOUAtraso.class);
-                        artigoLinhaPlanOUAtraso.setBostamp(bostamp);
-                        sqlite.actualizarOSBOPLAN(artigoLinhaPlanOUAtraso);
-                        Platform.runLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                but_porPlanear.setText("por planear (" + new DBSQLite().getNumPlaneamento() + ")");
-                            }
-                        });
-                        GridPanePorPlanear.actualizarLista();
-                        return null;
-                    }
-                };
-                new Thread(tarefa).run();
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Log.i(TAG, "OSBO onChildRemoved: " + dataSnapshot.toString());
-                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
-                    @Override
-                    protected DataSnapshot call() throws Exception {
-                        String bostamp = dataSnapshot.getKey();
-                        ArtigoLinhaPlanOUAtraso artigoOSBO = dataSnapshot.getValue(ArtigoLinhaPlanOUAtraso.class);
-                        artigoOSBO.setBostamp(bostamp);
-                        sqlite.removerOSBOPLAN(artigoOSBO);
-                        GridPanePorPlanear.actualizarLista();
-                        return null;
-                    }
-                };
-                new Thread(tarefa).run();
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        };
-
-    }
-
-//    private void configurarListenerOSBI() {
-//        listenerFirebaseOSBI03 = new ChildEventListener() {
-//            @Override
-//            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-////                Log.i(TAG, "OSBI03: onChildAdded: " + dataSnapshot.toString());
-//                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
-//                    @Override
-//                    protected DataSnapshot call() throws Exception {
-//                        String bostamp = dataSnapshot.getKey();
-//                        for (DataSnapshot d : dataSnapshot.getChildren()) {
-//                            String bistamp = d.getKey();
-//                            ArtigoOSBI artigoOSBI = d.getValue(ArtigoOSBI.class);
-//                            artigoOSBI.setBostamp(bostamp);
-//                            artigoOSBI.setBistamp(bistamp);
-//                            sqlite.guardarOSBI(artigoOSBI);
-//                        }
-//                        actualizarQtdPedida(bostamp);
-//                        return null;
-//                    }
-//                };
-//                new Thread(tarefa).run();
-//            }
-//
-//            @Override
-//            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-//                Log.i(TAG, "OSBI onChildChanged: " + dataSnapshot.toString());
-//                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
-//                    @Override
-//                    protected DataSnapshot call() throws Exception {
-//                        String bostamp = dataSnapshot.getKey();
-//                        sqlite.removerOSBIbostamp(new ArtigoOSBO(bostamp));
-//                        for (DataSnapshot d : dataSnapshot.getChildren()) {
-//                            String bistamp = d.getKey();
-//                            ArtigoOSBI artigoOSBI = d.getValue(ArtigoOSBI.class);
-//                            artigoOSBI.setBostamp(bostamp);
-//                            artigoOSBI.setBistamp(bistamp);
-//                            sqlite.guardarOSBI(artigoOSBI);
-//                        }
-//                        actualizarQtdPedida(bostamp);
-//                        return null;
-//                    }
-//                };
-//                new Thread(tarefa).run();
-//            }
-//
-//            @Override
-//            public void onChildRemoved(DataSnapshot dataSnapshot) {
-//                Log.i(TAG, "OSBI onChildRemoved: " + dataSnapshot.toString());
-//                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
-//                    @Override
-//                    protected DataSnapshot call() throws Exception {
-//                        String bostamp = dataSnapshot.getKey();
-//                        for (DataSnapshot d : dataSnapshot.getChildren()) {
-//                            String bistamp = d.getKey();
-//                            ArtigoOSBI artigoOSBI = d.getValue(ArtigoOSBI.class);
-//                            artigoOSBI.setBostamp(bostamp);
-//                            artigoOSBI.setBistamp(bistamp);
-//                            sqlite.removerOSBIbostamp(artigoOSBI);
-//                        }
-//                        actualizarQtdPedida(bostamp);
-//                        return null;
-//                    }
-//                };
-//                new Thread(tarefa).run();
-//            }
-//
-//            @Override
-//            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-//
-//            }
-//
-//            @Override
-//            public void onCancelled(DatabaseError databaseError) {
-//
-//            }
-//        };
-//    }
-
-    private void configurarListenerOSPROD() {
-        listenerFirebaseOSPROD = new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-//                Log.i(TAG, "OSBOPROD: onChildAdded: " + dataSnapshot.toString());
-                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
-                    @Override
-                    protected DataSnapshot call() throws Exception {
-                        String bostamp = dataSnapshot.getKey();
-                        for (DataSnapshot d : dataSnapshot.getChildren()) {
-                            String bistamp = d.getKey();
-                            ArtigoOSPROD artigoOSPROD = d.getValue(ArtigoOSPROD.class);
-                            artigoOSPROD.setBostamp(bostamp);
-                            artigoOSPROD.setBistamp(bistamp);
-                            sqlite.guardarOSPROD(artigoOSPROD);
-                        }
-                        actualizarQtdProduzida(bostamp);
-                        return null;
-                    }
-                };
-                new Thread(tarefa).run();
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                Log.i(TAG, "OSPROD onChildChanged: " + dataSnapshot.toString());
-                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
-                    @Override
-                    protected DataSnapshot call() throws Exception {
-                        String bostamp = dataSnapshot.getKey();
-                        DBSQLite.getInstancia().removerOSPRODviaBostamp(bostamp);
-                        for (DataSnapshot d : dataSnapshot.getChildren()) {
-                            String bistamp = d.getKey();
-                            ArtigoOSPROD artigoOSPROD = d.getValue(ArtigoOSPROD.class);
-                            artigoOSPROD.setBostamp(bostamp);
-                            artigoOSPROD.setBistamp(bistamp);
-                            sqlite.actualizarOSPROD(artigoOSPROD);
-                        }
-                        actualizarQtdProduzida(bostamp);
-                        return null;
-                    }
-                };
-                new Thread(tarefa).run();
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Log.i(TAG, "OSBI onChildRemoved: " + dataSnapshot.toString());
-                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
-                    @Override
-                    protected DataSnapshot call() throws Exception {
-                        String bostamp = dataSnapshot.getKey();
-                        for (DataSnapshot d : dataSnapshot.getChildren()) {
-                            String bistamp = d.getKey();
-                            ArtigoOSPROD artigoOSBI = d.getValue(ArtigoOSPROD.class);
-                            artigoOSBI.setBostamp(bostamp);
-                            artigoOSBI.setBistamp(bistamp);
-                            sqlite.removerOSPROD(artigoOSBI);
-                        }
-                        actualizarQtdProduzida(bostamp);
-                        return null;
-                    }
-                };
-                new Thread(tarefa).run();
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        };
-    }
-
-    private void configurarListenerOSTIMER() {
-        listenerFirebaseOSTIMER = new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-//                Log.i(TAG, "OSTIMER: onChildAdded: " + dataSnapshot.toString());
-                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
-                    @Override
-                    protected DataSnapshot call() throws Exception {
-                        String bostamp = dataSnapshot.getKey();
-                        for (DataSnapshot d : dataSnapshot.getChildren()) {
-                            String stamp = d.getKey();
-                            ArtigoOSTIMER artigoOSTIMER = d.getValue(ArtigoOSTIMER.class);
-                            artigoOSTIMER.setBostamp(bostamp);
-                            artigoOSTIMER.setStamp(stamp);
-                            sqlite.guardarOSTIMER(artigoOSTIMER);
-                        }
-                        actualizarTempo(bostamp);
-                        return null;
-                    }
-                };
-                new Thread(tarefa).run();
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                Log.i(TAG, "OSTIMER onChildChanged: " + dataSnapshot.toString());
-                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
-                    @Override
-                    protected DataSnapshot call() throws Exception {
-                        String bostamp = dataSnapshot.getKey();
-                        DBSQLite.getInstancia().removerOSTIMERviaBostamp(bostamp);
-                        for (DataSnapshot d : dataSnapshot.getChildren()) {
-                            String stamp = d.getKey();
-                            ArtigoOSTIMER artigoOSTIMER = d.getValue(ArtigoOSTIMER.class);
-                            artigoOSTIMER.setBostamp(bostamp);
-                            artigoOSTIMER.setStamp(stamp);
-                            sqlite.guardarOSTIMER(artigoOSTIMER);
-                        }
-                        actualizarTempo(bostamp);
-                        return null;
-                    }
-                };
-                new Thread(tarefa).run();
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Log.i(TAG, "OSTIMER onChildRemoved: " + dataSnapshot.toString());
-                Task<DataSnapshot> tarefa = new Task<DataSnapshot>() {
-                    @Override
-                    protected DataSnapshot call() throws Exception {
-                        String bostamp = dataSnapshot.getKey();
-                        for (DataSnapshot d : dataSnapshot.getChildren()) {
-                            String stamp = d.getKey();
-                            ArtigoOSTIMER artigoOSTIMER = d.getValue(ArtigoOSTIMER.class);
-                            artigoOSTIMER.setBostamp(bostamp);
-                            artigoOSTIMER.setStamp(stamp);
-                            sqlite.removerOSTIMER(artigoOSTIMER);
-                        }
-                        actualizarTempo(bostamp);
-                        return null;
-                    }
-                };
-                new Thread(tarefa).run();
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        };
-    }
-
-    private void actualizarTempo(String bostamp) {
-        VBoxOSBO vBoxOSBO = (VBoxOSBO) calendario.lookup("#" + bostamp);
-        if (vBoxOSBO != null) {
-            vBoxOSBO.actualizarCronometros();
-        }
-    }
-
-    private void actualizarQtdProduzida(String bostamp) {
-        VBoxOSBO vBoxOSBO = (VBoxOSBO) calendario.lookup("#" + bostamp);
-        if (vBoxOSBO != null) {
-            vBoxOSBO.actualizarQtdProduzida();
-        }
-    }
-
-    public void actualizarGrelhaCalendario(ArrayList<ArtigoOSBO> listaDocsOSBO, int operacao) {
-        GridPaneAtrasados.actualizarLista();
-
-        switch (operacao) {
-            case ADICIONAR:
+    public void actualizarGrelhaCalendario(ArrayList<ArtigoOSBO> listaDocsOSBO, int constantes_operacao) {
+//        Log.i("actualizarGrelhaCalendario", "listaDocsOSBO: " + listaDocsOSBO.size() + ", operacao " + operacao);
+        switch (constantes_operacao) {
+            case Constantes.Operacao.ADICIONAR:
                 for (ArtigoOSBO artigoOSBO : listaDocsOSBO) {
-                    if (artigoOSBO.getSeccao().equals(seccao)) {
+                    if (artigoOSBO.getSeccao().equals(seccao) && artigoOSBO.getEstado().equals(estado)) {
                         new VBoxOSBO(artigoOSBO);
                     }
                 }
                 break;
 
-            case ACTUALIZAR:
+            case Constantes.Operacao.ACTUALIZAR:
                 for (ArtigoOSBO artigoOSBO : listaDocsOSBO) {
                     VBoxOSBO vBoxOSBO = (VBoxOSBO) calendario.lookup("#" + artigoOSBO.getBostamp());
                     //O artigo já existe
                     if (vBoxOSBO != null) {
-                        //Já não pertence à mesma seccção
-                        if (!artigoOSBO.getSeccao().equals(seccao)) {
+                        //Já não pertence à mesma secção ou estado
+                        if (!artigoOSBO.getSeccao().equals(seccao) || !artigoOSBO.getEstado().equals(estado)) {
                             ArrayList<ArtigoOSBO> listaUnica = new ArrayList<>();
                             listaUnica.add(artigoOSBO);
-                            actualizarGrelhaCalendario(listaUnica, REMOVER);
+                            actualizarGrelhaCalendario(listaUnica, Constantes.Operacao.REMOVER);
                             continue;
                         }
                         //Pertence à mesma secção, actualizarOSBO
@@ -1115,17 +788,18 @@ public class AppMain extends Application {
                     //O artigo ainda não existe, lançar novo
                     ArrayList<ArtigoOSBO> listaUnica = new ArrayList<>();
                     listaUnica.add(artigoOSBO);
-                    actualizarGrelhaCalendario(listaUnica, ADICIONAR);
+                    actualizarGrelhaCalendario(listaUnica, Constantes.Operacao.ADICIONAR);
                 }
                 break;
 
-            case REMOVER:
+            case Constantes.Operacao.REMOVER:
                 for (ArtigoOSBO artigoOSBO : listaDocsOSBO) {
                     VBoxOSBO vBoxOSBO = (VBoxOSBO) calendario.lookup("#" + artigoOSBO.getBostamp());
                     Platform.runLater(new Runnable() {
                         @Override
                         public void run() {
                             calendario.getChildren().removeAll(vBoxOSBO);
+                            actualizarTextoColunasZero(vBoxOSBO.getColuna());
                         }
                     });
                 }
@@ -1134,6 +808,7 @@ public class AppMain extends Application {
             default:
                 break;
         }
+        GridPanePorPlanear.actualizar(seccao, estado, false);
     }
 
     private void configurarTaskStage() {
@@ -1152,7 +827,6 @@ public class AppMain extends Application {
         taskUpdateStage.setScene(new Scene(updatePane));
         taskUpdateStage.initModality(Modality.WINDOW_MODAL);
         taskUpdateStage.initOwner(getMainStage().getScene().getWindow());
-        taskUpdateStage.show();
     }
 
     private void configurarStageAtrasados() {
@@ -1171,7 +845,7 @@ public class AppMain extends Application {
                 if (!newValue.matches("\\d*")) {
                     textFieldFiltroFrefAtrasados.setText(newValue.replaceAll("[^\\d]", ""));
                 }
-                GridPaneAtrasados.actualizarLista();
+                GridPaneAtrasados.actualizar(seccao, estado, false);
             }
         });
 
@@ -1188,7 +862,7 @@ public class AppMain extends Application {
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
 
-        Scene scene = new Scene(scrollPane, 755, 700);
+        Scene scene = new Scene(scrollPane, 770, 770);
         scene.getStylesheets().add("styles.css");
 
         stageAtrasados = new Stage();
@@ -1213,7 +887,7 @@ public class AppMain extends Application {
                 if (!newValue.matches("\\d*")) {
                     textFieldFiltroPorPlanear.setText(newValue.replaceAll("[^\\d]", ""));
                 }
-                GridPanePorPlanear.actualizarLista();
+                GridPanePorPlanear.actualizar(seccao, estado, false);
             }
         });
 
@@ -1226,7 +900,7 @@ public class AppMain extends Application {
 
         borderPanePorPlanear.setTop(hBoxFiltros);
 
-        Scene scene = new Scene(borderPanePorPlanear, 755, 700);
+        Scene scene = new Scene(borderPanePorPlanear, STAGE_ATRASOS_COMPRIMENTO, STAGE_ATRASOS_ALTURA);
         scene.getStylesheets().add("styles.css");
 
         stagePorPlanear = new Stage();
@@ -1235,8 +909,9 @@ public class AppMain extends Application {
         stagePorPlanear.setTitle("por planear");
     }
 
-    private void setColunas() {
+    private void povoarAgendamento() {
 //        scrollPaneCalendario.getChildren().removeAll(calendario);
+        calendario = null;
         calendario = new GridPaneCalendario(GridPaneCalendario.TIPO_GRELHA);
         scrollPaneCalendario.setContent(calendario);
 
@@ -1258,8 +933,9 @@ public class AppMain extends Application {
         Task<Void> task = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
-                ArrayList<ArtigoOSBO> lista = sqlite.getListaArtigoOSBO(seccao);
-                actualizarGrelhaCalendario(lista, ADICIONAR);
+                ArrayList<ArtigoOSBO> lista = sqlite.getListaArtigoOSBO(seccao, estado, textField_filtro_obra.getText());
+                actualizarGrelhaCalendario(lista, Constantes.Operacao.ADICIONAR);
+                labelResultadoObra.setText("" + lista.size());
                 return null;
             }
         };
@@ -1268,22 +944,22 @@ public class AppMain extends Application {
 
     private void updateLabelCols() {
         PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
-        int colunas = prefs.getInt(Constantes.PREF_AGENDA_NUMCOLS, ValoresDefeito.AGENDA_NUMCOLS);
+        int colunas = prefs.getInt(Constantes.Preferencias.PREF_AGENDA_NUMCOLS, ValoresDefeito.AGENDA_NUMCOLS);
         labelCols.setText(colunas + " dias");
     }
 
     public void actualizarTextoColunasZero(int coluna) {
         PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
-        int colunas = prefs.getInt(Constantes.PREF_AGENDA_NUMCOLS, ValoresDefeito.AGENDA_NUMCOLS);
+        int colunas = prefs.getInt(Constantes.Preferencias.PREF_AGENDA_NUMCOLS, ValoresDefeito.AGENDA_NUMCOLS);
         LocalDate dataInicioAgenda = Singleton.getInstancia().dataInicioAgenda;
 
         for (int i = 0; i < colunas; i++) {
             if (i != coluna)
                 continue;
             LocalDate localDateTime = dataInicioAgenda.plusDays(i);
-            String data = Funcoes.dToC(localDateTime, "yyy-MM-dd 00:00:00");
-            int qtt = DBSQLite.getInstancia().getQtdPedidaData(data, seccao);
-            int qttFeita = DBSQLite.getInstancia().getQtdProduzidaData(data, seccao);
+            String data = Funcoes.dToC(localDateTime, "yyyy-MM-dd 00:00:00");
+            int qtt = DBSQLite.getInstancia().getQtdPedidaData(data, seccao, estado);
+            int qttFeita = DBSQLite.getInstancia().getQtdProduzidaData(data, seccao, estado);
             Text textQttTotal = (Text) calendarioTopo.lookup("#qtttot" + i);
             Text textQttFeita = (Text) calendarioTopo.lookup("#qttfeita" + i);
             if (textQttTotal != null) {
@@ -1307,6 +983,55 @@ public class AppMain extends Application {
                     });
             }
         }
+    }
+
+    public void abrirFicheiroVersionTXT() throws IOException {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                progressIndicator.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
+            }
+        });
+
+        DatabaseReference refDataFireBase = FirebaseDatabase.getInstance().getReference(Campos.KEY_VERSIONS);
+        refDataFireBase.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot d : dataSnapshot.getChildren()) {
+                    if (d.getKey().equals("planning")) {
+                        versaoObj = d.getValue(VersaoObj.class);
+                        System.out.println("Versão cloud: " + versaoObj);
+                        File file = new File(NOME_FICHEIRO_HISTORICO_VERSAO);
+                        InputStream inputStream = new ByteArrayInputStream(versaoObj.getHistory().getBytes(StandardCharsets.UTF_8));
+                        try {
+                            OutputStream outputStream = new FileOutputStream(file);
+                            byte[] buffer = new byte[1024];
+                            int length;
+                            while ((length = inputStream.read(buffer)) > 0) {
+                                outputStream.write(buffer, 0, length);
+                            }
+                            outputStream.close();
+                            inputStream.close();
+                            Desktop.getDesktop().open(file);
+                        } catch (IOException e) {
+                            Procedimentos.alertaException(e);
+                            e.printStackTrace();
+                        }
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                progressIndicator.setProgress(100);
+                            }
+                        });
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     public GridPaneCalendario getCalendario() {
@@ -1349,15 +1074,15 @@ public class AppMain extends Application {
         this.mainStage = mainStage;
     }
 
-    public Image getImageOn() {
-        return imageOn;
+    public String getSeccao() {
+        return seccao;
     }
 
-    public Image getImageOff() {
-        return imageOff;
+    public String getEstado() {
+        return estado;
     }
 
-    public GridPaneCalendario getCalendarioTopo() {
-        return calendarioTopo;
+    public String getFiltroDeObra() {
+        return textField_filtro_obra.getText();
     }
 }

@@ -13,6 +13,8 @@ import utils.Funcoes;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
+import static objectos.HBoxLinhaPlanOUAtraso.TIPO_ATRASADO;
+
 ///**
 // * Created by miguel.silva on 28-07-2016.
 // */
@@ -21,25 +23,28 @@ public class GridPaneAtrasados extends GridPane {
         construct();
     }
 
-    public static void actualizarLista() {
+    public static void actualizar(String seccao, String estado, boolean apenas_mostrador) {
         String data = Funcoes.dToC(LocalDate.now().minusDays(1), "yyyy-MM-dd" + " 00:00:00");
         GridPaneAtrasados gridPaneAtrasados = new GridPaneAtrasados();
 
+        int linha = 0;
+
+        String filtro = AppMain.getInstancia().getTextFieldFiltroFrefAtrasados().getText();
+        ArrayList<ArtigoOSBO> lista = DBSQLite.getInstancia().get_Lista_OS_Atrasadas(data, filtro, seccao, estado);
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
                 try {
-                    AppMain.getInstancia().getBut_atrasados().setText("atrasos (" + DBSQLite.getInstancia().getListaArtigoOSBOAtrasados(data, "").size() + ")");
+                    AppMain.getInstancia().getBut_atrasados().setText("atrasos (" + lista.size() + ")");
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         });
+        if (apenas_mostrador) {
+            return;
+        }
 
-        int linha = 0;
-
-        String filtro = AppMain.getInstancia().getTextFieldFiltroFrefAtrasados().getText();
-        ArrayList<ArtigoOSBO> lista = DBSQLite.getInstancia().getListaArtigoOSBOAtrasados(data, filtro);
         Label labelTotRecs = AppMain.getInstancia().getLabelTotRecsAtrasados();
         labelTotRecs.setText("" + lista.size());
         for (ArtigoOSBO artigoOSBO : lista) {
@@ -52,10 +57,11 @@ public class GridPaneAtrasados extends GridPane {
                         , artigoOSBO.getSeccao()
                         , artigoOSBO.getObs()
                         , artigoOSBO.getDtexpedi()
-                        , artigoOSBO.getDtcortef(),
-                        qtt
+                        , artigoOSBO.getDtcliente()
+                        , qtt
+                        , artigoOSBO.getEstado()
                 );
-                HBoxLinhaPlanOUAtraso hBoxLinhaPlanOUAtraso = new HBoxLinhaPlanOUAtraso(artigoLinhaPlanOUAtras, linha, HBoxLinhaPlanOUAtraso.TIPO_ATRASADO);
+                HBoxLinhaPlanOUAtraso hBoxLinhaPlanOUAtraso = new HBoxLinhaPlanOUAtraso(artigoLinhaPlanOUAtras, linha, TIPO_ATRASADO);
                 hBoxLinhaPlanOUAtraso.setId(artigoOSBO.getBostamp());
                 if (linha % 2 == 0)
                     hBoxLinhaPlanOUAtraso.setStyle("-fx-background-color: rgb(220,220,220); -fx-background-insets: 0, 1 1 1 0 ;");
@@ -78,14 +84,12 @@ public class GridPaneAtrasados extends GridPane {
                 e.printStackTrace();
             }
         }
-
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
                 AppMain.getInstancia().borderPaneAtrasados.setCenter(gridPaneAtrasados);
             }
         });
-
     }
 
     private void construct() {

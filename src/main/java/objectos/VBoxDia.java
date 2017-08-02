@@ -2,6 +2,7 @@ package objectos;
 
 import bamer.AppMain;
 import com.jfoenix.controls.JFXButton;
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -14,6 +15,7 @@ import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -25,16 +27,12 @@ import org.kordamp.ikonli.fontawesome.FontAwesome;
 import org.kordamp.ikonli.javafx.FontIcon;
 import pojos.ArtigoLinhaPlanOUAtraso;
 import pojos.ArtigoOSBO;
+import sqlite.DBSQLite;
 import sqlite.PreferenciasEmSQLite;
-import utils.Constantes;
-import utils.Funcoes;
-import utils.Singleton;
-import utils.ValoresDefeito;
-import webservices.WSWorker;
+import utils.*;
 
 import java.time.LocalDate;
 import java.util.Timer;
-import java.util.concurrent.ExecutionException;
 
 import static java.lang.System.out;
 
@@ -77,7 +75,7 @@ public class VBoxDia extends VBox {
 
     public void resize() {
         PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
-        int minWidth = prefs.getInt(Constantes.PREF_COMPRIMENTO_MINIMO, ValoresDefeito.COL_COMPRIMENTO);
+        int minWidth = prefs.getInt(Constantes.Preferencias.PREF_COMPRIMENTO_MINIMO, ValoresDefeito.COL_COMPRIMENTO);
         setPrefWidth(minWidth);
         setMinWidth(minWidth);
     }
@@ -113,9 +111,9 @@ public class VBoxDia extends VBox {
                 @Override
                 public void handle(ActionEvent event) {
                     PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
-                    int tamanho = prefs.getInt(Constantes.PREF_COMPRIMENTO_MINIMO, ValoresDefeito.COL_COMPRIMENTO);
+                    int tamanho = prefs.getInt(Constantes.Preferencias.PREF_COMPRIMENTO_MINIMO, ValoresDefeito.COL_COMPRIMENTO);
                     tamanho = tamanho + 1;
-                    prefs.putInt(Constantes.PREF_COMPRIMENTO_MINIMO, tamanho);
+                    prefs.putInt(Constantes.Preferencias.PREF_COMPRIMENTO_MINIMO, tamanho);
                     alterarTamanhos(tamanho);
                     out.println("Plus clicked! Novo tamanho = " + tamanho);
                     event.consume();
@@ -134,9 +132,9 @@ public class VBoxDia extends VBox {
                 public void handle(ActionEvent event) {
                     out.println("Minus clicked!");
                     PreferenciasEmSQLite prefs = PreferenciasEmSQLite.getInstancia();
-                    int tamanho = prefs.getInt(Constantes.PREF_COMPRIMENTO_MINIMO, ValoresDefeito.COL_COMPRIMENTO);
+                    int tamanho = prefs.getInt(Constantes.Preferencias.PREF_COMPRIMENTO_MINIMO, ValoresDefeito.COL_COMPRIMENTO);
                     tamanho = tamanho - 1;
-                    prefs.putInt(Constantes.PREF_COMPRIMENTO_MINIMO, tamanho);
+                    prefs.putInt(Constantes.Preferencias.PREF_COMPRIMENTO_MINIMO, tamanho);
                     alterarTamanhos(tamanho);
                     out.println("Plus clicked! Novo tamanho = " + tamanho);
                     event.consume();
@@ -209,6 +207,9 @@ public class VBoxDia extends VBox {
                     if (vBoxOSBO.getColuna() == coluna) {
                         return;
                     }
+                    if (!AppMain.getInstancia().getFiltroDeObra().equals("")) {
+                        return;
+                    }
                     Font font = textDiaDaSemana.getFont();
                     textDiaDaSemana.setFill(Color.INDIANRED);
                     textDiaDaSemana.setFont(Font.font(font.getFamily(), FontWeight.BOLD, font.getSize()));
@@ -237,6 +238,9 @@ public class VBoxDia extends VBox {
                     } else {
                         event.acceptTransferModes(TransferMode.MOVE);
                     }
+                    if (!AppMain.getInstancia().getFiltroDeObra().equals("")) {
+                        event.acceptTransferModes(TransferMode.NONE);
+                    }
                     event.consume();
                 }
 
@@ -258,6 +262,9 @@ public class VBoxDia extends VBox {
                     if (vBoxOSBO.getColuna() == coluna) {
                         return;
                     }
+                    if (!AppMain.getInstancia().getFiltroDeObra().equals("")) {
+                        return;
+                    }
                     Font font = textDiaDaSemana.getFont();
                     textDiaDaSemana.setFill(Color.BLACK);
                     textDiaDaSemana.setFont(Font.font(font.getFamily(), FontWeight.NORMAL, font.getSize()));
@@ -277,57 +284,87 @@ public class VBoxDia extends VBox {
             @Override
             public void handle(DragEvent event) {
                 Object object = event.getDragboard().getContent(DataFormat.RTF);
-//                out.println("OnDragDropped: " + object.getClass().getSimpleName());
+
                 if (object instanceof VBoxOSBO) {
+
                     Dragboard dragboard = event.getDragboard();
                     VBoxOSBO vboxEmDRAG = (VBoxOSBO) dragboard.getContent(DataFormat.RTF);
+
                     if (vboxEmDRAG.getColuna() == coluna) {
                         return;
                     }
-
-                    object = event.getDragboard().getContent(DataFormat.RTF);
-                    if (object instanceof VBoxOSBO) {
-                        ArtigoOSBO artigoOSBOemDRAG = vboxEmDRAG.getArtigoOSBOProp();
-                        if (artigoOSBOemDRAG.getBostamp().equals(getId())) {
-                            event.consume();
-                            return;
-                        }
-
-                        int ordemNova = 999;
-                        String bostamp = artigoOSBOemDRAG.getBostamp();
-                        String seccao = artigoOSBOemDRAG.getSeccao();
-                        String estado = Constantes.ESTADO_01_CORTE;
-                        LocalDate u_dtcortef = Singleton.getInstancia().dataInicioAgenda.plusDays(coluna);
-                        LocalDate u_dttransf = u_dtcortef.plusDays(1);
-                        try {
-                            WSWorker.actualizarOrdem(bostamp, ordemNova, Funcoes.dToC(u_dtcortef, "yyyyMMdd"), Funcoes.dToC(u_dttransf, "yyyyMMdd"), seccao, estado);
-                        } catch (ExecutionException | InterruptedException e) {
-                            e.printStackTrace();
-                        }
-
-                        event.consume();
+                    if (!AppMain.getInstancia().getFiltroDeObra().equals("")) {
+                        return;
                     }
+                    ArtigoOSBO artigoOSBOemDRAG = vboxEmDRAG.getArtigoOSBOProp();
+//                    if (artigoOSBOemDRAG.getBostamp().equals(getId())) {
+//                        event.consume();
+//                        return;
+//                    }
+                    int ordemOriginal = artigoOSBOemDRAG.getOrdem();
+
+                    //Calcular a ordem do último OSBO da coluna
+                    System.out.println("Coluna do Drag: " + vboxEmDRAG.getColuna() + ", VBoxDia.coluna: " + coluna);
+//                    int ultima_ordem_coluna = Funcoes.obter_ordem_do_ultimo_VBoxOSBO_da_coluna(coluna);
+                    LocalDate dataDeOperacao = Singleton.getInstancia().dataInicioAgenda.plusDays(coluna);
+                    String data = dataDeOperacao + " 00:00:00";
+                    int ultima_ordem_coluna = DBSQLite.getInstancia().select_max_ordem(AppMain.getInstancia().getSeccao(), AppMain.getInstancia().getEstado(), data);
+//                    Funcoes.actualizar_fila_ascendente_OSBO(vboxEmDRAG.getColuna(), artigoOSBOemDRAG.getOrdem(), 999);
+                    artigoOSBOemDRAG.setDtoper(data);
+                    artigoOSBOemDRAG.setOrdem(ultima_ordem_coluna + 1);
+                    Procedimentos.actualizar_OSBO(artigoOSBOemDRAG, Constantes.Operacao.ADICIONAR);
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            AppMain.getInstancia().getCalendario().getChildren().remove(object);
+                            Procedimentos.actualizar_restantes_OSBOs(vboxEmDRAG.getColuna(), ordemOriginal);
+                        }
+
+                    });
                     event.consume();
                 }
 
+                //Se for um objecto POR PLANEAR ou EM ATRASO
                 if (object instanceof HBoxLinhaPlanOUAtraso) {
                     Dragboard dragboard = event.getDragboard();
                     HBoxLinhaPlanOUAtraso hBoxOSPorPlanear = (HBoxLinhaPlanOUAtraso) dragboard.getContent(DataFormat.RTF);
-                    LocalDate dataDeCorte = Singleton.getInstancia().dataInicioAgenda.plusDays(coluna);
+                    LocalDate dataDeOperacao = Singleton.getInstancia().dataInicioAgenda.plusDays(coluna);
                     ArtigoLinhaPlanOUAtraso artigoLinhaPlanOUAtraso = hBoxOSPorPlanear.getArtigoLinhaPlanOUAtraso();
-                    artigoLinhaPlanOUAtraso.setDt2(Funcoes.dToC(dataDeCorte, "yyyy-MM-dd" + " 00:00:00"));
+                    artigoLinhaPlanOUAtraso.setDtcli(Funcoes.dToC(dataDeOperacao, "yyyy-MM-dd" + " 00:00:00"));
 
-                    String bostamp = artigoLinhaPlanOUAtraso.getBostamp();
-                    int ordemNova = 999;
-                    LocalDate u_dtcortef = dataDeCorte;
-                    LocalDate u_dttransf = dataDeCorte.plusDays(1);
-                    String seccao = artigoLinhaPlanOUAtraso.getSeccao();
-                    String estado = Constantes.ESTADO_01_CORTE;
-                    try {
-                        WSWorker.actualizarOrdem(bostamp, ordemNova, Funcoes.dToC(u_dtcortef, "yyyyMMdd"), Funcoes.dToC(u_dttransf, "yyyyMMdd"), seccao, estado);
-                    } catch (ExecutionException | InterruptedException e) {
-                        e.printStackTrace();
+//                    String bostamp = artigoLinhaPlanOUAtraso.getBostamp();
+//                    int ordemNova = 999;
+//                    LocalDate u_dtcortef = dataDeCorte;
+//                    LocalDate u_dttransf = dataDeCorte.plusDays(1);
+//                    String seccao = artigoLinhaPlanOUAtraso.getSeccao();
+//                    String estado = Constantes.ESTADO_01_CORTE;
+//                    try {
+//                        WSWorker.actualizarOrdem(bostamp, ordemNova, Funcoes.dToC(u_dtcortef, "yyyyMMdd"), Funcoes.dToC(u_dttransf, "yyyyMMdd"), seccao, estado);
+//                    } catch (ExecutionException | InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+
+                    GridPaneCalendario gridPaneCalendario = AppMain.getInstancia().getCalendario();
+                    int ordem = 0;
+                    for (Node node : gridPaneCalendario.getChildren()) {
+                        if (node instanceof VBoxOSBO && GridPane.getColumnIndex(node) == coluna) {
+                            VBoxOSBO vBoxOSBO = (VBoxOSBO) node;
+                            ordem = vBoxOSBO.getArtigoOSBOProp().getOrdem() > ordem ? vBoxOSBO.getArtigoOSBOProp().getOrdem() : ordem;
+                        }
                     }
+                    ordem++;
+                    String data = dataDeOperacao + " 00:00:00";
+                    ArtigoOSBO artigoOSBO = artigoLinhaPlanOUAtraso.transformar_Em_OSBO(ordem, data);
+
+                    Procedimentos.actualizar_OSBO(artigoOSBO, Constantes.Operacao.ACTUALIZAR);
+
+                    if (hBoxOSPorPlanear.getTipo() == HBoxLinhaPlanOUAtraso.TIPO_ATRASADO) {
+                        GridPaneAtrasados.actualizar(AppMain.getInstancia().getSeccao(), AppMain.getInstancia().getEstado(), false);
+                    }
+                    if (hBoxOSPorPlanear.getTipo() == HBoxLinhaPlanOUAtraso.TIPO_PORPLANEAR) {
+                        GridPanePorPlanear.actualizar(AppMain.getInstancia().getSeccao(), AppMain.getInstancia().getEstado(), false);
+                    }
+
                     event.consume();
                 }
             }

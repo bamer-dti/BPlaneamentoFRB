@@ -33,8 +33,9 @@ src/package
 src/test
 target/
 src/main/resources/firebase_auth.json
-firebase.db
 /src/main/resources/dbprefs.db
 /info.txt
 /src/main/resources/versionsource.txt
 /version.txt
+/dadossql.db
+/dbprefs.db

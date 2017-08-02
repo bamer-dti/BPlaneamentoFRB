@@ -17,7 +17,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import pojos.SMS;
-import utils.Funcoes;
+import utils.Procedimentos;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -60,12 +60,12 @@ public class ButaoSMS extends HBox {
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
                 if (newValue.intValue() != 0) {
                     if (lida) {
-                        Funcoes.colocarEstilo(botao, "botao_lidas");
+                        Procedimentos.colocarEstilo(botao, "botao_lidas");
                     } else {
-                        Funcoes.colocarEstilo(botao, "botao_nao_lidas");
+                        Procedimentos.colocarEstilo(botao, "botao_nao_lidas");
                     }
                 } else {
-                    Funcoes.colocarEstilo(botao, "botao_lidas_inactivo");
+                    Procedimentos.colocarEstilo(botao, "botao_lidas_inactivo");
                 }
             }
         });
@@ -109,7 +109,7 @@ public class ButaoSMS extends HBox {
                     new GridListaSMS(machina, lida, lista);
                 } catch (IOException e) {
                     e.printStackTrace();
-                    Funcoes.alertaException(e);
+                    Procedimentos.alertaException(e);
                 }
             }
         });
