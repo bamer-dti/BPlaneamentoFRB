@@ -48,7 +48,6 @@ public class Campos {
     public static final String PECAS = "pecas";
     public static final String PECASPRODZ = "pecasprodz";
     public static final String CODIGO = "codigo";
-    public static final String FUNCAO = "funcao";
     public static final String NOME = "nome";
     public static final String DTOPER = "dtoper";
     public static final String WS_MENSAGEM_OSBO = "mensagem";

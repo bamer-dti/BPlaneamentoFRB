@@ -11,6 +11,7 @@ public class Estado {
     private SimpleStringProperty stamp = new SimpleStringProperty();
     private SimpleStringProperty titulo = new SimpleStringProperty();
     private SimpleLongProperty ordem = new SimpleLongProperty();
+    private SimpleStringProperty tipo = new SimpleStringProperty();
 
     public String getStamp() {
         return stamp.get();
@@ -46,5 +47,17 @@ public class Estado {
 
     public SimpleLongProperty ordemProperty() {
         return ordem;
+    }
+
+    public String getTipo() {
+        return tipo.get();
+    }
+
+    public void setTipo(String tipo) {
+        this.tipo.set(tipo);
+    }
+
+    public SimpleStringProperty tipoProperty() {
+        return tipo;
     }
 }

@@ -7,7 +7,7 @@ package objectos;
 public class Machina {
     private String seccao;
     private String codigo;
-    private String funcao;
+    private String estado;
     private String nome;
     private int ordem;
 
@@ -19,7 +19,7 @@ public class Machina {
     public String toString() {
         String texto = seccao
                 + "; " + codigo
-                + "; " + funcao
+                + "; " + estado
                 + "; " + nome
                 + "; " + ordem;
 
@@ -34,12 +34,12 @@ public class Machina {
         this.seccao = seccao;
     }
 
-    public String getFuncao() {
-        return funcao;
+    public String getEstado() {
+        return estado;
     }
 
-    public void setFuncao(String funcao) {
-        this.funcao = funcao;
+    public void setEstado(String estado) {
+        this.estado = estado;
     }
 
     public String getNome() {

@@ -55,7 +55,7 @@ import java.util.Optional;
 
 public class AppMain extends Application {
     public static final long INTERVALO_CRONOS = 1;
-    private static final String VERSAO = "3.1.0";
+    private static final String VERSAO = "3.1.2";
     public static final String TITULO_APP = "Planeamento " + VERSAO;
     @SuppressWarnings("unused")
     private static final String TAG = AppMain.class.getSimpleName();
@@ -83,7 +83,7 @@ public class AppMain extends Application {
     private TextField textFieldFiltroPorPlanear;
     private Label labelTotRecsPorPlanear;
     private TextField textFieldFiltroFrefAtrasados;
-    private Label labelTotRecsAtrasados;
+    private Label labelCountadorAtrasados;
     private Stage mainStage;
     private ProgressIndicator progressIndicator;
     private DBSQLite sqlite;
@@ -849,12 +849,12 @@ public class AppMain extends Application {
             }
         });
 
-        labelTotRecsAtrasados = new Label();
-        HBox.setMargin(labelTotRecsAtrasados, new Insets(2));
+        labelCountadorAtrasados = new Label();
+        HBox.setMargin(labelCountadorAtrasados, new Insets(2));
 
         HBox hBoxFiltros = new HBox();
         hBoxFiltros.setAlignment(Pos.CENTER_LEFT);
-        hBoxFiltros.getChildren().addAll(labelObra, textFieldFiltroFrefAtrasados, labelTotRecsAtrasados);
+        hBoxFiltros.getChildren().addAll(labelObra, textFieldFiltroFrefAtrasados, labelCountadorAtrasados);
 
         borderPaneAtrasados.setTop(hBoxFiltros);
 
@@ -1062,8 +1062,8 @@ public class AppMain extends Application {
         return labelTotRecsPorPlanear;
     }
 
-    public Label getLabelTotRecsAtrasados() {
-        return labelTotRecsAtrasados;
+    public Label getLabelCountadorAtrasados() {
+        return labelCountadorAtrasados;
     }
 
     public Stage getMainStage() {

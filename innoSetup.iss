@@ -2,11 +2,11 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Planeamento FRB"
-#define MyAppVersion "3.0.2"
+#define MyAppVersion "3.1.1"
 #define MyAppPublisher "DTI Bamer"
 #define MyAppExeName "planeamentofrb.exe"
 
-; não esquecer de ASSINAR:
+; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  NÃO ESQUECER DE ASSINAR !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!:
 ; "C:\Program Files (x86)\Microsoft SDKs\ClickOnce\SignTool\signtool.exe"  sign /f "f:\openssl\certificado.pfx" /p 123456 "c:\temp\apps\SetupPlaneamentoFRB.exe"
 
 [Setup]

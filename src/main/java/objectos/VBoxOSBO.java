@@ -46,7 +46,6 @@ import pojos.Nota;
 import sqlite.DBSQLite;
 import sqlite.PreferenciasEmSQLite;
 import utils.*;
-import webservices.WSWorker;
 
 import java.io.IOException;
 import java.net.URL;
@@ -804,23 +803,28 @@ public class VBoxOSBO extends VBox {
 
                 int rows = 0;
                 //                    rows = BamerSqlServer.getInstancia().editarEactualizarDatas(bostampProp.get(), dtcortef, dttransf, dtembala, dtexpedi, estado);
-                WSWorker.editarDadosOP(stage, contexto, controller, bostampProp.get(), dtcortef, dttransf, dtembala, dtexpedi, estado, dtoper);
-
+//                WSWorker.editarDadosOP(stage, contexto, controller, bostampProp.get(), dtcortef, dttransf, dtembala, dtexpedi, estado, dtoper);
+                ArtigoOSBO artigoOSBO = getArtigoOSBOProp();
                 //Se alterou a data ou estado, deverão ser actualizados os objectos a jusante
-                if (!estado.equals(getArtigoOSBOProp().getEstado()) || !dtoper.equals(getArtigoOSBOProp().getDtoper())) {
+                if (!estado.equals(artigoOSBO.getEstado()) || !dtoper.equals(artigoOSBO.getDtoper())) {
                     Procedimentos.actualizar_restantes_OSBOs(coluna, getOrdemProp());
-
+                    LocalDate dantes = Funcoes.cToD(artigoOSBO.getDtoper());
+                    int dias = Days.daysBetween(Funcoes.toJoda(dantes), Funcoes.toJoda(controller.dtoper.getValue())).getDays();
+                    int ultimoVBox = Funcoes.obter_ordem_do_ultimo_VBoxOSBO_da_coluna(coluna + dias);
                     // Se continua no mesmo estado é porque actualizou apenas a data de operação.
-                    if (estado.equals(getArtigoOSBOProp().getEstado())) {
-                        LocalDate dantes = Funcoes.cToD(getArtigoOSBOProp().getDtoper());
-                        int dias = Days.daysBetween(Funcoes.toJoda(dantes), Funcoes.toJoda(controller.dtoper.getValue())).getDays();
-                        int ultimoVBox = Funcoes.obter_ordem_do_ultimo_VBoxOSBO_da_coluna(coluna + dias);
-                        getArtigoOSBOProp().setCor(COR_MOVIMENTO);
-                        getArtigoOSBOProp().setDtoper(controller.dtoper.getValue() + " 00:00:00");
-                        getArtigoOSBOProp().setOrdem(ultimoVBox + 1);
-                        Procedimentos.actualizar_OSBO(getArtigoOSBOProp(), Constantes.Operacao.ACTUALIZAR);
+                    if (estado.equals(artigoOSBO.getEstado())) {
+                        artigoOSBO.setCor(COR_MOVIMENTO);
+                        artigoOSBO.setDtoper(controller.dtoper.getValue() + " 00:00:00");
+                        artigoOSBO.setOrdem(ultimoVBox + 1);
+                        Procedimentos.actualizar_OSBO(artigoOSBO, Constantes.Operacao.ACTUALIZAR);
                     } else {
-                        Procedimentos.actualizar_OSBO(getArtigoOSBOProp(), Constantes.Operacao.REMOVER);
+                        System.out.println("Data do combo: " + controller.dtoper.getValue() + " 00:00:00");
+                        artigoOSBO.setCor(COR_MOVIMENTO);
+                        artigoOSBO.setDtoper(controller.dtoper.getValue() + " 00:00:00");
+                        int ordemDoDia = DBSQLite.getInstancia().select_max_ordem(seccaoProp.get(), estado, controller.dtoper.getValue() + " 00:00:00");
+                        artigoOSBO.setOrdem(ordemDoDia + 1);
+                        artigoOSBO.setEstado(estado);
+                        Procedimentos.actualizar_OSBO(artigoOSBO, Constantes.Operacao.REMOVER);
                     }
                 }
 

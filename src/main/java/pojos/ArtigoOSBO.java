@@ -175,5 +175,9 @@ public class ArtigoOSBO {
     public long getUnixtime() {
         return unixtime;
     }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
 }
 

@@ -45,7 +45,7 @@ public class GridPaneAtrasados extends GridPane {
             return;
         }
 
-        Label labelTotRecs = AppMain.getInstancia().getLabelTotRecsAtrasados();
+        Label labelTotRecs = AppMain.getInstancia().getLabelCountadorAtrasados();
         labelTotRecs.setText("" + lista.size());
         for (ArtigoOSBO artigoOSBO : lista) {
             try {

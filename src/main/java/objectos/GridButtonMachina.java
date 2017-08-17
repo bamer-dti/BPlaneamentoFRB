@@ -198,7 +198,7 @@ public class GridButtonMachina extends GridPane {
             public void changed(ObservableValue<? extends Machina> observable, Machina oldValue, Machina newValue) {
                 seccaoProp.set(newValue.getSeccao());
                 codigoProp.set(newValue.getCodigo());
-                funcaoProp.set(newValue.getFuncao());
+                funcaoProp.set(newValue.getEstado());
                 nomeProp.set(newValue.getNome());
                 ordemProp.set(newValue.getOrdem());
                 Procedimentos.colocarEstilo(context, "machine_off");

@@ -77,7 +77,7 @@ public class DBSQLite {
                 + Campos._ID + " integer primary key autoincrement, "
                 + Campos.SECCAO + " text not null, "
                 + Campos.CODIGO + " text not null, "
-                + Campos.FUNCAO + " text not null, "
+                + Campos.ESTADO + " text not null, "
                 + Campos.NOME + " text not null, "
                 + Campos.ORDEM + " integer not null"
                 + ")";
@@ -188,14 +188,14 @@ public class DBSQLite {
                         "insert into " + Campos.TABELA_MACHINA + " ("
                                 + Campos.SECCAO + ", "
                                 + Campos.CODIGO + ", "
-                                + Campos.FUNCAO + ", "
+                                + Campos.ESTADO + ", "
                                 + Campos.NOME + ", "
                                 + Campos.ORDEM
                                 + ")"
                                 + " VALUES (?,?,?,?,?)");
                 preparedStatement.setString(1, machina.getSeccao());
                 preparedStatement.setString(2, machina.getCodigo());
-                preparedStatement.setString(3, machina.getFuncao());
+                preparedStatement.setString(3, machina.getEstado());
                 preparedStatement.setString(4, machina.getNome());
                 preparedStatement.setLong(5, machina.getOrdem());
                 t = preparedStatement.executeUpdate();
