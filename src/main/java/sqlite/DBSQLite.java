@@ -1,8 +1,8 @@
 package sqlite;
 
-import objectos.Machina;
 import pojos.ArtigoLinhaPlanOUAtraso;
 import pojos.ArtigoOSBO;
+import pojos.Machina;
 import utils.Campos;
 import utils.Constantes;
 
@@ -39,7 +39,6 @@ public class DBSQLite {
             return null;
         }
 
-
 //        String comandoSql = "DROP TABLE " + TABELA_PREFS;
 //        statement.executeUpdate(comandoSql);
 
@@ -61,7 +60,9 @@ public class DBSQLite {
                 + Campos.PECAS + " integer not null, "
                 + Campos.DTOPER + " text not null, "
                 + Campos.SECCAO + " text not null, "
-                + Campos.PECASPRODZ + " integer not null "
+                + Campos.PECASPRODZ + " integer not null, "
+                + Campos.TEMPOP + " integer not null, "
+                + Campos.TEMPOT + " integer not null "
                 + ")";
         Statement statement;
         try {
@@ -146,9 +147,11 @@ public class DBSQLite {
                                 + Campos.PECAS + ", "
                                 + Campos.DTOPER + ", "
                                 + Campos.SECCAO + ", "
-                                + Campos.PECASPRODZ
+                                + Campos.PECASPRODZ + ", "
+                                + Campos.TEMPOP + ", "
+                                + Campos.TEMPOT
                                 + ")"
-                                + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                                + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
                 preparedStatement.setString(1, osbo.getBostamp());
                 preparedStatement.setInt(2, osbo.getCor());
                 preparedStatement.setString(3, osbo.getDtcliente());
@@ -166,6 +169,8 @@ public class DBSQLite {
                 preparedStatement.setString(15, osbo.getDtoper());
                 preparedStatement.setString(16, osbo.getSeccao());
                 preparedStatement.setInt(17, osbo.getPecasprodz());
+                preparedStatement.setLong(18, osbo.getTempop());
+                preparedStatement.setLong(19, osbo.getTempot());
 
                 t = preparedStatement.executeUpdate();
                 preparedStatement.close();
@@ -257,7 +262,9 @@ public class DBSQLite {
                                 + Campos.SECCAO + "=?, "
                                 + Campos.DTOPER + "=?,"
                                 + Campos.PECAS + "=?,"
-                                + Campos.PECASPRODZ + "=?"
+                                + Campos.PECASPRODZ + "=?, "
+                                + Campos.TEMPOP + "=?, "
+                                + Campos.TEMPOT + "=?"
                                 + " where " + Campos.BOSTAMP + "=?"
                 );
                 preparedStatement.setInt(1, osbo.getCor());
@@ -277,6 +284,8 @@ public class DBSQLite {
                 preparedStatement.setInt(15, osbo.getPecas());
                 preparedStatement.setInt(16, osbo.getPecasprodz());
                 preparedStatement.setString(17, osbo.getBostamp());
+                preparedStatement.setLong(18, osbo.getTempop());
+                preparedStatement.setLong(19, osbo.getTempot());
 
                 t = preparedStatement.executeUpdate();
                 preparedStatement.close();
@@ -324,7 +333,8 @@ public class DBSQLite {
                 preparedStatement.setString(3, filtroObra.trim() + "%");
                 ResultSet resultSet = preparedStatement.executeQuery();
                 while (resultSet.next()) {
-                    ArtigoOSBO osbo = new ArtigoOSBO(resultSet.getString(Campos.BOSTAMP)
+                    ArtigoOSBO osbo = new ArtigoOSBO(resultSet.getString(
+                            Campos.BOSTAMP)
                             , resultSet.getInt(Campos.OBRANO)
                             , resultSet.getString(Campos.FREF)
                             , resultSet.getString(Campos.NMFREF)
@@ -339,8 +349,10 @@ public class DBSQLite {
                             , resultSet.getInt(Campos.ORDEM)
                             , resultSet.getString(Campos.DTCLIENTE)
                             , resultSet.getInt(Campos.PECAS)
-                            , resultSet.getString(Campos.DTOPER)
                             , resultSet.getInt(Campos.PECASPRODZ)
+                            , resultSet.getString(Campos.DTOPER)
+                            , resultSet.getLong(Campos.TEMPOP)
+                            , resultSet.getLong(Campos.TEMPOT)
                     );
                     lista.add(osbo);
                 }
@@ -373,7 +385,8 @@ public class DBSQLite {
                 preparedStatement.setString(5, "1900-01-01 00:00:00");
                 ResultSet resultSet = preparedStatement.executeQuery();
                 while (resultSet.next()) {
-                    ArtigoOSBO osbo = new ArtigoOSBO(resultSet.getString(Campos.BOSTAMP)
+                    ArtigoOSBO osbo = new ArtigoOSBO(resultSet.getString(
+                            Campos.BOSTAMP)
                             , resultSet.getInt(Campos.OBRANO)
                             , resultSet.getString(Campos.FREF)
                             , resultSet.getString(Campos.NMFREF)
@@ -388,8 +401,10 @@ public class DBSQLite {
                             , resultSet.getInt(Campos.ORDEM)
                             , resultSet.getString(Campos.DTCLIENTE)
                             , resultSet.getInt(Campos.PECAS)
-                            , resultSet.getString(Campos.DTOPER)
                             , resultSet.getInt(Campos.PECASPRODZ)
+                            , resultSet.getString(Campos.DTOPER)
+                            , resultSet.getLong(Campos.TEMPOP)
+                            , resultSet.getLong(Campos.TEMPOT)
                     );
                     lista.add(osbo);
                 }

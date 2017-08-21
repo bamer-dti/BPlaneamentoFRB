@@ -12,6 +12,7 @@ public class Constantes {
     //ESTADOS
     public static final String ESTADO_01_CORTE = "01 - CORTE";
     public static final long INTERVALO_UPDATE_WS = 1;
+    public static long OFFSET_TEMPO = 3600L;
 
     public enum Operacao {
         ;

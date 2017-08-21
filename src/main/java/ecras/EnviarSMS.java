@@ -8,7 +8,7 @@ import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import objectos.GridButtonMachina;
+import objectos.ButaoMachina;
 
 import java.io.IOException;
 import java.net.URL;
@@ -33,16 +33,16 @@ public class EnviarSMS {
                 controller.configVazio();
                 break;
             case SMS_MACHINA:
-                GridButtonMachina gridButtonMachina = (GridButtonMachina) nodeOrigem;
-                controller.paraLabel.textProperty().bind(gridButtonMachina.codigoProp);
-                controller.tokenLabel.textProperty().bind(gridButtonMachina.tokenProp);
+                ButaoMachina butaoMachina = (ButaoMachina) nodeOrigem;
+                controller.paraLabel.textProperty().bind(butaoMachina.maquinaCodigoProp);
+                controller.tokenLabel.textProperty().bind(butaoMachina.tokenProp);
                 controller.hboxparam.setManaged(false);
                 controller.hboxparam.setVisible(false);
                 break;
             case SMS_OPERADOR:
-                gridButtonMachina = (GridButtonMachina) nodeOrigem;
-                controller.paraLabel.textProperty().bind(gridButtonMachina.operadorProp);
-                controller.tokenLabel.textProperty().bind(gridButtonMachina.tokenProp);
+                butaoMachina = (ButaoMachina) nodeOrigem;
+                controller.paraLabel.textProperty().bind(butaoMachina.operadorProp);
+                controller.tokenLabel.textProperty().bind(butaoMachina.tokenProp);
                 controller.hboxparam.setManaged(false);
                 controller.hboxparam.setVisible(false);
                 break;

@@ -41,6 +41,7 @@ import org.kordamp.ikonli.fontawesome.FontAwesome;
 import org.kordamp.ikonli.javafx.FontIcon;
 import pojos.ArtigoOSBO;
 import pojos.Estado;
+import pojos.Machina;
 import pojos.VersaoObj;
 import sqlite.DBSQLite;
 import sqlite.PreferenciasEmSQLite;
@@ -55,7 +56,7 @@ import java.util.Optional;
 
 public class AppMain extends Application {
     public static final long INTERVALO_CRONOS = 1;
-    private static final String VERSAO = "3.1.2";
+    private static final String VERSAO = "3.2.0";
     public static final String TITULO_APP = "Planeamento " + VERSAO;
     @SuppressWarnings("unused")
     private static final String TAG = AppMain.class.getSimpleName();
@@ -108,7 +109,7 @@ public class AppMain extends Application {
         return Singleton.getInstancia().appMain;
     }
 
-    public static void eliminarFicheiroFirebase() {
+    public static void eliminarFicheiroComBaseDeDadosFirebase() {
         System.out.println("A tentar eliminar o ficheiro " + Constantes.NOME_BASE_DADOS_SQL);
         File file = new File(Constantes.NOME_BASE_DADOS_SQL);
         boolean test = file.delete();
@@ -138,7 +139,7 @@ public class AppMain extends Application {
 //        Image imageOn = Funcoes.imagemResource("on.png", 16, 16);
 //        Image imageOff = Funcoes.imagemResource("off.png", 16, 16);
 
-        eliminarFicheiroFirebase();
+        eliminarFicheiroComBaseDeDadosFirebase();
 
         sqlite = DBSQLite.getInstancia();
 
@@ -154,7 +155,6 @@ public class AppMain extends Application {
         controllerLogin = fxmlLoader.getController();
         controllerLogin.setStage(mainStage);
         controllerLogin.setScenePrincipal(scenePrincipal);
-
 
         getMainStage().setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
@@ -517,8 +517,8 @@ public class AppMain extends Application {
         HBoxMachinas objBase = hboxMaquinas;
         ObservableList<Node> children = objBase.getChildren();
         for (Node child : children) {
-            if (child instanceof GridButtonMachina) {
-                GridButtonMachina botao = (GridButtonMachina) child;
+            if (child instanceof ButaoMachina) {
+                ButaoMachina botao = (ButaoMachina) child;
                 Machina machina = botao.getMachinaProp();
                 if (machina.getSeccao().equals(seccao)) {
                     botao.setVisible(true);
@@ -692,7 +692,10 @@ public class AppMain extends Application {
                         String bostamp = dataSnapshot.getKey();
                         ArtigoOSBO artigoOSBO = dataSnapshot.getValue(ArtigoOSBO.class);
                         artigoOSBO.setBostamp(bostamp);
-                        sqlite.guardarOSBO(artigoOSBO);
+                        int t = sqlite.guardarOSBO(artigoOSBO);
+                        if (t == 0) {
+                            Log.i(TAG, "Não guardou " + artigoOSBO.toString());
+                        }
                         if (artigoOSBO.getSeccao().equals(seccao) && artigoOSBO.getEstado().equals(estado)) {
                             lista.add(artigoOSBO);
                             actualizarGrelhaCalendario(lista, Constantes.Operacao.ADICIONAR);

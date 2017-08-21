@@ -5,6 +5,7 @@ import org.json.JSONObject;
 import utils.Campos;
 import utils.Funcoes;
 
+@SuppressWarnings("unused")
 public class ArtigoOSBO {
     private long unixtime;
     private String bostamp;
@@ -24,14 +25,15 @@ public class ArtigoOSBO {
     private int pecas;
     private int pecasprodz;
     private String dtoper;
+    private Long tempop = 0L;
+    private Long tempot = 0L;
 
     @SuppressWarnings("unused")
     public ArtigoOSBO() {
 
     }
 
-    public ArtigoOSBO(String bostamp, int obrano, String fref, String nmfref, String estado, String seccao
-            , String obs, int cor, String dttransf, String dtembala, String dtexpedi, String dtcortef, int ordem, String dtcliente, int pecas, String dtoper, int pecasprodz) {
+    public ArtigoOSBO(String bostamp, int obrano, String fref, String nmfref, String estado, String seccao, String obs, int cor, String dttransf, String dtembala, String dtexpedi, String dtcortef, int ordem, String dtcliente, int pecas, int pecasprodz, String dtoper, Long tempop, Long tempot) {
         this.bostamp = bostamp;
         this.obrano = obrano;
         this.fref = fref;
@@ -49,6 +51,8 @@ public class ArtigoOSBO {
         this.pecas = pecas;
         this.pecasprodz = pecasprodz;
         this.dtoper = dtoper;
+        this.tempop = tempop == null ? 0L : tempop;
+        this.tempot = tempot == null ? 0L : tempot;
     }
 
     public ArtigoOSBO(String bostamp, String estado, int cor, int ordem, String dtoper, long unixtime) {
@@ -72,12 +76,26 @@ public class ArtigoOSBO {
 
     @Override
     public String toString() {
-        return "bostamp: " + bostamp + ", obrano: " + obrano + ", fref: " + fref
-                + ", nmfref: " + nmfref + ", estado: " + estado + ", seccao: " + seccao
-                + ", obs: " + obs + ", cor: " + cor + ", dttransf: " + dttransf
-                + ", dtembala: " + dtembala + ", dtexpedi: " + dtexpedi + ", dtcortef: " + dtcortef
-                + ", ordem: " + ordem + ", dtcliente: " + dtcliente + ", pecas: " + pecas + ", pecasprodz: " + pecasprodz
-                ;
+        return "ArtigoOSBO{" +
+                "unixtime=" + unixtime +
+                ", bostamp='" + bostamp + '\'' +
+                ", obrano=" + obrano +
+                ", fref='" + fref + '\'' +
+                ", nmfref='" + nmfref + '\'' +
+                ", estado='" + estado + '\'' +
+                ", seccao='" + seccao + '\'' +
+                ", obs='" + obs + '\'' +
+                ", cor=" + cor +
+                ", dttransf='" + dttransf + '\'' +
+                ", dtembala='" + dtembala + '\'' +
+                ", dtexpedi='" + dtexpedi + '\'' +
+                ", dtcortef='" + dtcortef + '\'' +
+                ", ordem=" + ordem +
+                ", dtcliente='" + dtcliente + '\'' +
+                ", pecas=" + pecas +
+                ", pecasprodz=" + pecasprodz +
+                ", dtoper='" + dtoper + '\'' +
+                '}';
     }
 
     public String getBostamp() {
@@ -178,6 +196,66 @@ public class ArtigoOSBO {
 
     public void setEstado(String estado) {
         this.estado = estado;
+    }
+
+    public void setUnixtime(long unixtime) {
+        this.unixtime = unixtime;
+    }
+
+    public void setObrano(int obrano) {
+        this.obrano = obrano;
+    }
+
+    public void setFref(String fref) {
+        this.fref = fref;
+    }
+
+    public void setNmfref(String nmfref) {
+        this.nmfref = nmfref;
+    }
+
+    public void setSeccao(String seccao) {
+        this.seccao = seccao;
+    }
+
+    public void setObs(String obs) {
+        this.obs = obs;
+    }
+
+    public void setDttransf(String dttransf) {
+        this.dttransf = dttransf;
+    }
+
+    public void setDtembala(String dtembala) {
+        this.dtembala = dtembala;
+    }
+
+    public void setDtexpedi(String dtexpedi) {
+        this.dtexpedi = dtexpedi;
+    }
+
+    public void setDtcliente(String dtcliente) {
+        this.dtcliente = dtcliente;
+    }
+
+    public void setPecas(int pecas) {
+        this.pecas = pecas;
+    }
+
+    public Long getTempop() {
+        return tempop;
+    }
+
+    public void setTempop(Long tempop) {
+        this.tempop = tempop == null ? 0L : tempop;
+    }
+
+    public Long getTempot() {
+        return tempot;
+    }
+
+    public void setTempot(Long tempot) {
+        this.tempot = tempot == null ? 0L : tempot;
     }
 }
 

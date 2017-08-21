@@ -16,6 +16,7 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.HBox;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
+import pojos.Machina;
 import pojos.SMS;
 import utils.Procedimentos;
 

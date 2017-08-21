@@ -1,4 +1,4 @@
-package objectos;
+package pojos;
 
 /**
  * by miguel.silva on 09-02-2017.

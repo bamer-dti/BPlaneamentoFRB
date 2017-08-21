@@ -34,7 +34,7 @@ public class SMS {
         tempostampProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                dataTxt = Funcoes.segundos_em_DD_MM_AAAA_HH_MM_SS(newValue.longValue());
+                dataTxt = Funcoes.millis_em_DD_MM_AAAA_HH_MM_SS(newValue.longValue());
             }
         });
         arquivada.addListener(new ChangeListener<Boolean>() {

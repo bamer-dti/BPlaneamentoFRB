@@ -8,12 +8,14 @@ import javafx.scene.layout.GridPane;
 import objectos.GridPaneCalendario;
 import objectos.VBoxOSBO;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 
 import java.net.URL;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -21,7 +23,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 import static java.lang.System.out;
 
@@ -112,17 +113,23 @@ public class Funcoes {
         return sqlData;
     }
 
-
-    public static String milisegundos_em_HH_MM_SS(long millis) {
-        String hms = String.format("%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(millis),
-                TimeUnit.MILLISECONDS.toMinutes(millis) % TimeUnit.HOURS.toMinutes(1),
-                TimeUnit.MILLISECONDS.toSeconds(millis) % TimeUnit.MINUTES.toSeconds(1));
-        return hms;
+    public static String millis_em_DD_MM_AAAA_HH_MM_SS(long millis) {
+        DateTime someDate = new DateTime(millis);
+        DateFormat formatter = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault());
+        String data = formatter.format(someDate.getMillis());
+        return data;
     }
 
-    public static String segundos_em_DD_MM_AAAA_HH_MM_SS(long segundos) {
-        DateTime someDate = new DateTime(segundos);
-        DateFormat formatter = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault());
+    public static String millis_em_dd_MM_HH_mm_ss(long millis) {
+        DateTime someDate = new DateTime(millis, DateTimeZone.getDefault());
+        DateFormat formatter = new SimpleDateFormat("dd/MM HH:mm:ss", Locale.getDefault());
+        String data = formatter.format(someDate.getMillis());
+        return data;
+    }
+
+    public static String unix_HH_mm_ss(long unixtimeseconds) {
+        DateTime someDate = new DateTime(unixtimeseconds * 1000L);
+        DateFormat formatter = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
         String data = formatter.format(someDate.getMillis());
         return data;
     }
@@ -172,5 +179,18 @@ public class Funcoes {
         return new org.joda.time.LocalDate(input.getYear(),
                 input.getMonthValue(),
                 input.getDayOfMonth());
+    }
+
+    public static long agoraMillis() {
+        long unixTimestamp = Instant.now().toEpochMilli();
+//        System.out.println("NOW MILLIS: " + now);
+        return unixTimestamp;
+    }
+
+    public static long agoraUnixSegundos() {
+        DateTimeZone.setDefault(DateTimeZone.UTC);
+        long unixTimestamp = Instant.now().getEpochSecond();
+//        System.out.println("NOW SEGUNDOS: " + now);
+        return unixTimestamp;
     }
 }

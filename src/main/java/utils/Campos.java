@@ -39,7 +39,7 @@ public class Campos {
 
     public static final String UNIXTIME = "unixtime";
     public static final String LASTTIME = "lasttime";
-    public static final String MAQUINA = "maquina";
+    public static final String MAQUINAS = "maquinas";
     public static final String POSICAO = "posicao";
     public static final String _ID = "_id";
     public static final String NUMLINHA = "numlinha";
@@ -50,6 +50,11 @@ public class Campos {
     public static final String CODIGO = "codigo";
     public static final String NOME = "nome";
     public static final String DTOPER = "dtoper";
+    public static final String TEMPOP = "tempop";
+    public static final String TEMPOT = "tempot";
+
     public static final String WS_MENSAGEM_OSBO = "mensagem";
     public static final String WS_OS_OSBO = "ok";
+    public static final String OS = "os";
+    public static final String STATUS = "status";
 }

@@ -9,6 +9,7 @@ import com.google.firebase.internal.Log;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.layout.HBox;
+import pojos.Machina;
 import sqlite.DBSQLite;
 import utils.Campos;
 
@@ -58,7 +59,7 @@ public class HBoxMachinas extends HBox {
     }
 
     private void CriarBotaoMachina(Machina machina) {
-        GridButtonMachina botao = new GridButtonMachina(machina);
+        ButaoMachina botao = new ButaoMachina(machina);
         setMargin(botao, new Insets(0, 10, 0, 10));
         Platform.runLater(new Runnable() {
             @Override

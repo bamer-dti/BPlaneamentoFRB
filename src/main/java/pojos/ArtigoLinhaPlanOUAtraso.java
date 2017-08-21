@@ -144,7 +144,7 @@ public class ArtigoLinhaPlanOUAtraso {
 
     public ArtigoOSBO transformar_Em_OSBO(int ordem, String data) {
         System.out.println("transformar_Em_OSBO: " + data);
-        ArtigoOSBO ar = new ArtigoOSBO(bostamp, obrano, fref, nmfref, estado, seccao, obs, 1, data, data, data, data, ordem, data, qtt, data, 0);
+        ArtigoOSBO ar = new ArtigoOSBO(bostamp, obrano, fref, nmfref, estado, seccao, obs, 1, data, data, data, data, ordem, data, qtt, 0, data, 0L, 0L);
         return ar;
     }
 }
